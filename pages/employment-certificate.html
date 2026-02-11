@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재직증명서 발급 - 다솔물환경연구소</title>
+    
+    <!-- PDF 생성 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 재직증명서 미리보기 */
+        #certPreview {
+            background: white;
+            padding: 60px 50px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Malgun Gothic', sans-serif;
+            line-height: 1.8;
+        }
+
+        .cert-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            letter-spacing: 8px;
+        }
+
+        .cert-content {
+            font-size: 16px;
+            text-align: justify;
+            line-height: 2;
+            margin-bottom: 30px;
+        }
+
+        .cert-info {
+            margin: 30px 0;
+            padding-left: 40px;
+        }
+
+        .cert-info-row {
+            margin: 15px 0;
+            font-size: 16px;
+        }
+
+        .cert-footer {
+            text-align: center;
+            margin-top: 60px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .cert-date {
+            margin: 20px 0;
+        }
+
+        .cert-company {
+            margin-top: 40px;
+        }
+
+        .cert-stamp {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            border: 3px solid #ef4444;
+            border-radius: 50%;
+            line-height: 100px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ef4444;
+            margin-left: 20px;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📄 재직증명서 발급</h1>
+            
+            <div class="info-box">
+                <strong>ℹ️ 안내</strong><br>
+                직원 정보를 입력하면 자동으로 재직증명서가 생성됩니다.<br>
+                미리보기 후 PDF로 다운로드하거나 출력할 수 있습니다.
+            </div>
+
+            <div id="successMessage" class="success-message">
+                <strong>✅ 재직증명서가 생성되었습니다!</strong>
+            </div>
+
+            <!-- 직원 선택 -->
+            <div class="form-group">
+                <label>직원 선택 *</label>
+                <select id="employeeSelect" onchange="loadEmployeeData()">
+                    <option value="">직원을 선택하세요</option>
+                </select>
+            </div>
+
+            <!-- 입력 폼 -->
+            <div class="form-group">
+                <label>성명 *</label>
+                <input type="text" id="name" placeholder="홍길동" required>
+            </div>
+
+            <div class="form-group">
+                <label>생년월일 *</label>
+                <input type="date" id="birthDate" required>
+            </div>
+
+            <div class="form-group">
+                <label>주소 *</label>
+                <input type="text" id="address" placeholder="서울특별시 강남구..." required>
+            </div>
+
+            <div class="form-group">
+                <label>입사일 *</label>
+                <input type="date" id="joinDate" required>
+            </div>
+
+            <div class="form-group">
+                <label>부서 *</label>
+                <input type="text" id="department" placeholder="영업1팀" required>
+            </div>
+
+            <div class="form-group">
+                <label>직위 *</label>
+                <input type="text" id="position" placeholder="대리" required>
+            </div>
+
+            <div class="form-group">
+                <label>용도 *</label>
+                <select id="purpose">
+                    <option value="금융기관 제출용">금융기관 제출용</option>
+                    <option value="관공서 제출용">관공서 제출용</option>
+                    <option value="비자 발급용">비자 발급용</option>
+                    <option value="제출처 없음">제출처 없음</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button class="btn btn-primary" onclick="generateCertificate()" style="flex: 1;">
+                    📄 재직증명서 생성
+                </button>
+                <button class="btn btn-secondary" onclick="window.history.back()" style="flex: 1;">
+                    ← 돌아가기
+                </button>
+            </div>
+        </div>
+
+        <!-- 미리보기 -->
+        <div class="card" id="previewCard" style="display: none;">
+            <h1>📋 재직증명서 미리보기</h1>
+            <div id="certPreview"></div>
+            <div style="text-align: center; margin-top: 20px; display: flex; gap: 15px;">
+                <button class="btn btn-primary" onclick="downloadPDF()" style="flex: 1;">
+                    💾 PDF 다운로드
+                </button>
+                <button class="btn btn-secondary" onclick="window.print()" style="flex: 1;">
+                    🖨️ 인쇄하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 날짜 가져오기
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}년 ${month}월 ${day}일`;
+        }
+
+        // 날짜 포맷팅 (YYYY-MM-DD → YYYY년 MM월 DD일)
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}년 ${month}월 ${day}일`;
+        }
+
+        // 재직기간 계산
+        function calculateWorkPeriod(joinDate) {
+            const join = new Date(joinDate);
+            const now = new Date();
+            
+            let years = now.getFullYear() - join.getFullYear();
+            let months = now.getMonth() - join.getMonth();
+            
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            if (years > 0 && months > 0) {
+                return `${years}년 ${months}개월`;
+            } else if (years > 0) {
+                return `${years}년`;
+            } else {
+                return `${months}개월`;
+            }
+        }
+
+        // 직원 목록 불러오기
+        function loadEmployees() {
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const select = document.getElementById('employeeSelect');
+            
+            users.forEach(user => {
+                if (user.status === 'active') {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.name} (${user.team} ${user.position})`;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        // 직원 데이터 불러오기
+        function loadEmployeeData() {
+            const userId = document.getElementById('employeeSelect').value;
+            if (!userId) return;
+            
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const user = users.find(u => u.id === userId);
+            
+            if (user) {
+                document.getElementById('name').value = user.name || '';
+                document.getElementById('department').value = user.team || '';
+                document.getElementById('position').value = user.position || '';
+                // joinDate, birthDate, address는 실제 인사DB에서 가져와야 함
+            }
+        }
+
+        // 재직증명서 HTML 생성
+        function createCertificateHTML(data) {
+            const workPeriod = calculateWorkPeriod(data.joinDate);
+            
+            return `
+                <div class="cert-title">재 직 증 명 서</div>
+                
+                <div class="cert-info">
+                    <div class="cert-info-row">성　　명 : ${data.name}</div>
+                    <div class="cert-info-row">생년월일 : ${formatDate(data.birthDate)}</div>
+                    <div class="cert-info-row">주　　소 : ${data.address}</div>
+                </div>
+
+                <div class="cert-content">
+                    　위 사람은 ${formatDate(data.joinDate)}부터 현재까지 본 연구소 ${data.department} ${data.position}으로 재직 중임을 증명합니다.
+                    (재직기간: ${workPeriod})
+                </div>
+
+                <div class="cert-content" style="margin-top: 40px;">
+                    　위 증명서를 ${data.purpose}으로 발급합니다.
+                </div>
+
+                <div class="cert-footer">
+                    <div class="cert-date">${getCurrentDate()}</div>
+                    
+                    <div class="cert-company">
+                        <div style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">다솔물환경연구소</div>
+                        <div style="font-size: 18px;">대표이사 Kamille</div>
+                        <div class="cert-stamp">직 인</div>
+                    </div>
+                    
+                    <div style="margin-top: 40px; font-size: 14px; color: #6b7280;">
+                        경기도 하남시 하남대로 947 하남테크노밸리 U1센터 C동 1410호<br>
+                        Tel: 031-XXX-XXXX | Email: info@dasol.co.kr
+                    </div>
+                </div>
+            `;
+        }
+
+        // 재직증명서 생성
+        function generateCertificate() {
+            const data = {
+                name: document.getElementById('name').value.trim(),
+                birthDate: document.getElementById('birthDate').value,
+                address: document.getElementById('address').value.trim(),
+                joinDate: document.getElementById('joinDate').value,
+                department: document.getElementById('department').value.trim(),
+                position: document.getElementById('position').value.trim(),
+                purpose: document.getElementById('purpose').value
+            };
+
+            // 유효성 검사
+            if (!data.name || !data.birthDate || !data.address || !data.joinDate || !data.department || !data.position) {
+                alert('모든 필수 항목을 입력해주세요.');
+                return;
+            }
+
+            // HTML 생성
+            const html = createCertificateHTML(data);
+            document.getElementById('certPreview').innerHTML = html;
+            document.getElementById('previewCard').style.display = 'block';
+            
+            // 성공 메시지
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+            
+            // 스크롤
+            document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth' });
+
+            // 발급 이력 저장
+            saveCertificateHistory(data);
+        }
+
+        // PDF 다운로드
+        async function downloadPDF() {
+            const element = document.getElementById('certPreview');
+            const canvas = await html2canvas(element, { 
+                scale: 2,
+                backgroundColor: '#ffffff'
+            });
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            
+            const name = document.getElementById('name').value;
+            const date = new Date().toISOString().slice(0, 10);
+            pdf.save(`재직증명서_${name}_${date}.pdf`);
+
+            alert('✅ 재직증명서가 다운로드되었습니다!');
+        }
+
+        // 발급 이력 저장
+        function saveCertificateHistory(data) {
+            const history = JSON.parse(localStorage.getItem('dasol_cert_history') || '[]');
+            history.push({
+                ...data,
+                issuedAt: new Date().toISOString(),
+                issuedBy: JSON.parse(localStorage.getItem('dasol_session') || '{}').name
+            });
+            localStorage.setItem('dasol_cert_history', JSON.stringify(history));
+        }
+
+        // 페이지 로드 시
+        window.addEventListener('load', () => {
+            loadEmployees();
+        });
+    </script>
+</body>
+</html>
