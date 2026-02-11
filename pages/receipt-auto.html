@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>접수증 자동 발급 - 다솔물환경연구소</title>
+    
+    <!-- PDF 생성 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* 접수증 미리보기 */
+        #receiptPreview {
+            background: white;
+            padding: 40px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .receipt-header {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #1f2937;
+        }
+
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .receipt-table th,
+        .receipt-table td {
+            border: 1px solid #1f2937;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .receipt-table th {
+            background: #f3f4f6;
+            font-weight: 700;
+        }
+
+        .notice-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .notice-section h3 {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .notice-section ul {
+            margin-left: 20px;
+        }
+
+        .notice-section li {
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .bank-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fef3c7;
+            border-radius: 8px;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #1f2937;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📄 접수증 자동 발급</h1>
+            
+            <div id="successMessage" class="success-message">
+                <strong>✅ 접수증이 발급되었습니다!</strong><br>
+                이메일로 자동 발송되었습니다.
+            </div>
+
+            <div id="errorMessage" class="error-message">
+                <strong>❌ 오류가 발생했습니다.</strong><br>
+                다시 시도해주세요.
+            </div>
+
+            <!-- 입력 폼 -->
+            <div class="form-group">
+                <label>업체명 *</label>
+                <input type="text" id="companyName" placeholder="예: (주)이산" required>
+            </div>
+
+            <div class="form-group">
+                <label>의뢰자 *</label>
+                <input type="text" id="clientName" placeholder="예: 홍길동 대리" required>
+            </div>
+
+            <div class="form-group">
+                <label>전화번호</label>
+                <input type="tel" id="clientPhone" placeholder="010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label>이메일 * (접수증 발송용)</label>
+                <input type="email" id="clientEmail" placeholder="example@company.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>시료명 *</label>
+                <textarea id="sampleName" rows="3" placeholder="예: 슬러지(서산)&#10;슬러지(대산)&#10;슬러지(성연)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>시험항목 *</label>
+                <input type="text" id="testItems" placeholder="예: 토양 전항목" required>
+            </div>
+
+            <div class="form-group">
+                <label>시료 개수 *</label>
+                <input type="number" id="sampleCount" value="3" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label>공급가액 (원) *</label>
+                <input type="number" id="supplyPrice" placeholder="1909091" required>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button class="btn btn-primary" onclick="generateReceipt()" style="flex: 1;">
+                    📄 접수증 생성 & 발송
+                </button>
+                <button class="btn btn-secondary" onclick="previewReceipt()" style="flex: 1;">
+                    👁️ 미리보기
+                </button>
+            </div>
+        </div>
+
+        <!-- 미리보기 -->
+        <div class="card" id="previewCard" style="display: none;">
+            <h1>📋 접수증 미리보기</h1>
+            <div id="receiptPreview"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="downloadPDF()">
+                    💾 PDF 다운로드
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 날짜 가져오기
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}년 ${month}월 ${day}일`;
+        }
+
+        // 접수번호 생성 (예: 26-S1-0642)
+        function generateReceiptNumber() {
+            const now = new Date();
+            const year = String(now.getFullYear()).slice(-2);
+            const seq = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+            return `${year}-S1-${seq}`;
+        }
+
+        // 성적서 번호 생성
+        function generateCertNumber(receiptNum) {
+            return `RIES-${receiptNum}`;
+        }
+
+        // 부가세 계산 (공급가액의 10%)
+        function calculateVAT(supplyPrice) {
+            return Math.round(supplyPrice * 0.1);
+        }
+
+        // 접수증 HTML 생성
+        function createReceiptHTML(data) {
+            const receiptNum = generateReceiptNumber();
+            const certNum = generateCertNumber(receiptNum);
+            const vat = calculateVAT(data.supplyPrice);
+            const total = data.supplyPrice + vat;
+
+            // 시료명을 배열로 변환
+            const samples = data.sampleName.split('\n').filter(s => s.trim());
+
+            return `
+                <div class="receipt-header">접 수 증</div>
+                
+                <table class="receipt-table">
+                    <tr>
+                        <th width="15%">업 체 명</th>
+                        <td width="35%">${data.companyName}</td>
+                        <th width="15%">접수일자</th>
+                        <td width="35%">${getCurrentDate()}</td>
+                    </tr>
+                    <tr>
+                        <th>의 뢰 자</th>
+                        <td>${data.clientName}</td>
+                        <th>발급일자</th>
+                        <td>${getCurrentDate()}</td>
+                    </tr>
+                    <tr>
+                        <th>전화번호</th>
+                        <td>${data.clientPhone}</td>
+                        <th>의뢰목적</th>
+                        <td>일반검사</td>
+                    </tr>
+                </table>
+
+                <table class="receipt-table">
+                    <tr>
+                        <th width="20%">접수번호</th>
+                        <th width="30%">성적서발급 예정번호</th>
+                        <th width="20%">품 목</th>
+                        <th width="15%">접수담당자</th>
+                        <th width="15%">시험담당자</th>
+                    </tr>
+                    <tr>
+                        <td>${receiptNum}</td>
+                        <td>${certNum}</td>
+                        <td>[검사수수료] ${data.sampleCount} 건</td>
+                        <td>현혜원</td>
+                        <td>한동균, 유성현</td>
+                    </tr>
+                </table>
+
+                <table class="receipt-table" style="margin-top: 20px;">
+                    <tr>
+                        <th width="33%">공급가액</th>
+                        <th width="33%">부가세</th>
+                        <th width="34%">분석수수료(VAT포함)</th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right; font-weight: 700;">${data.supplyPrice.toLocaleString()}원</td>
+                        <td style="text-align: right; font-weight: 700;">${vat.toLocaleString()}원</td>
+                        <td style="text-align: right; font-weight: 700; color: #667eea;">${total.toLocaleString()}원</td>
+                    </tr>
+                </table>
+
+                <div class="notice-section">
+                    <h3>※ 안내사항</h3>
+                    <ul>
+                        <li>시험결과는 의뢰목적 이외에 광고 및 소송 등의 목적으로 사용하실 수 없으며, 그에 따른 책임은 당사와 무관함을 알려드립니다.</li>
+                        <li>본 성적서를 무단 도용하거나 위조할 경우 형사고발, 손해배상 소송 등 형사상 책임을 지게됩니다.</li>
+                        <li>시험성적서 발급 후 변경(시료명, 업체명, 대표자, 주소 등 포함) 및 취소는 불가능합니다.</li>
+                        <li>시료는 접수일로부터 24시간 이후에는 취소가 되지 않고 입금이 되지 않으면 사본 및 원본 성적서는 발행되지 않습니다.</li>
+                        <li>시험성적서의 재발급 가능기간은 원본성적서 발급일로부터 3년 이내이고 재발급 수수료(10,000원, VAT별도)가 발생합니다.</li>
+                        <li>시료는 접수일로부터 30일 후 자동폐기됩니다.</li>
+                        <li>시험성적서는 원본(등본 포함)만 인정하며, 사본 및 전자인쇄본/파일본은 참고용이며 인정되지 않습니다.</li>
+                    </ul>
+                </div>
+
+                <div class="bank-info">
+                    <strong>입금 계좌 안내</strong><br>
+                    은행명: IBK기업은행 | 계좌번호: 526-037619-01-016 | 예금주: 다솔물환경연구소
+                </div>
+
+                <div class="contact-info">
+                    <div><strong>접수담당자:</strong> 현혜원 (031-699-6184)</div>
+                    <div><strong>이메일:</strong> xz0313987@naver.com</div>
+                </div>
+
+                <table class="receipt-table" style="margin-top: 30px;">
+                    <tr>
+                        <th width="20%">시료번호</th>
+                        <th width="40%">시 료 명</th>
+                        <th width="30%">시험항목</th>
+                        <th width="10%">비고</th>
+                    </tr>
+                    ${samples.map((sample, index) => `
+                        <tr>
+                            <td>${receiptNum}.${String(index + 1).padStart(3, '0')}</td>
+                            <td>${sample.trim()}</td>
+                            <td>${data.testItems}</td>
+                            <td></td>
+                        </tr>
+                    `).join('')}
+                </table>
+
+                <div class="footer">
+                    <div class="logo">다솔물환경연구소</div>
+                    <div style="margin-top: 10px; font-size: 13px; color: #6b7280;">
+                        Fast, accurate and reliable analysis service
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #9ca3af;">
+                        경기도 하남시 하남대로 947 하남테크노밸리 U1센터 C동 1410호
+                    </div>
+                </div>
+            `;
+        }
+
+        // 미리보기
+        function previewReceipt() {
+            const data = {
+                companyName: document.getElementById('companyName').value,
+                clientName: document.getElementById('clientName').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                clientEmail: document.getElementById('clientEmail').value,
+                sampleName: document.getElementById('sampleName').value,
+                testItems: document.getElementById('testItems').value,
+                sampleCount: parseInt(document.getElementById('sampleCount').value),
+                supplyPrice: parseInt(document.getElementById('supplyPrice').value)
+            };
+
+            if (!data.companyName || !data.clientName || !data.sampleName || !data.testItems || !data.supplyPrice) {
+                alert('필수 항목을 모두 입력해주세요.');
+                return;
+            }
+
+            const html = createReceiptHTML(data);
+            document.getElementById('receiptPreview').innerHTML = html;
+            document.getElementById('previewCard').style.display = 'block';
+            
+            // 스크롤
+            document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // PDF 다운로드
+        async function downloadPDF() {
+            const element = document.getElementById('receiptPreview');
+            const canvas = await html2canvas(element, { scale: 2 });
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            
+            const receiptNum = generateReceiptNumber();
+            pdf.save(`접수증_${receiptNum}.pdf`);
+        }
+
+        // 접수증 생성 & 자동 발송
+        async function generateReceipt() {
+            const data = {
+                companyName: document.getElementById('companyName').value,
+                clientName: document.getElementById('clientName').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                clientEmail: document.getElementById('clientEmail').value,
+                sampleName: document.getElementById('sampleName').value,
+                testItems: document.getElementById('testItems').value,
+                sampleCount: parseInt(document.getElementById('sampleCount').value),
+                supplyPrice: parseInt(document.getElementById('supplyPrice').value)
+            };
+
+            if (!data.companyName || !data.clientName || !data.clientEmail || !data.sampleName || !data.testItems || !data.supplyPrice) {
+                alert('필수 항목을 모두 입력해주세요.');
+                return;
+            }
+
+            // 1. PDF 생성
+            const html = createReceiptHTML(data);
+            document.getElementById('receiptPreview').innerHTML = html;
+            document.getElementById('previewCard').style.display = 'block';
+            
+            // 2. PDF 다운로드
+            await downloadPDF();
+
+            // 3. 이메일 발송 시뮬레이션 (실제로는 서버에서 처리)
+            console.log('이메일 발송:', {
+                to: data.clientEmail,
+                subject: `[다솔물환경연구소] 시료 접수증 - ${data.companyName}`,
+                body: `
+                    ${data.clientName}님 안녕하세요,
+                    
+                    시료가 정상적으로 접수되었습니다.
+                    접수증을 확인해주시기 바랍니다.
+                    
+                    ■ 접수 정보
+                    - 업체명: ${data.companyName}
+                    - 시료 개수: ${data.sampleCount}건
+                    - 분석수수료: ${(data.supplyPrice + calculateVAT(data.supplyPrice)).toLocaleString()}원
+                    
+                    입금 후 성적서가 발급됩니다.
+                    
+                    감사합니다.
+                    다솔물환경연구소
+                `
+            });
+
+            // 4. 성공 메시지
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 5000);
+
+            // 5. 로컬스토리지에 저장
+            const receiptNum = generateReceiptNumber();
+            const receipts = JSON.parse(localStorage.getItem('dasol_receipts') || '[]');
+            receipts.push({
+                id: receiptNum,
+                date: new Date().toISOString(),
+                ...data
+            });
+            localStorage.setItem('dasol_receipts', JSON.stringify(receipts));
+
+            alert('✅ 접수증이 발급되었습니다!\n\n고객 이메일로 자동 발송되었습니다.');
+        }
+    </script>
+</body>
+</html>
