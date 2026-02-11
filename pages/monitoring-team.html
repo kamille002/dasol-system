@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수질자가측정 파트 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif; background: #f8f9fa; padding: 20px; }
+        .header { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 40px 30px; border-radius: 12px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .header-icon { font-size: 60px; }
+        .header-title { font-size: 32px; font-weight: 700; }
+        .header-subtitle { font-size: 16px; opacity: 0.9; margin-top: 8px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: white; color: #3b82f6; transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card h2 { font-size: 20px; margin-bottom: 20px; color: #1f2937; }
+        .menu-btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: #f3f4f6; color: #1f2937; margin-bottom: 10px; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px; }
+        .menu-btn:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; transform: translateX(5px); }
+        .stat-card { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 30px; border-radius: 12px; text-align: center; }
+        .stat-number { font-size: 48px; font-weight: 700; margin: 10px 0; }
+        .stat-label { font-size: 16px; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="header-icon">🏭</div>
+            <div>
+                <div class="header-title">수질자가측정 파트</div>
+                <div class="header-subtitle">사업장 수질오염물질 측정 대행</div>
+            </div>
+        </div>
+        <button class="btn" onclick="window.location.href='../dashboard-tabs.html'">← 대시보드로</button>
+    </div>
+
+    <div class="grid-3" style="margin-bottom: 30px;">
+        <div class="stat-card">
+            <div class="stat-label">이번 달 측정</div>
+            <div class="stat-number">45건</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <div class="stat-label">정상 배출</div>
+            <div class="stat-number">43건</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <div class="stat-label">초과 검출</div>
+            <div class="stat-number">2건</div>
+        </div>
+    </div>
+
+    <div class="grid-3">
+        <div class="card">
+            <h2>🏭 측정 관리</h2>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">📝</span>
+                <span>측정 계획 수립</span>
+            </button>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">🧪</span>
+                <span>시료 채취</span>
+            </button>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">📊</span>
+                <span>측정 결과 입력</span>
+            </button>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">📋</span>
+                <span>성적서 발급</span>
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>👥 사업장 관리</h2>
+            <button class="menu-btn" onclick="window.location.href='sales-crm.html'">
+                <span style="font-size: 24px;">🏢</span>
+                <span>사업장 목록</span>
+            </button>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">📅</span>
+                <span>측정 일정</span>
+            </button>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">📜</span>
+                <span>허가증 관리</span>
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ 장비 관리</h2>
+            <button class="menu-btn" onclick="window.location.href='equipment-management.html'">
+                <span style="font-size: 24px;">⚙️</span>
+                <span>장비 현황</span>
+            </button>
+            <button class="menu-btn" onclick="window.location.href='equipment-register.html'">
+                <span style="font-size: 24px;">➕</span>
+                <span>장비 등록</span>
+            </button>
+            <button class="menu-btn" onclick="alert('개발 예정')">
+                <span style="font-size: 24px;">🔧</span>
+                <span>정기 점검</span>
+            </button>
+        </div>
+    </div>
+</body>
+</html>
