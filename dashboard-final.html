@@ -1117,6 +1117,10 @@
                                 style="width: 100%; margin-bottom: 8px; font-size: 13px;">
                             👤 인사카드
                         </button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/employment-certificate.html'" 
+                                style="width: 100%; margin-bottom: 8px; font-size: 13px;">
+                            📄 재직증명서
+                        </button>
                         <button class="btn btn-secondary" onclick="window.location.href='pages/hr-training.html'" 
                                 style="width: 100%; font-size: 13px;">
                             📚 교육 관리
@@ -4296,18 +4300,48 @@ ${post.content}
         // 설치 버튼 클릭 핸들러
         if (installButton) {
             installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
+                if (!deferredPrompt) {
+                    // deferredPrompt가 없으면 수동 설치 안내
+                    alert('📱 앱 설치 방법\n\n' +
+                          '■ Android (Chrome):\n' +
+                          '1. 브라우저 메뉴(⋮) 열기\n' +
+                          '2. "홈 화면에 추가" 선택\n\n' +
+                          '■ iPhone (Safari):\n' +
+                          '1. 공유 버튼(□↑) 클릭\n' +
+                          '2. "홈 화면에 추가" 선택\n\n' +
+                          '■ PC (Chrome/Edge):\n' +
+                          '1. 주소창 옆 설치 아이콘(⊕) 클릭\n' +
+                          '2. "설치" 버튼 클릭');
+                    return;
+                }
+                
+                try {
+                    // 로딩 표시
+                    installButton.textContent = '⏳ 설치 중...';
+                    installButton.disabled = true;
+                    
+                    // 설치 프롬프트 표시
+                    await deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
                     
                     if (outcome === 'accepted') {
                         console.log('✓ PWA 설치 승인');
+                        installButton.textContent = '✓ 설치 완료';
+                        setTimeout(() => {
+                            installButton.style.display = 'none';
+                        }, 2000);
                     } else {
                         console.log('✗ PWA 설치 거부');
+                        installButton.textContent = '📱 앱 설치';
+                        installButton.disabled = false;
                     }
                     
                     deferredPrompt = null;
-                    installButton.style.display = 'none';
+                } catch (error) {
+                    console.error('설치 오류:', error);
+                    installButton.textContent = '📱 앱 설치';
+                    installButton.disabled = false;
+                    alert('설치 중 오류가 발생했습니다.\n브라우저 메뉴에서 직접 설치해주세요.');
                 }
             });
         }
