@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장비 등록 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 32px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #111827;
+            margin-bottom: 32px;
+        }
+        .form-section {
+            margin-bottom: 32px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* 파일 업로드 */
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f9fafb;
+        }
+        .upload-placeholder svg {
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+        .file-preview {
+            position: relative;
+            width: 100%;
+        }
+        .file-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+        }
+        .file-delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(239, 68, 68, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+        }
+        .file-delete-btn:hover {
+            background: #dc2626;
+        }
+        .file-list {
+            margin-top: 12px;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .file-item-name {
+            font-size: 14px;
+            color: #374151;
+        }
+        .file-item-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* 버튼 */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .auto-calc {
+            background: #f0f9ff;
+            border: 2px solid #bae6fd;
+            color: #0369a1;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="pageTitle">🔬 장비 등록</h1>
+
+        <form id="equipmentForm">
+            <!-- 기본 정보 -->
+            <div class="form-section">
+                <div class="section-title">기본 정보</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>관리번호 <span class="required">*</span></label>
+                        <input type="text" id="equipmentNumber" placeholder="예: WW-001" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>장비명 <span class="required">*</span></label>
+                        <input type="text" id="equipmentName" placeholder="예: P&T-GC/MS" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>모델명</label>
+                        <input type="text" id="modelName" placeholder="예: Agilent 7890A">
+                    </div>
+
+                    <div class="form-group">
+                        <label>제조회사</label>
+                        <input type="text" id="manufacturer" placeholder="예: Agilent">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>시리얼번호</label>
+                        <input type="text" id="serialNumber" placeholder="예: US 21182008">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>측정항목</label>
+                        <input type="text" id="measurementItems" placeholder="예: VOCs, PCBs, 농약류">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 관리 정보 -->
+            <div class="form-section">
+                <div class="section-title">관리 정보</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>도입일 <span class="required">*</span></label>
+                        <input type="date" id="purchaseDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>내용연수 (년)</label>
+                        <input type="number" id="usefulLife" placeholder="예: 10" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>교정주기 (개월) <span class="required">*</span></label>
+                        <input type="number" id="calibrationCycle" placeholder="예: 12" min="1" required onchange="calculateNextCalibration()">
+                        <div class="help-text">교정 주기를 입력하면 다음 교정일이 자동 계산됩니다</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>교정구분 <span class="required">*</span></label>
+                        <select id="calibrationRequired" required>
+                            <option value="true">교정 (교정 필요)</option>
+                            <option value="false">비교정 (교정 불필요)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>다음 교정 예정일</label>
+                        <input type="date" id="nextCalibrationDate" class="auto-calc" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>보관장소</label>
+                        <input type="text" id="location" placeholder="예: 기기분석실">
+                    </div>
+
+                    <div class="form-group">
+                        <label>상태 <span class="required">*</span></label>
+                        <select id="status" required>
+                            <option value="normal">정상</option>
+                            <option value="inspection">점검중</option>
+                            <option value="broken">고장</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 장비 사진 -->
+            <div class="form-section">
+                <div class="section-title">장비 사진</div>
+                <div class="file-upload-area" onclick="document.getElementById('equipmentPhoto').click()" id="photoUploadArea">
+                    <div class="upload-placeholder" id="photoPlaceholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <p style="margin-top: 12px; font-weight: 600; color: #374151;">장비 사진 업로드</p>
+                        <p style="margin-top: 4px; font-size: 13px; color: #9ca3af;">JPG, PNG (최대 5MB)</p>
+                    </div>
+                    <div class="file-preview" id="photoPreview" style="display: none;">
+                        <img id="previewImage" />
+                        <button type="button" class="file-delete-btn" onclick="deletePhoto(event)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <input type="file" id="equipmentPhoto" accept="image/*" onchange="handlePhoto(event)">
+            </div>
+
+            <!-- 매뉴얼 첨부 -->
+            <div class="form-section">
+                <div class="section-title">매뉴얼 첨부 (선택)</div>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('manualFile').click()">📎 파일 선택</button>
+                <input type="file" id="manualFile" accept=".pdf,.doc,.docx,.hwp" onchange="handleManual(event)">
+                <div class="file-list" id="manualList"></div>
+            </div>
+
+            <!-- 비고 -->
+            <div class="form-section">
+                <div class="section-title">비고</div>
+                <div class="form-group">
+                    <textarea id="notes" placeholder="추가 정보를 입력하세요"></textarea>
+                </div>
+            </div>
+
+            <!-- 버튼 -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
+                <button type="submit" class="btn btn-primary">저장</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let equipmentPhoto = null;
+        let manualFile = null;
+        let editMode = false;
+        let editId = null;
+
+        function init() {
+            // URL에서 ID 가져오기 (수정 모드)
+            const urlParams = new URLSearchParams(window.location.search);
+            editId = urlParams.get('id');
+
+            if (editId) {
+                editMode = true;
+                document.getElementById('pageTitle').textContent = '🔬 장비 수정';
+                loadEquipment(editId);
+            }
+        }
+
+        function loadEquipment(id) {
+            const equipments = JSON.parse(localStorage.getItem('dasol_equipments') || '[]');
+            const equipment = equipments.find(e => e.id === id);
+
+            if (!equipment) {
+                alert('장비를 찾을 수 없습니다.');
+                goBack();
+                return;
+            }
+
+            // 폼 채우기
+            document.getElementById('equipmentNumber').value = equipment.equipmentNumber;
+            document.getElementById('equipmentName').value = equipment.equipmentName;
+            document.getElementById('modelName').value = equipment.modelName || '';
+            document.getElementById('manufacturer').value = equipment.manufacturer || '';
+            document.getElementById('serialNumber').value = equipment.serialNumber || '';
+            document.getElementById('measurementItems').value = equipment.measurementItems || '';
+            document.getElementById('purchaseDate').value = equipment.purchaseDate;
+            document.getElementById('usefulLife').value = equipment.usefulLife || '';
+            document.getElementById('calibrationCycle').value = equipment.calibrationCycle;
+            document.getElementById('calibrationRequired').value = equipment.calibrationRequired !== undefined ? equipment.calibrationRequired.toString() : 'true';
+            document.getElementById('nextCalibrationDate').value = equipment.nextCalibrationDate;
+            document.getElementById('location').value = equipment.location || '';
+            document.getElementById('status').value = equipment.status;
+            document.getElementById('notes').value = equipment.notes || '';
+
+            // 사진
+            if (equipment.photo) {
+                equipmentPhoto = equipment.photo;
+                document.getElementById('photoPlaceholder').style.display = 'none';
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('previewImage').src = equipment.photo;
+            }
+
+            // 매뉴얼
+            if (equipment.manual) {
+                manualFile = equipment.manual;
+                displayManual(equipment.manual);
+            }
+        }
+
+        function calculateNextCalibration() {
+            const purchaseDate = document.getElementById('purchaseDate').value;
+            const calibrationCycle = parseInt(document.getElementById('calibrationCycle').value);
+
+            if (!purchaseDate || !calibrationCycle) return;
+
+            const date = new Date(purchaseDate);
+            date.setMonth(date.getMonth() + calibrationCycle);
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            document.getElementById('nextCalibrationDate').value = `${year}-${month}-${day}`;
+        }
+
+        function handlePhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('파일 크기는 5MB 이하여야 합니다.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                equipmentPhoto = e.target.result;
+                document.getElementById('photoPlaceholder').style.display = 'none';
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('previewImage').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deletePhoto(event) {
+            event.stopPropagation();
+            equipmentPhoto = null;
+            document.getElementById('equipmentPhoto').value = '';
+            document.getElementById('photoPlaceholder').style.display = 'block';
+            document.getElementById('photoPreview').style.display = 'none';
+        }
+
+        function handleManual(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('파일 크기는 10MB 이하여야 합니다.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                manualFile = {
+                    name: file.name,
+                    type: file.type,
+                    data: e.target.result
+                };
+                displayManual(manualFile);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayManual(manual) {
+            const manualList = document.getElementById('manualList');
+            manualList.innerHTML = `
+                <div class="file-item">
+                    <span class="file-item-name">📄 ${manual.name}</span>
+                    <button type="button" class="file-item-remove" onclick="removeManual()">삭제</button>
+                </div>
+            `;
+        }
+
+        function removeManual() {
+            manualFile = null;
+            document.getElementById('manualFile').value = '';
+            document.getElementById('manualList').innerHTML = '';
+        }
+
+        // 폼 제출
+        document.getElementById('equipmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const equipment = {
+                id: editMode ? editId : 'EQ' + Date.now(),
+                equipmentNumber: document.getElementById('equipmentNumber').value,
+                equipmentName: document.getElementById('equipmentName').value,
+                modelName: document.getElementById('modelName').value,
+                manufacturer: document.getElementById('manufacturer').value,
+                serialNumber: document.getElementById('serialNumber').value,
+                measurementItems: document.getElementById('measurementItems').value,
+                purchaseDate: document.getElementById('purchaseDate').value,
+                usefulLife: document.getElementById('usefulLife').value,
+                calibrationCycle: parseInt(document.getElementById('calibrationCycle').value),
+                calibrationRequired: document.getElementById('calibrationRequired').value === 'true',
+                nextCalibrationDate: document.getElementById('nextCalibrationDate').value,
+                location: document.getElementById('location').value,
+                status: document.getElementById('status').value,
+                notes: document.getElementById('notes').value,
+                photo: equipmentPhoto,
+                manual: manualFile,
+                createdAt: editMode ? equipment.createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                inspectionHistory: editMode ? equipment.inspectionHistory : []
+            };
+
+            let equipments = JSON.parse(localStorage.getItem('dasol_equipments') || '[]');
+
+            if (editMode) {
+                equipments = equipments.map(e => e.id === editId ? equipment : e);
+            } else {
+                equipments.push(equipment);
+            }
+
+            localStorage.setItem('dasol_equipments', JSON.stringify(equipments));
+
+            alert(editMode ? '장비가 수정되었습니다.' : '장비가 등록되었습니다.');
+            window.location.href = 'equipment-management.html';
+        });
+
+        function goBack() {
+            if (confirm('작성 중인 내용이 사라집니다. 취소하시겠습니까?')) {
+                window.location.href = 'equipment-management.html';
+            }
+        }
+
+        // 도입일 변경 시 자동 계산
+        document.getElementById('purchaseDate').addEventListener('change', calculateNextCalibration);
+
+        init();
+    </script>
+</body>
+</html>

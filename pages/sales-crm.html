@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영업 관리 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f7fa; }
+        
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 20px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .header h1 { font-size: 20px; }
+        .back-btn { 
+            background: rgba(255,255,255,0.2); 
+            border: 1px solid rgba(255,255,255,0.3); 
+            color: white; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+        }
+        
+        .container { 
+            max-width: 1600px; 
+            margin: 30px auto; 
+            padding: 0 20px;
+        }
+        
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-card.high { border-left-color: #10b981; }
+        .stat-card.medium { border-left-color: #f59e0b; }
+        .stat-card.low { border-left-color: #ef4444; }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .stat-change {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 5px;
+        }
+        
+        /* 필터 & 검색 */
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .filter-bar input,
+        .filter-bar select {
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .filter-bar input {
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        /* 업체 리스트 */
+        .company-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .company-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #e5e7eb;
+        }
+        
+        .company-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .company-card.high { border-left-color: #10b981; }
+        .company-card.medium { border-left-color: #f59e0b; }
+        .company-card.low { border-left-color: #ef4444; }
+        
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .company-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .interest-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .interest-badge.high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .interest-badge.medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .interest-badge.low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .contact-info {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info div {
+            margin-bottom: 5px;
+        }
+        
+        .visit-count {
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .visit-history {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+        }
+        
+        .visit-history-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .visit-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .visit-item:last-child {
+            border-bottom: none;
+        }
+        
+        .visit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        
+        .visit-date {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .visit-person {
+            font-size: 12px;
+            padding: 2px 8px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 12px;
+        }
+        
+        .visit-content {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💼 영업 관리 (CRM)</h1>
+        <a href="../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">총 영업 업체</div>
+                <div class="stat-value">28</div>
+                <div class="stat-change">↑ 이번 달 +5</div>
+            </div>
+            <div class="stat-card high">
+                <div class="stat-label">관심도 높음</div>
+                <div class="stat-value">12</div>
+                <div class="stat-change">즉시 계약 가능</div>
+            </div>
+            <div class="stat-card medium">
+                <div class="stat-label">관심도 보통</div>
+                <div class="stat-value">9</div>
+                <div class="stat-change">검토 중</div>
+            </div>
+            <div class="stat-card low">
+                <div class="stat-label">후속 조치 필요</div>
+                <div class="stat-value">7</div>
+                <div class="stat-change">추가 설득 필요</div>
+            </div>
+        </div>
+
+        <!-- 필터 -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="🔍 업체명, 담당자명 검색..." onkeyup="filterCompanies()">
+            <select id="interestFilter" onchange="filterCompanies()">
+                <option value="">전체 관심도</option>
+                <option value="high">높음</option>
+                <option value="medium">보통</option>
+                <option value="low">낮음</option>
+            </select>
+            <select id="salesPersonFilter" onchange="filterCompanies()">
+                <option value="">전체 영업사원</option>
+                <option value="김영업">김영업</option>
+                <option value="이대리">이대리</option>
+                <option value="박과장">박과장</option>
+            </select>
+            <select id="sortFilter" onchange="sortCompanies()">
+                <option value="recent">최근 방문순</option>
+                <option value="name">업체명순</option>
+                <option value="interest">관심도순</option>
+            </select>
+        </div>
+
+        <!-- 업체 카드 리스트 -->
+        <div class="company-grid" id="companyGrid">
+            <!-- ABC제조 -->
+            <div class="company-card high" data-interest="high" data-salesperson="김영업" data-company="ABC제조" data-contact="홍길동">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">ABC제조</div>
+                        <div style="font-size: 13px; color: #6b7280;">제조업 / 서울 강남구</div>
+                    </div>
+                    <span class="interest-badge high">🔥 높음</span>
+                </div>
+                
+                <div class="contact-info">
+                    <div>👤 홍길동 팀장</div>
+                    <div>📞 010-1234-5678</div>
+                    <div>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b7374757c5b7a797835787476">[email&#160;protected]</a></div>
+                </div>
+                
+                <div class="visit-count">
+                    <span>총 방문: <strong>3회</strong></span>
+                    <span>최근: 2일 전</span>
+                </div>
+                
+                <div class="visit-history">
+                    <div class="visit-history-title">📅 방문 이력</div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-02-05 (2일 전)</span>
+                            <span class="visit-person">김영업</span>
+                        </div>
+                        <div class="visit-content">💬 "계약 협의 진행, 긍정적 반응"</div>
+                    </div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-28 (10일 전)</span>
+                            <span class="visit-person">김영업</span>
+                        </div>
+                        <div class="visit-content">💬 "견적서 제출, 가격 협상 중"</div>
+                    </div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-15 (23일 전)</span>
+                            <span class="visit-person">김영업</span>
+                        </div>
+                        <div class="visit-content">💬 "첫 방문, 회사 소개"</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- XYZ식품 -->
+            <div class="company-card medium" data-interest="medium" data-salesperson="이대리" data-company="XYZ식품" data-contact="김철수">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">XYZ식품</div>
+                        <div style="font-size: 13px; color: #6b7280;">식품제조 / 경기 성남시</div>
+                    </div>
+                    <span class="interest-badge medium">⚡ 보통</span>
+                </div>
+                
+                <div class="contact-info">
+                    <div>👤 김철수 과장</div>
+                    <div>📞 010-2345-6789</div>
+                    <div>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e6567634e767774206d6163">[email&#160;protected]</a></div>
+                </div>
+                
+                <div class="visit-count">
+                    <span>총 방문: <strong>2회</strong></span>
+                    <span>최근: 1주일 전</span>
+                </div>
+                
+                <div class="visit-history">
+                    <div class="visit-history-title">📅 방문 이력</div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-30</span>
+                            <span class="visit-person">이대리</span>
+                        </div>
+                        <div class="visit-content">💬 "견적서 제출, 타사 비교 중"</div>
+                    </div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-20</span>
+                            <span class="visit-person">이대리</span>
+                        </div>
+                        <div class="visit-content">💬 "첫 방문, 자가측정 안내"</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 서울시 강남구청 -->
+            <div class="company-card high" data-interest="high" data-salesperson="박과장" data-company="서울시강남구청" data-contact="이영희">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">서울시 강남구청</div>
+                        <div style="font-size: 13px; color: #6b7280;">공공기관 / 서울 강남구</div>
+                    </div>
+                    <span class="interest-badge high">🔥 높음</span>
+                </div>
+                
+                <div class="contact-info">
+                    <div>👤 이영희 주무관</div>
+                    <div>📞 02-2345-6789</div>
+                    <div>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4b8b1b194b3b5bab3bab5b9fab3bbfabfa6">[email&#160;protected]</a></div>
+                </div>
+                
+                <div class="visit-count">
+                    <span>총 방문: <strong>5회</strong></span>
+                    <span>최근: 어제</span>
+                </div>
+                
+                <div class="visit-history">
+                    <div class="visit-history-title">📅 방문 이력 (최근 3건)</div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-02-06</span>
+                            <span class="visit-person">박과장</span>
+                        </div>
+                        <div class="visit-content">💬 "연간 계약 최종 확정"</div>
+                    </div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-25</span>
+                            <span class="visit-person">박과장</span>
+                        </div>
+                        <div class="visit-content">💬 "예산 승인 완료"</div>
+                    </div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-18</span>
+                            <span class="visit-person">박과장</span>
+                        </div>
+                        <div class="visit-content">💬 "실무진 미팅"</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEF물류 -->
+            <div class="company-card low" data-interest="low" data-salesperson="김영업" data-company="DEF물류" data-contact="박민수">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">DEF물류</div>
+                        <div style="font-size: 13px; color: #6b7280;">물류업 / 인천 부평구</div>
+                    </div>
+                    <span class="interest-badge low">💤 낮음</span>
+                </div>
+                
+                <div class="contact-info">
+                    <div>👤 박민수 대리</div>
+                    <div>📞 010-3456-7890</div>
+                </div>
+                
+                <div class="visit-count">
+                    <span>총 방문: <strong>1회</strong></span>
+                    <span>최근: 2주 전</span>
+                </div>
+                
+                <div class="visit-history">
+                    <div class="visit-history-title">📅 방문 이력</div>
+                    
+                    <div class="visit-item">
+                        <div class="visit-header">
+                            <span class="visit-date">2026-01-23</span>
+                            <span class="visit-person">김영업</span>
+                        </div>
+                        <div class="visit-content">💬 "첫 방문, 비용 부담으로 보류"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // 검색 및 필터링
+        function filterCompanies() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const interestFilter = document.getElementById('interestFilter').value;
+            const salesPersonFilter = document.getElementById('salesPersonFilter').value;
+            
+            const cards = document.querySelectorAll('.company-card');
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                const companyName = card.dataset.company.toLowerCase();
+                const contactName = card.dataset.contact.toLowerCase();
+                const interest = card.dataset.interest;
+                const salesperson = card.dataset.salesperson;
+                
+                // 검색 조건
+                const matchesSearch = searchText === '' || 
+                                     companyName.includes(searchText) || 
+                                     contactName.includes(searchText);
+                
+                // 관심도 필터
+                const matchesInterest = interestFilter === '' || interest === interestFilter;
+                
+                // 영업사원 필터
+                const matchesSales = salesPersonFilter === '' || salesperson === salesPersonFilter;
+                
+                // 모든 조건 만족 시 표시
+                if (matchesSearch && matchesInterest && matchesSales) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // 결과 없음 메시지
+            if (visibleCount === 0) {
+                if (!document.getElementById('noResults')) {
+                    const noResults = document.createElement('div');
+                    noResults.id = 'noResults';
+                    noResults.style.cssText = 'text-align: center; padding: 40px; color: #6b7280; font-size: 16px;';
+                    noResults.innerHTML = '🔍 검색 결과가 없습니다.';
+                    document.getElementById('companyGrid').appendChild(noResults);
+                }
+            } else {
+                const noResults = document.getElementById('noResults');
+                if (noResults) noResults.remove();
+            }
+        }
+        
+        // 정렬
+        function sortCompanies() {
+            const sortType = document.getElementById('sortFilter').value;
+            const grid = document.getElementById('companyGrid');
+            const cards = Array.from(document.querySelectorAll('.company-card'));
+            
+            cards.sort((a, b) => {
+                if (sortType === 'name') {
+                    return a.dataset.company.localeCompare(b.dataset.company, 'ko')

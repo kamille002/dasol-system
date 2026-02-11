@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시료 접수/발송 대장 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .filter-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+        .filter-section input {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .status-received {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-testing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-sent {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body {
+                background: white;
+                padding: 10px;
+            }
+            .header {
+                box-shadow: none;
+                border-bottom: 2px solid #000;
+            }
+            table {
+                font-size: 10px;
+            }
+            th, td {
+                padding: 6px 4px;
+                border: 1px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 시료 접수/발송 대장</h1>
+        <div class="header-actions no-print">
+            <button class="btn btn-success" onclick="printLedger()">🖨️ 대장 출력</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="filter-section no-print">
+            <label style="font-weight: 600;">기간:</label>
+            <input type="date" id="startDate">
+            <span>~</span>
+            <input type="date" id="endDate">
+            <button class="btn btn-primary" onclick="filterByDate()">조회</button>
+            <button class="btn btn-secondary" onclick="resetFilter()">전체</button>
+        </div>
+
+        <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 14px; color: #6b7280;">
+                총 <strong id="totalCount">0</strong>건
+            </div>
+            <div style="font-size: 12px; color: #6b7280;" class="no-print">
+                * 의뢰서 등록 시 자동으로 추가됩니다
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="ledgerTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">접수일</th>
+                        <th style="width: 120px;">접수번호</th>
+                        <th style="width: 80px;">검체유형</th>
+                        <th style="width: 100px;">검사목적</th>
+                        <th style="width: 120px;">관련법령</th>
+                        <th>업체명</th>
+                        <th style="width: 100px;">의뢰인</th>
+                        <th style="width: 120px;">주소</th>
+                        <th style="width: 80px;">상태</th>
+                        <th style="width: 100px;" class="no-print">작업</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerTableBody">
+                    <!-- JavaScript로 동적 생성 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let allSamples = [];
+        let filteredSamples = [];
+
+        function init() {
+            loadSamples();
+            renderTable();
+            
+            // 기본 날짜 설정 (이번 달)
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        function loadSamples() {
+            const requests = JSON.parse(localStorage.getItem('dasol_requests') || '[]');
+            
+            allSamples = requests.map(req => ({
+                receiveDate: req.createdAt,
+                receiveNumber: req.requestNumber,
+                sampleType: req.sample.type,
+                purpose: '정기검사',
+                law: getLawByType(req.sample.type),
+                companyName: req.client.name,
+                clientName: req.client.contact || '-',
+                address: req.client.address,
+                status: req.status,
+                requestId: req.id
+            }));
+
+            filteredSamples = [...allSamples];
+            document.getElementById('totalCount').textContent = allSamples.length;
+        }
+
+        function getLawByType(type) {
+            const lawMap = {
+                '저수조': '먹는물수질기준',
+                '옥내급수관': '먹는물수질기준',
+                '정수기': '먹는물수질기준',
+                '음용수': '먹는물수질기준',
+                '생활용수': '생활용수수질기준',
+                '지하수': '지하수수질기준'
+            };
+            return lawMap[type] || '-';
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '접수완료',
+                'sampling': '채수완료',
+                'testing': '분석중',
+                'completed': '분석완료',
+                'sent': '발송완료'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getStatusClass(status) {
+            if (status === 'pending') return 'status-received';
+            if (status === 'sampling' || status === 'testing') return 'status-testing';
+            if (status === 'completed') return 'status-completed';
+            if (status === 'sent') return 'status-sent';
+            return '';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('ledgerTableBody');
+            
+            if (filteredSamples.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="padding: 40px; text-align: center; color: #6b7280;">
+                            등록된 시료가 없습니다
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredSamples.map(sample => `
+                <tr>
+                    <td>${formatDate(sample.receiveDate)}</td>
+                    <td style="font-weight: 600;">${sample.receiveNumber}</td>
+                    <td>${sample.sampleType}</td>
+                    <td>${sample.purpose}</td>
+                    <td style="font-size: 11px;">${sample.law}</td>
+                    <td style="text-align: left; padding-left: 12px;">${sample.companyName}</td>
+                    <td>${sample.clientName}</td>
+                    <td style="font-size: 11px; text-align: left;">${truncateText(sample.address, 20)}</td>
+                    <td>
+                        <span class="status-badge ${getStatusClass(sample.status)}">
+                            ${getStatusText(sample.status)}
+                        </span>
+                    </td>
+                    <td class="no-print">
+                        <button onclick="viewRequest('${sample.requestId}')" style="padding: 4px 8px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">상세</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterByDate() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            endDate.setHours(23, 59, 59, 999);
+
+            filteredSamples = allSamples.filter(sample => {
+                const sampleDate = new Date(sample.receiveDate);
+                return sampleDate >= startDate && sampleDate <= endDate;
+            });
+
+            document.getElementById('totalCount').textContent = filteredSamples.length;
+            renderTable();
+        }
+
+        function resetFilter() {
+            filteredSamples = [...allSamples];
+            document.getElementById('totalCount').textContent = allSamples.length;
+            
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            renderTable();
+        }
+
+        function viewRequest(requestId) {
+            window.location.href = `request-register.html?id=${requestId}`;
+        }
+
+        function printLedger() {
+            window.print();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function truncateText(text, length) {
+            if (!text) return '-';
+            return text.length > length ? text.substring(0, length) + '...' : text;
+        }
+
+        init();
+    </script>
+</body>
+</html>

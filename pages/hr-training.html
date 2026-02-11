@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교육 관리 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: #f9fafb;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        td {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-scheduled { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 교육 관리</h1>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-success" onclick="generateTrainingLedger()" style="background: #10b981;">📄 교육 이력 대장 출력</button>
+            <button class="btn btn-primary" onclick="openAddModal()">+ 교육 등록</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <table>
+            <thead>
+                <tr>
+                    <th>교육명</th>
+                    <th>교육일시</th>
+                    <th>강사</th>
+                    <th>대상자</th>
+                    <th>장소</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody id="trainingTable"></tbody>
+        </table>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">교육 등록</div>
+            <form id="trainingForm">
+                <div class="form-group">
+                    <label>교육명</label>
+                    <input type="text" id="title" placeholder="예: 안전교육, 실험실 교육" required>
+                </div>
+                <div class="form-group">
+                    <label>교육일시</label>
+                    <input type="datetime-local" id="datetime" required>
+                </div>
+                <div class="form-group">
+                    <label>강사</label>
+                    <input type="text" id="instructor" placeholder="내부강사 또는 외부강사" required>
+                </div>
+                <div class="form-group">
+                    <label>대상자</label>
+                    <input type="text" id="participants" placeholder="전체 또는 특정 부서" required>
+                </div>
+                <div class="form-group">
+                    <label>장소</label>
+                    <input type="text" id="location" placeholder="예: 회의실, 실험실" required>
+                </div>
+                <div class="form-group">
+                    <label>교육 내용</label>
+                    <textarea id="description" rows="4" placeholder="교육 내용을 간략히 작성하세요"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let trainings = [];
+
+        function init() {
+            loadTrainings();
+            renderTable();
+        }
+
+        function loadTrainings() {
+            trainings = JSON.parse(localStorage.getItem('dasol_trainings') || '[]');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('trainingTable');
+
+            if (trainings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 60px; color: #9ca3af;">등록된 교육이 없습니다</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = trainings.map(training => {
+                const status = getStatus(training);
+                
+                return `
+                    <tr>
+                        <td><strong>${training.title}</strong></td>
+                        <td>${formatDateTime(training.datetime)}</td>
+                        <td>${training.instructor}</td>
+                        <td>${training.participants}</td>
+                        <td>${training.location}</td>
+                        <td>
+                            <span class="status-badge status-${status}">
+                                ${status === 'scheduled' ? '예정' : status === 'completed' ? '완료' : '취소'}
+                            </span>
+                        </td>
+                        <td>
+                            ${status === 'scheduled' ? `
+                                <button class="btn btn-success" onclick="completeTraining('${training.id}')">완료</button>
+                            ` : ''}
+                            <button class="btn btn-secondary" onclick="deleteTraining('${training.id}')">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatus(training) {
+            if (training.status === 'completed') return 'completed';
+            if (training.status === 'cancelled') return 'cancelled';
+            
+            const now = new Date();
+            const trainingDate = new Date(training.datetime);
+            return trainingDate > now ? 'scheduled' : 'completed';
+        }
+
+        function formatDateTime(datetimeString) {
+            const date = new Date(datetimeString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            document.getElementById('trainingForm').reset();
+        }
+
+        document.getElementById('trainingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newTraining = {
+                id: 'TRAIN' + Date.now(),
+                title: document.getElementById('title').value,
+                datetime: document.getElementById('datetime').value,
+                instructor: document.getElementById('instructor').value,
+                participants: document.getElementById('participants').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                status: 'scheduled',
+                createdAt: new Date().toISOString()
+            };
+
+            trainings.push(newTraining);
+            localStorage.setItem('dasol_trainings', JSON.stringify(trainings));
+
+            closeAddModal();
+            renderTable();
+            alert('교육이 등록되었습니다.');
+        });
+
+        function completeTraining(id) {
+            const training = trainings.find(t => t.id === id);
+            if (training) {
+                training.status = 'completed';
+                localStorage.setItem('dasol_trainings', JSON.stringify(trainings));
+                renderTable();
+            }
+        }
+
+        function deleteTraining(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            trainings = trainings.filter(t => t.id !== id);
+            localStorage.setItem('dasol_trainings', JSON.stringify(trainings));
+            renderTable();
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        // 교육 이력 대장 출력
+        function generateTrainingLedger() {
+            const allTrainings = JSON.parse(localStorage.getItem('dasol_trainings') || '[]');
+            
+            if (allTrainings.length === 0) {
+                alert('등록된 교육 이력이 없습니다.');
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('ko-KR');
+            
+            let html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>교육 이력 대장 - 다솔물환경연구소</title>
+                    <style>
+                        @page { size: A4 landscape; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', sans-serif;
+                            padding: 20px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            font-size: 24px;
+                            margin-bottom: 10px;
+                        }
+                        .header .info {
+                            font-size: 12px;
+                            color: #666;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 11px;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 6px 4px;
+                            text-align: center;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>다솔물환경연구소</h1>
+                        <h2>교육 이력 대장</h2>
+                        <div class="info">출력일: ${today}</div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">번호</th>
+                                <th style="width: 150px;">교육명</th>
+                                <th style="width: 120px;">교육일시</th>
+                                <th style="width: 80px;">교육시간</th>
+                                <th style="width: 100px;">교육기관</th>
+                                <th style="width: 100px;">교육장소</th>
+                                <th>참석자</th>
+                                <th style="width: 100px;">강사</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allTrainings.map((training, index) => {
+                                return `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${training.trainingName}</td>
+                                        <td>${formatDateTime(training.trainingDate, training.trainingTime)}</td>
+                                        <td>${training.duration || '-'}시간</td>
+                                        <td>${training.organization || '-'}</td>
+                                        <td>${training.location || '-'}</td>
+                                        <td style="text-align: left; padding-left: 8px;">${training.attendees ? training.attendees.join(', ') : '-'}</td>
+                                        <td>${training.instructor || '-'}</td>
+                                        <td>${training.notes || '-'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="no-print" style="margin-top: 20px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-left: 10px;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=1200,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        init();
+    </script>
+</body>
+</html>

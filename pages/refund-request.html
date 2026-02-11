@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환불신청서 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .notice {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        .notice h3 {
+            color: #92400e;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .notice ul {
+            margin-left: 20px;
+            color: #92400e;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💸 환불신청서</h1>
+        <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+    </div>
+
+    <div class="content">
+        <h2 style="margin-bottom: 24px;">환불 신청</h2>
+        
+        <div class="notice">
+            <h3>⚠️ 환불 안내</h3>
+            <ul>
+                <li>환불 신청은 검사 시작 전에만 가능합니다</li>
+                <li>입금자와 계좌주가 다를 경우 통장사본이 필요합니다</li>
+                <li>처리기간: 신청 후 영업일 기준 3~5일</li>
+            </ul>
+        </div>
+
+        <form id="refundForm">
+            <h3 style="margin-bottom: 16px; font-size: 16px;">신청인 정보</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>성명(회사명) *</label>
+                    <input type="text" id="applicantName" placeholder="홍길동 또는 ㈜다솔" required>
+                </div>
+                <div class="form-group">
+                    <label>전화번호 *</label>
+                    <input type="text" id="phone" placeholder="010-1234-5678" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>주민등록번호/사업자번호</label>
+                    <input type="text" id="idNumber" placeholder="000000-0000000">
+                </div>
+                <div class="form-group">
+                    <label>구분 *</label>
+                    <select id="applicantType" required>
+                        <option value="">선택</option>
+                        <option value="individual">개인</option>
+                        <option value="corporate">법인</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 style="margin: 32px 0 16px 0; font-size: 16px;">환불 계좌</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>은행명 *</label>
+                    <select id="bankName" required>
+                        <option value="">선택</option>
+                        <option value="국민">국민은행</option>
+                        <option value="신한">신한은행</option>
+                        <option value="우리">우리은행</option>
+                        <option value="하나">하나은행</option>
+                        <option value="농협">농협은행</option>
+                        <option value="기업">기업은행</option>
+                        <option value="SC">SC제일은행</option>
+                        <option value="씨티">씨티은행</option>
+                        <option value="카카오">카카오뱅크</option>
+                        <option value="케이">케이뱅크</option>
+                        <option value="토스">토스뱅크</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>계좌번호 *</label>
+                    <input type="text" id="accountNumber" placeholder="000000-00-000000" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>예금주 *</label>
+                <input type="text" id="accountHolder" placeholder="홍길동" required>
+            </div>
+
+            <h3 style="margin: 32px 0 16px 0; font-size: 16px;">환불 사유</h3>
+
+            <div class="form-group">
+                <label>사유 *</label>
+                <textarea id="reason" rows="5" placeholder="환불 사유를 상세히 작성해주세요" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>환불 금액</label>
+                <input type="number" id="refundAmount" placeholder="100000" min="0">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 24px;">환불신청서 제출</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('refundForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateRefundForm();
+        });
+
+        function generateRefundForm() {
+            const data = {
+                applicantName: document.getElementById('applicantName').value,
+                phone: document.getElementById('phone').value,
+                idNumber: document.getElementById('idNumber').value,
+                applicantType: document.getElementById('applicantType').value,
+                bankName: document.getElementById('bankName').value,
+                accountNumber: document.getElementById('accountNumber').value,
+                accountHolder: document.getElementById('accountHolder').value,
+                reason: document.getElementById('reason').value,
+                refundAmount: document.getElementById('refundAmount').value
+            };
+
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>환불신청서 - ${data.applicantName}</title>
+                    <style>
+                        @page { size: A4; margin: 20mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', sans-serif;
+                            padding: 30px;
+                            line-height: 2;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 28px;
+                            font-weight: 700;
+                            margin-bottom: 40px;
+                            padding-bottom: 15px;
+                            border-bottom: 3px double #000;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 30px 0;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 12px;
+                            font-size: 14px;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                            text-align: center;
+                            width: 150px;
+                        }
+                        td {
+                            text-align: left;
+                        }
+                        .signature-section {
+                            margin-top: 50px;
+                            text-align: center;
+                        }
+                        .notice {
+                            background: #f9fafb;
+                            border: 1px solid #e5e7eb;
+                            padding: 20px;
+                            margin: 30px 0;
+                            font-size: 13px;
+                            line-height: 1.8;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">환 불 신 청 서</div>
+                    
+                    <table>
+                        <tr>
+                            <th>성명(회사명)</th>
+                            <td colspan="3">${data.applicantName}</td>
+                        </tr>
+                        <tr>
+                            <th>주민등록번호<br>(사업자등록번호)</th>
+                            <td colspan="3">${data.idNumber || '-'}</td>
+                        </tr>
+                        <tr>
+                            <th>전화번호</th>
+                            <td>${data.phone}</td>
+                            <th style="width: 100px;">구분</th>
+                            <td style="width: 150px;">${data.applicantType === 'individual' ? '□ 개인 ☑ 법인' : '☑ 개인 □ 법인'}</td>
+                        </tr>
+                        <tr>
+                            <th>은행명</th>
+                            <td>${data.bankName}은행</td>
+                            <th>계좌번호</th>
+                            <td>${data.accountNumber}</td>
+                        </tr>
+                        <tr>
+                            <th>예금주</th>
+                            <td colspan="3">${data.accountHolder}</td>
+                        </tr>
+                        <tr>
+                            <th>환불금액</th>
+                            <td colspan="3" style="font-weight: 700; font-size: 16px; color: #ef4444;">
+                                ${data.refundAmount ? data.refundAmount.toLocaleString() + '원' : '(입금액 전액)'}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">환불신청사유</th>
+                            <td style="min-height: 150px; vertical-align: top; line-height: 2;">
+                                ${data.reason.replace(/\n/g, '<br>')}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="notice">
+                        <strong>&lt; 첨 부 서 류 &gt;</strong><br>
+                        1. 입금자와 동일계좌 통장사본 1부<br>
+                        <br>
+                        상기 사유로 환불 신청합니다.
+                    </div>
+
+                    <div class="signature-section">
+                        <p style="font-size: 16px; margin-bottom: 30px;">
+                            ${new Date().getFullYear()}년 ${String(new Date().getMonth() + 1).padStart(2, '0')}월 ${String(new Date().getDate()).padStart(2, '0')}일
+                        </p>
+                        <p style="font-size: 16px; margin-bottom: 50px;">
+                            신청인(회사명): <strong>${data.applicantName}</strong> (서명 또는 날인)
+                        </p>
+                        <p style="font-size: 18px; font-weight: 700;">
+                            (주)다솔물환경연구소 귀하
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 50px; text-align: center; font-size: 13px; color: #6b7280;">
+                        Fax: 070-8677-0553<br>
+                        전화: 031-772-4530
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=900,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+    </script>
+</body>
+</html>

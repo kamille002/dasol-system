@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장비관리 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .stat-card.alert {
+            border-left: 4px solid #f59e0b;
+        }
+        .stat-card.alert .stat-value {
+            color: #f59e0b;
+        }
+        
+        /* 알림 박스 */
+        .alert-box {
+            background: #fffbeb;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+        .alert-icon {
+            font-size: 24px;
+        }
+        .alert-content {
+            flex: 1;
+        }
+        .alert-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        .alert-list {
+            list-style: none;
+            font-size: 14px;
+            color: #78350f;
+        }
+        .alert-list li {
+            padding: 4px 0;
+        }
+        
+        /* 필터 */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .filter-btn:hover {
+            border-color: #667eea;
+        }
+        
+        /* 장비 그리드 */
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .equipment-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .equipment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .equipment-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f3f4f6;
+        }
+        .equipment-content {
+            padding: 20px;
+        }
+        .equipment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+        .equipment-number {
+            font-size: 12px;
+            font-weight: 700;
+            color: #667eea;
+            background: #f0f9ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-normal {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-inspection {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-alert {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-disposed {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        .equipment-card.disposed {
+            opacity: 0.7;
+            border: 2px solid #d1d5db;
+        }
+        .equipment-card.disposed .equipment-image {
+            filter: grayscale(100%);
+        }
+        .equipment-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        .equipment-model {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+        .equipment-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .detail-label {
+            color: #6b7280;
+        }
+        .detail-value {
+            color: #111827;
+            font-weight: 600;
+        }
+        .calibration-alert {
+            background: #fffbeb;
+            border: 2px solid #fbbf24;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #92400e;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .equipment-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-detail {
+            background: #667eea;
+            color: white;
+        }
+        .btn-edit {
+            background: #10b981;
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 장비관리</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="window.location.href='equipment-register.html'">+ 장비 등록</button>
+            <button class="btn btn-success" onclick="generateEquipmentLedger()">📄 장비관리대장 출력</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <!-- 통계 -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">전체 장비</div>
+            <div class="stat-value" id="totalEquipment">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">정상 가동</div>
+            <div class="stat-value" style="color: #10b981;" id="normalEquipment">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">점검중</div>
+            <div class="stat-value" style="color: #f59e0b;" id="inspectionEquipment">0</div>
+        </div>
+        <div class="stat-card alert">
+            <div class="stat-label">교정 임박 (60일 이내)</div>
+            <div class="stat-value" id="alertEquipment">0</div>
+        </div>
+    </div>
+
+    <!-- 알림 -->
+    <div class="alert-box" id="alertBox" style="display: none;">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+            <div class="alert-title">교정 임박 장비</div>
+            <ul class="alert-list" id="alertList"></ul>
+        </div>
+    </div>
+
+    <!-- 필터 -->
+    <div class="filter-section">
+        <button class="filter-btn active" onclick="filterEquipment('all')">전체</button>
+        <button class="filter-btn" onclick="filterEquipment('normal')">정상</button>
+        <button class="filter-btn" onclick="filterEquipment('inspection')">점검중</button>
+        <button class="filter-btn" onclick="filterEquipment('alert')">교정임박</button>
+        <button class="filter-btn" onclick="filterEquipment('disposed')">폐기</button>
+    </div>
+
+    <!-- 장비 목록 -->
+    <div class="equipment-grid" id="equipmentGrid">
+        <!-- JavaScript로 동적 생성 -->
+    </div>
+
+    <!-- 폐기 확인 모달 -->
+    <div id="disposeModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 24px; color: #111827;">⚠️ 장비 폐기</h2>
+            
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                <p style="font-size: 14px; color: #92400e; line-height: 1.6;">
+                    장비를 폐기하면 <strong>상태만 변경</strong>되며 이력은 영구 보존됩니다.<br>
+                    감사 및 추후 확인을 위해 데이터는 삭제되지 않습니다.
+                </p>
+            </div>
+
+            <form id="disposeForm">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                        폐기일자 <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="date" id="disposeDate" required style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                        폐기사유 <span style="color: #ef4444;">*</span>
+                    </label>
+                    <textarea id="disposeReason" required placeholder="예: 노후화로 인한 교체, 고장 후 수리 불가능" style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeDisposeModal()" style="flex: 1;">취소</button>
+                    <button type="submit" class="btn" style="flex: 1; background: #ef4444; color: white;">폐기 처리</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let equipments = [];
+        let currentFilter = 'all';
+
+        function init() {
+            loadEquipments();
+            renderStats();
+            renderAlerts();
+            renderEquipments();
+        }
+
+        function loadEquipments() {
+            equipments = JSON.parse(localStorage.getItem('dasol_equipments') || '[]');
+        }
+
+        function renderStats() {
+            const total = equipments.length;
+            const normal = equipments.filter(e => e.status === 'normal').length;
+            const inspection = equipments.filter(e => e.status === 'inspection').length;
+            const disposed = equipments.filter(e => e.status === 'disposed').length;
+            const alert = equipments.filter(e => e.status !== 'disposed' && isCalibrationDue(e.nextCalibrationDate, 60)).length;
+
+            document.getElementById('totalEquipment').textContent = total;
+            document.getElementById('normalEquipment').textContent = normal;
+            document.getElementById('inspectionEquipment').textContent = inspection;
+            document.getElementById('alertEquipment').textContent = alert;
+        }
+
+        function renderAlerts() {
+            const alerts = equipments.filter(e => isCalibrationDue(e.nextCalibrationDate, 60));
+            
+            if (alerts.length === 0) {
+                document.getElementById('alertBox').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('alertBox').style.display = 'flex';
+            const alertList = document.getElementById('alertList');
+            alertList.innerHTML = alerts.map(e => {
+                const days = getDaysUntil(e.nextCalibrationDate);
+                return `<li>${e.equipmentNumber}: ${e.equipmentName} - ${e.nextCalibrationDate} (${days}일 후)</li>`;
+            }).join('');
+        }
+
+        function renderEquipments() {
+            const grid = document.getElementById('equipmentGrid');
+            
+            let filtered = equipments;
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'alert') {
+                    filtered = equipments.filter(e => e.status !== 'disposed' && isCalibrationDue(e.nextCalibrationDate, 60));
+                } else if (currentFilter === 'disposed') {
+                    filtered = equipments.filter(e => e.status === 'disposed');
+                } else {
+                    filtered = equipments.filter(e => e.status === currentFilter);
+                }
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-icon">🔬</div>
+                        <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">등록된 장비가 없습니다</p>
+                        <p style="font-size: 14px;">장비를 등록하여 체계적으로 관리하세요</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(equipment => {
+                const status = equipment.status;
+                const statusText = status === 'normal' ? '정상' : 
+                                 status === 'inspection' ? '점검중' : 
+                                 status === 'disposed' ? '폐기' : '고장';
+                const statusClass = `status-${status}`;
+                const isAlert = status !== 'disposed' && isCalibrationDue(equipment.nextCalibrationDate, 60);
+                const daysUntil = getDaysUntil(equipment.nextCalibrationDate);
+                const isDisposed = status === 'disposed';
+
+                return `
+                    <div class="equipment-card ${isDisposed ? 'disposed' : ''}" onclick="viewDetail('${equipment.id}')" style="cursor: pointer;">
+                        ${equipment.photo ? `
+                            <img src="${equipment.photo}" alt="${equipment.equipmentName}" class="equipment-image">
+                        ` : `
+                            <div class="equipment-image" style="display: flex; align-items: center; justify-content: center; font-size: 48px;">🔬</div>
+                        `}
+                        <div class="equipment-content">
+                            <div class="equipment-header">
+                                <span class="equipment-number">${equipment.equipmentNumber}</span>
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            
+                            <div class="equipment-name">${equipment.equipmentName}</div>
+                            <div class="equipment-model">${equipment.modelName || '-'}</div>
+                            
+                            ${isDisposed ? `
+                                <div style="background: #f3f4f6; border: 2px solid #d1d5db; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                    <div style="font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">
+                                        📦 폐기일: ${formatDate(equipment.disposedAt)}
+                                    </div>
+                                    <div style="font-size: 13px; color: #6b7280;">
+                                        사유: ${equipment.disposeReason || '-'}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${!isDisposed && isAlert ? `
+                                <div class="calibration-alert">
+                                    ⚠️ 교정 예정: ${equipment.nextCalibrationDate} (${daysUntil}일 후)
+                                </div>
+                            ` : ''}
+                            
+                            ${!isDisposed ? `
+                                <div class="equipment-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">제조사</span>
+                                        <span class="detail-value">${equipment.manufacturer || '-'}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">도입일</span>
+                                        <span class="detail-value">${formatDate(equipment.purchaseDate)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">교정주기</span>
+                                        <span class="detail-value">${equipment.calibrationCycle}개월</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">보관장소</span>
+                                        <span class="detail-value">${equipment.location || '-'}</span>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="equipment-actions">
+                                ${isDisposed ? `
+                                    <button class="btn-small" style="background: #10b981; color: white;" onclick="event.stopPropagation(); restoreEquipment('${equipment.id}')">복구</button>
+                                ` : `
+                                    <button class="btn-small btn-edit" onclick="event.stopPropagation(); editEquipment('${equipment.id}')">수정</button>
+                                    <button class="btn-small" style="background: #ef4444; color: white;" onclick="event.stopPropagation(); openDisposeModal('${equipment.id}')">폐기</button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterEquipment(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderEquipments();
+        }
+
+        function isCalibrationDue(dateString, days) {
+            if (!dateString) return false;
+            const daysUntil = getDaysUntil(dateString);
+            return daysUntil !== null && daysUntil >= 0 && daysUntil <= days;
+        }
+
+        function getDaysUntil(dateString) {
+            if (!dateString) return null;
+            const today = new Date();
+            const targetDate = new Date(dateString);
+            const diff = targetDate - today;
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        function viewDetail(id) {
+            window.location.href = `equipment-detail.html?id=${id}`;
+        }
+
+        function editEquipment(id) {
+            window.location.href = `equipment-register.html?id=${id}`;
+        }
+
+        let currentDisposeId = null;
+
+        function openDisposeModal(id) {
+            currentDisposeId = id;
+            const modal = document.getElementById('disposeModal');
+            modal.style.display = 'flex';
+            document.getElementById('disposeDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function closeDisposeModal() {
+            currentDisposeId = null;
+            document.getElementById('disposeModal').style.display = 'none';
+            document.getElementById('disposeForm').reset();
+        }
+
+        // 폐기 처리
+        document.getElementById('disposeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const disposeDate = document.getElementById('disposeDate').value;
+            const disposeReason = document.getElementById('disposeReason').value;
+
+            let equipmentsList = JSON.parse(localStorage.getItem('dasol_equipments') || '[]');
+            equipmentsList = equipmentsList.map(eq => {
+                if (eq.id === currentDisposeId) {
+                    return {
+                        ...eq,
+                        status: 'disposed',
+                        disposedAt: disposeDate,
+                        disposeReason: disposeReason,
+                        disposedBy: JSON.parse(localStorage.getItem('dasol_session') || '{}').name || '관리자'
+                    };
+                }
+                return eq;
+            });
+
+            localStorage.setItem('dasol_equipments', JSON.stringify(equipmentsList));
+            
+            closeDisposeModal();
+            loadEquipments();
+            renderStats();
+            renderAlerts();
+            renderEquipments();
+            
+            alert('장비가 폐기 처리되었습니다.\n이력은 영구 보존되며 추후 확인 가능합니다.');
+        });
+
+        // 복구 처리
+        function restoreEquipment(id) {
+            if (!confirm('폐기된 장비를 복구하시겠습니까?')) return;
+
+            let equipmentsList = JSON.parse(localStorage.getItem('dasol_equipments') || '[]');
+            equipmentsList = equipmentsList.map(eq => {
+                if (eq.id === id) {
+                    return {
+                        ...eq,
+                        status: 'normal',
+                        restoredAt: new Date().toISOString().split('T')[0],
+                        restoredBy: JSON.parse(localStorage.getItem('dasol_session') || '{}').name || '관리자'
+                    };
+                }
+                return eq;
+            });
+
+            localStorage.setItem('dasol_equipments', JSON.stringify(equipmentsList));
+            
+            loadEquipments();
+            renderStats();
+            renderAlerts();
+            renderEquipments();
+            
+            alert('장비가 복구되었습니다.');
+        }
+
+        // 장비관리대장 출력
+        function generateEquipmentLedger() {
+            const allEquipments = JSON.parse(localStorage.getItem('dasol_equipments') || '[]');
+            
+            if (allEquipments.length === 0) {
+                alert('등록된 장비가 없습니다.');
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('ko-KR');
+            
+            let html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>장비관리대장 - 다솔물환경연구소</title>
+                    <style>
+                        @page { size: A4 landscape; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', sans-serif;
+                            padding: 20px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            font-size: 24px;
+                            margin-bottom: 10px;
+                        }
+                        .header .info {
+                            font-size: 12px;
+                            color: #666;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 11px;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 6px 4px;
+                            text-align: center;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .disposed {
+                            background: #f3f4f6;
+                            color: #6b7280;
+                        }
+                        .disposed td {
+                            text-decoration: line-through;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>다솔물환경연구소</h1>
+                        <h2>장비관리대장 (수질)</h2>
+                        <div class="info">출력일: ${today}</div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">장비번호</th>
+                                <th style="width: 120px;">장비명</th>
+                                <th style="width: 100px;">용도</th>
+                                <th style="width: 150px;">모델명(일련번호)</th>
+                                <th style="width: 80px;">제조사</th>
+                                <th style="width: 80px;">설치장소</th>
+                                <th style="width: 70px;">교정구분</th>
+                                <th style="width: 80px;">도입일</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allEquipments.map(eq => `
+                                <tr class="${eq.status === 'disposed' ? 'disposed' : ''}">
+                                    <td>${eq.equipmentNumber}</td>
+                                    <td>${eq.equipmentName}</td>
+                                    <td>${eq.measurementItems || '-'}</td>
+                                    <td>${eq.modelName || '-'}${eq.serialNumber ? '<br>(' + eq.serialNumber + ')' : ''}</td>
+                                    <td>${eq.manufacturer || '-'}</td>
+                                    <td>${eq.location || '-'}</td>
+                                    <td>${eq.calibrationRequired ? '교정' : '비교정'}</td>
+                                    <td>${formatDate(eq.purchaseDate)}</td>
+                                    <td>${eq.status === 'disposed' ? 
+                                        '폐기(' + formatDate(eq.disposedAt) + ')<br>' + (eq.disposeReason || '') : 
+                                        eq.notes || '-'
+                                    }</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="no-print" style="margin-top: 20px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-left: 10px;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=1200,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>차량 관리대장 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; color: #111827; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .vehicle-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+        .vehicle-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .vehicle-card.expiring-soon {
+            background: #fff7ed;
+            border-color: #fb923c;
+            box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
+        }
+        .vehicle-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        .vehicle-card.expiring-soon:hover {
+            border-color: #f97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .vehicle-info h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+        .vehicle-number {
+            font-size: 15px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        .vehicle-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label { 
+            color: #6b7280; 
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .detail-value { 
+            color: #374151; 
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+        .detail-value.highlight {
+            color: #667eea;
+            font-size: 16px;
+        }
+        .vehicle-actions {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group input[type="file"] {
+            padding: 8px;
+        }
+        .file-info {
+            margin-top: 8px;
+            padding: 10px;
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        /* PDF 뷰어 모달 */
+        .pdf-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .pdf-viewer-modal.show { display: flex; }
+        .pdf-viewer-content {
+            background: white;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .pdf-viewer-header {
+            padding: 20px 24px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pdf-viewer-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .pdf-viewer-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .pdf-viewer-body {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background: #f9fafb;
+        }
+        .pdf-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚗 차량 관리대장</h1>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-success" onclick="generateVehicleLedger()" style="background: #10b981;">📄 차량 관리대장 출력</button>
+            <button class="btn btn-primary" onclick="openVehicleModal()">+ 차량 등록</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="vehicle-list" id="vehicleList"></div>
+    </div>
+
+    <!-- 차량 등록 모달 -->
+    <div id="vehicleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">차량 등록</div>
+            <form id="vehicleForm">
+                <div class="form-group">
+                    <label>차량명 <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="vehicleName" placeholder="예: 아반떼" required>
+                </div>
+
+                <div class="form-group">
+                    <label>차량번호 <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="vehicleNumber" placeholder="예: 12가3456" required>
+                </div>
+
+                <div class="form-group">
+                    <label>계약일자 (시작일) <span style="color: #ef4444;">*</span></label>
+                    <input type="date" id="contractDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>계약 만료일자 <span style="color: #ef4444;">*</span></label>
+                    <input type="date" id="contractEndDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>차량운영담당자 <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="manager" placeholder="예: 홍길동" required>
+                </div>
+
+                <div class="form-group">
+                    <label>월 렌트비용 (원) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" id="monthlyRent" placeholder="예: 500000" required>
+                </div>
+
+                <div class="form-group">
+                    <label>보험사명 <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="insuranceCompany" placeholder="예: 삼성화재" required>
+                </div>
+
+                <div class="form-group">
+                    <label>보험사 전화번호 <span style="color: #ef4444;">*</span></label>
+                    <input type="tel" id="insurancePhone" placeholder="예: 1588-5114" required>
+                </div>
+
+                <div class="form-group">
+                    <label>렌트계약서 첨부 (PDF)</label>
+                    <input type="file" id="contractFile" accept=".pdf" onchange="handleFileSelect(event)">
+                    <div class="file-info">
+                        💡 PDF 파일만 업로드 가능합니다. 업로드 후 언제든지 확인 및 인쇄할 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeVehicleModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PDF 뷰어 모달 -->
+    <div id="pdfViewerModal" class="pdf-viewer-modal">
+        <div class="pdf-viewer-content">
+            <div class="pdf-viewer-header">
+                <h3 id="pdfTitle">렌트계약서</h3>
+                <div class="pdf-viewer-actions">
+                    <button class="btn btn-primary" onclick="printPDF()">📄 PDF로 인쇄</button>
+                    <button class="btn btn-secondary" onclick="closePDFViewer()">✕ 닫기</button>
+                </div>
+            </div>
+            <div class="pdf-viewer-body">
+                <iframe id="pdfIframe" class="pdf-iframe"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vehicles = [];
+        let currentPDFData = null;
+
+        function init() {
+            loadVehicles();
+            renderVehicles();
+        }
+
+        function loadVehicles() {
+            vehicles = JSON.parse(localStorage.getItem('dasol_vehicles') || '[]');
+        }
+
+        function renderVehicles() {
+            const list = document.getElementById('vehicleList');
+            
+            if (vehicles.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🚗</div>
+                        <p style="font-size: 16px;">등록된 차량이 없습니다</p>
+                        <p style="font-size: 14px; margin-top: 8px;">상단의 "+ 차량 등록" 버튼을 눌러 차량을 등록하세요</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = vehicles.map(vehicle => {
+                const rentFormatted = Number(vehicle.monthlyRent).toLocaleString();
+                const hasContract = vehicle.contractFile && vehicle.contractFile !== '';
+                
+                // 만료일 계산
+                const endDate = new Date(vehicle.contractEndDate);
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                const isExpiringSoon = daysUntilExpiry <= 60 && daysUntilExpiry > 0; // 2개월(60일) 이내
+                const isExpired = daysUntilExpiry <= 0;
+
+                return `
+                    <div class="vehicle-card ${isExpiringSoon ? 'expiring-soon' : ''}">
+                        ${isExpiringSoon ? `
+                            <div style="background: #fed7aa; border: 2px solid #fb923c; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center;">
+                                <span style="font-size: 18px;">⚠️</span>
+                                <span style="color: #9a3412; font-weight: 700; margin-left: 8px;">
+                                    계약 만료 ${daysUntilExpiry}일 전!
+                                </span>
+                            </div>
+                        ` : ''}
+                        ${isExpired ? `
+                            <div style="background: #fee2e2; border: 2px solid #ef4444; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center;">
+                                <span style="font-size: 18px;">🔴</span>
+                                <span style="color: #991b1b; font-weight: 700; margin-left: 8px;">
+                                    계약 만료됨!
+                                </span>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="vehicle-header">
+                            <div class="vehicle-info">
+                                <h3>${vehicle.vehicleName}</h3>
+                                <div class="vehicle-number">${vehicle.vehicleNumber}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="vehicle-details">
+                            <div class="detail-item">
+                                <span class="detail-label">계약 시작일</span>
+                                <span class="detail-value">${formatDate(vehicle.contractDate)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">계약 만료일</span>
+                                <span class="detail-value" style="color: ${isExpiringSoon || isExpired ? '#ef4444' : '#374151'}; font-weight: 700;">
+                                    ${formatDate(vehicle.contractEndDate)}
+                                    ${isExpiringSoon ? `<span style="color: #fb923c; font-size: 12px; margin-left: 8px;">(${daysUntilExpiry}일 남음)</span>` : ''}
+                                    ${isExpired ? `<span style="color: #ef4444; font-size: 12px; margin-left: 8px;">(만료됨)</span>` : ''}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">운영담당자</span>
+                                <span class="detail-value">${vehicle.manager}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">월 렌트비용</span>
+                                <span class="detail-value highlight">${rentFormatted}원</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">보험사</span>
+                                <span class="detail-value">${vehicle.insuranceCompany}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">보험사 연락처</span>
+                                <span class="detail-value">${vehicle.insurancePhone}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">렌트계약서</span>
+                                <span class="detail-value">
+                                    ${hasContract ? '✅ 첨부됨' : '❌ 미첨부'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="vehicle-actions">
+                            ${hasContract ? `
+                                <button class="btn btn-success" onclick="viewContract('${vehicle.id}')" style="flex: 1;">
+                                    📄 계약서 보기
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-danger" onclick="deleteVehicle('${vehicle.id}')">
+                                🗑️ 삭제
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function openVehicleModal() {
+            document.getElementById('vehicleModal').classList.add('show');
+        }
+
+        function closeVehicleModal() {
+            document.getElementById('vehicleModal').classList.remove('show');
+            document.getElementById('vehicleForm').reset();
+        }
+
+        // 파일 선택 처리
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // PDF 파일 확인
+            if (file.type !== 'application/pdf') {
+                alert('PDF 파일만 업로드 가능합니다.');
+                event.target.value = '';
+                return;
+            }
+
+            // 파일 크기 확인 (5MB 제한)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('파일 크기는 5MB 이하여야 합니다.');
+                event.target.value = '';
+                return;
+            }
+        }
+
+        // 폼 제출
+        document.getElementById('vehicleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('contractFile');
+            const file = fileInput.files[0];
+
+            // 파일이 있으면 읽기
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    saveVehicle(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveVehicle(null);
+            }
+        });
+
+        function saveVehicle(fileData) {
+            const newVehicle = {
+                id: 'VEH' + Date.now(),
+                vehicleName: document.getElementById('vehicleName').value,
+                vehicleNumber: document.getElementById('vehicleNumber').value,
+                contractDate: document.getElementById('contractDate').value,
+                contractEndDate: document.getElementById('contractEndDate').value,
+                manager: document.getElementById('manager').value,
+                monthlyRent: document.getElementById('monthlyRent').value,
+                insuranceCompany: document.getElementById('insuranceCompany').value,
+                insurancePhone: document.getElementById('insurancePhone').value,
+                contractFile: fileData || '',
+                createdAt: new Date().toISOString()
+            };
+
+            vehicles.push(newVehicle);
+            localStorage.setItem('dasol_vehicles', JSON.stringify(vehicles));
+
+            closeVehicleModal();
+            renderVehicles();
+            alert('차량이 등록되었습니다.');
+        }
+
+        function deleteVehicle(id) {
+            if (!confirm('정말 삭제하시겠습니까?\n첨부된 계약서도 함께 삭제됩니다.')) return;
+
+            vehicles = vehicles.filter(v => v.id !== id);
+            localStorage.setItem('dasol_vehicles', JSON.stringify(vehicles));
+            renderVehicles();
+        }
+
+        // 계약서 보기
+        function viewContract(vehicleId) {
+            const vehicle = vehicles.find(v => v.id === vehicleId);
+            if (!vehicle || !vehicle.contractFile) {
+                alert('첨부된 계약서가 없습니다.');
+                return;
+            }
+
+            currentPDFData = vehicle.contractFile;
+            
+            // PDF 제목 설정
+            document.getElementById('pdfTitle').textContent = 
+                `${vehicle.vehicleName} (${vehicle.vehicleNumber}) 렌트계약서`;
+            
+            // iframe에 PDF 로드
+            const iframe = document.getElementById('pdfIframe');
+            iframe.src = vehicle.contractFile;
+            
+            // 모달 열기
+            document.getElementById('pdfViewerModal').classList.add('show');
+        }
+
+        function closePDFViewer() {
+            document.getElementById('pdfViewerModal').classList.remove('show');
+            document.getElementById('pdfIframe').src = '';
+            currentPDFData = null;
+        }
+
+        // PDF 인쇄
+        function printPDF() {
+            const iframe = document.getElementById('pdfIframe');
+            
+            try {
+                // iframe의 window 객체에서 인쇄
+                iframe.contentWindow.print();
+            } catch (e) {
+                // iframe 인쇄가 안 되면 새 창으로 열어서 인쇄
+                const printWindow = window.open(currentPDFData);
+                printWindow.onload = function() {
+                    printWindow.print();
+                };
+            }
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+            if (event.target.classList.contains('pdf-viewer-modal')) {
+                closePDFViewer();
+            }
+        }
+
+        // 차량 관리대장 출력
+        function generateVehicleLedger() {
+            const allVehicles = JSON.parse(localStorage.getItem('dasol_vehicles') || '[]');
+            
+            if (allVehicles.length === 0) {
+                alert('등록된 차량이 없습니다.');
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('ko-KR');
+            
+            let html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>차량 관리대장 - 다솔물환경연구소</title>
+                    <style>
+                        @page { size: A4 landscape; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', sans-serif;
+                            padding: 20px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            font-size: 24px;
+                            margin-bottom: 10px;
+                        }
+                        .header .info {
+                            font-size: 12px;
+                            color: #666;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 11px;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 6px 4px;
+                            text-align: center;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .warning {
+                            background: #fef3c7;
+                            color: #92400e;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>다솔물환경연구소</h1>
+                        <h2>차량 관리대장</h2>
+                        <div class="info">출력일: ${today}</div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">번호</th>
+                                <th style="width: 100px;">차량번호</th>
+                                <th style="width: 100px;">차종</th>
+                                <th style="width: 100px;">모델</th>
+                                <th style="width: 80px;">연식</th>
+                                <th style="width: 80px;">주 사용자</th>
+                                <th style="width: 100px;">보험만료일</th>
+                                <th style="width: 100px;">검사만료일</th>
+                                <th style="width: 100px;">리스만료일</th>
+                                <th style="width: 80px;">상태</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allVehicles.map((vehicle, index) => {
+                                const hasWarning = checkExpiry(vehicle);
+                                const warningClass = hasWarning ? 'warning' : '';
+                                
+                                return `
+                                    <tr class="${warningClass}">
+                                        <td>${index + 1}</td>
+                                        <td>${vehicle.vehicleNumber}</td>
+                                        <td>${vehicle.vehicleType}</td>
+                                        <td>${vehicle.model || '-'}</td>
+                                        <td>${vehicle.year || '-'}</td>
+                                        <td>${vehicle.primaryUser || '-'}</td>
+                                        <td>${formatDate(vehicle.insuranceExpiry)}</td>
+                                        <td>${formatDate(vehicle.inspectionExpiry)}</td>
+                                        <td>${vehicle.leaseTerm === 'owned' ? '자가' : formatDate(vehicle.leaseExpiry)}</td>
+                                        <td>${vehicle.status === 'active' ? '운행중' : '정비중'}</td>
+                                        <td>${vehicle.notes || '-'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="no-print" style="margin-top: 20px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-left: 10px;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=1200,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        // 초기화
+        init();
+    </script>
+</body>
+</html>

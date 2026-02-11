@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>접수현황 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .filter-btn:hover {
+            border-color: #667eea;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .stat-card.urgent {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .stat-card.overdue {
+            border-left-color: #f97316;
+            background: #fff7ed;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: #f9fafb;
+        }
+        th {
+            padding: 14px 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        td {
+            padding: 14px 12px;
+            font-size: 14px;
+            color: #6b7280;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pending {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-in-progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-urgent {
+            background: #fee2e2;
+            color: #991b1b;
+            animation: pulse 2s infinite;
+        }
+        .status-overdue {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .request-number {
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .client-name {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .notes-preview {
+            color: #6b7280;
+            font-size: 13px;
+            font-style: italic;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 접수현황</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="window.location.href='request-register.html'">+ 의뢰 접수</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- 통계 -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">전체 의뢰</div>
+                <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card urgent">
+                <div class="stat-label">🔴 긴급 의뢰</div>
+                <div class="stat-value" id="statUrgent">0</div>
+            </div>
+            <div class="stat-card overdue">
+                <div class="stat-label">⚠️ 지연 의뢰</div>
+                <div class="stat-value" id="statOverdue">0</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #8b5cf6; background: #f5f3ff;">
+                <div class="stat-label">👤 미배정</div>
+                <div class="stat-value" id="statUnassigned">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">⏰ 대기중</div>
+                <div class="stat-value" id="statPending">0</div>
+            </div>
+        </div>
+
+        <!-- 필터 -->
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterRequests('all')">전체</button>
+            <button class="filter-btn" onclick="filterRequests('unassigned')">👤 미배정</button>
+            <button class="filter-btn" onclick="filterRequests('pending')">대기</button>
+            <button class="filter-btn" onclick="filterRequests('in-progress')">진행중</button>
+            <button class="filter-btn" onclick="filterRequests('completed')">완료</button>
+            <button class="filter-btn" onclick="filterRequests('urgent')">긴급</button>
+            <button class="filter-btn" onclick="filterRequests('overdue')">지연</button>
+        </div>
+
+        <!-- 검색 -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="의뢰자명, 주소, 담당자로 검색...">
+        </div>
+
+        <!-- 테이블 -->
+        <table>
+            <thead>
+                <tr>
+                    <th>상태</th>
+                    <th>의뢰번호</th>
+                    <th>채수희망일</th>
+                    <th>시료종류</th>
+                    <th>채수지점</th>
+                    <th>의뢰자</th>
+                    <th>연락처</th>
+                    <th>담당자</th>
+                    <th>메모</th>
+                </tr>
+            </thead>
+            <tbody id="requestTable">
+                <!-- JavaScript로 동적 생성 -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let requests = [];
+        let currentFilter = 'all';
+
+        function init() {
+            loadRequests();
+            updateStats();
+            renderTable();
+
+            // 검색 이벤트
+            document.getElementById('searchInput').addEventListener('input', function() {
+                renderTable();
+            });
+        }
+
+        function loadRequests() {
+            requests = JSON.parse(localStorage.getItem('dasol_requests') || '[]');
+            // 최신순 정렬
+            requests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+
+        function updateStats() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const total = requests.length;
+            const urgent = requests.filter(r => r.isUrgent && r.status !== 'completed').length;
+            const pending = requests.filter(r => r.status === 'pending').length;
+            const unassigned = requests.filter(r => r.isUnassigned && r.status !== 'completed').length;
+            
+            // 지연: 희망일이 지났는데 완료되지 않음
+            const overdue = requests.filter(r => {
+                if (r.status === 'completed') return false;
+                const desiredDate = new Date(r.desiredDateStart);
+                desiredDate.setHours(0, 0, 0, 0);
+                return desiredDate < today;
+            }).length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statUrgent').textContent = urgent;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statUnassigned').textContent = unassigned;
+            document.getElementById('statOverdue').textContent = overdue;
+        }
+
+        function filterRequests(filter) {
+            currentFilter = filter;
+            
+            // 버튼 활성화
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('requestTable');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = requests;
+
+            // 필터 적용
+            if (currentFilter !== 'all') {
+                filtered = requests.filter(r => {
+                    if (currentFilter === 'unassigned') return r.isUnassigned && r.status !== 'completed';
+                    if (currentFilter === 'urgent') return r.isUrgent && r.status !== 'completed';
+                    if (currentFilter === 'overdue') {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const desiredDate = new Date(r.desiredDateStart);
+                        desiredDate.setHours(0, 0, 0, 0);
+                        return desiredDate < today && r.status !== 'completed';
+                    }
+                    return r.status === currentFilter;
+                });
+            }
+
+            // 검색 적용
+            if (searchTerm) {
+                filtered = filtered.filter(r => 
+                    r.clientName.toLowerCase().includes(searchTerm) ||
+                    r.address.toLowerCase().includes(searchTerm) ||
+                    (r.assignedName && r.assignedName.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            검색 결과가 없습니다
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(request => {
+                const status = getRequestStatus(request);
+                const statusBadge = getStatusBadge(status, request.isUrgent, request.isUnassigned);
+                
+                return `
+                    <tr>
+                        <td>${statusBadge}</td>
+                        <td class="request-number">${request.requestNumber}</td>
+                        <td>${formatDate(request.desiredDateStart)}</td>
+                        <td>${request.sampleType}</td>
+                        <td>${truncate(request.address, 30)}</td>
+                        <td class="client-name">${request.clientName}</td>
+                        <td>${request.clientPhone}</td>
+                        <td>${request.assignedName || '미배정'}</td>
+                        <td>
+                            ${request.notes ? 
+                                `<span class="notes-preview" title="${request.notes}">💬 ${request.notes}</span>` : 
+                                '-'
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getRequestStatus(request) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const desiredDate = new Date(request.desiredDateStart);
+            desiredDate.setHours(0, 0, 0, 0);
+
+            if (request.status === 'completed') return 'completed';
+            if (request.isUnassigned) return 'unassigned';  // 미배정 우선
+            if (request.isUrgent) return 'urgent';
+            if (desiredDate < today) return 'overdue';
+            if (request.status === 'in-progress') return 'in-progress';
+            return 'pending';
+        }
+
+        function getStatusBadge(status, isUrgent, isUnassigned) {
+            const badges = {
+                unassigned: '<span class="status-badge" style="background: #f5f3ff; color: #6b21a8;">👤 미배정</span>',
+                urgent: '<span class="status-badge status-urgent">🔴 긴급</span>',
+                overdue: '<span class="status-badge status-overdue">⚠️ 지연</span>',
+                'in-progress': '<span class="status-badge status-in-progress">진행중</span>',
+                pending: '<span class="status-badge status-pending">⏰ 대기</span>',
+                completed: '<span class="status-badge status-completed">✅ 완료</span>'
+            };
+            return badges[status] || badges.pending;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${month}-${day}`;
+        }
+
+        function truncate(str, length) {
+            return str.length > length ? str.substring(0, length) + '...' : str;
+        }
+
+        init();
+    </script>
+</body>
+</html>

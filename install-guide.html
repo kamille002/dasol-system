@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>앱 설치 가이드 - 다솔물환경연구소</title>
+    
+    <!-- PWA 메타태그 -->
+    <meta name="description" content="다솔시스템 앱 설치 가이드">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #1f2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .device-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .guide-content {
+            display: none;
+        }
+
+        .guide-content.active {
+            display: block;
+        }
+
+        .step {
+            background: #f9fafb;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .step-description {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .feature-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .feature-box h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .install-now-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .install-now-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .install-now-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .section h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 다솔시스템 앱 설치</h1>
+        <p class="subtitle">모바일 기기에서 앱처럼 사용하세요</p>
+
+        <div class="feature-box">
+            <h3>🎯 앱 설치의 장점</h3>
+            <ul class="feature-list">
+                <li>홈 화면에서 바로 실행 (앱처럼 사용)</li>
+                <li>오프라인에서도 일부 기능 사용 가능</li>
+                <li>빠른 로딩 속도 (캐싱 기능)</li>
+                <li>푸시 알림 수신 가능</li>
+                <li>전체 화면 모드 지원</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📲 기기별 설치 방법</h2>
+
+            <div class="device-tabs">
+                <button class="tab-btn active" onclick="showGuide('android')">🤖 Android</button>
+                <button class="tab-btn" onclick="showGuide('ios')">🍎 iOS (iPhone)</button>
+                <button class="tab-btn" onclick="showGuide('chrome')">💻 Chrome</button>
+                <button class="tab-btn" onclick="showGuide('edge')">💻 Edge</button>
+            </div>
+
+            <!-- Android 가이드 -->
+            <div id="android-guide" class="guide-content active">
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        Chrome 브라우저로 접속
+                    </div>
+                    <p class="step-description">
+                        Android 기기에서 Chrome 브라우저로 다솔시스템에 접속합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        상단 "앱 설치" 버튼 클릭
+                    </div>
+                    <p class="step-description">
+                        화면 상단에 나타나는 "앱 설치" 버튼을 클릭하거나, 
+                        Chrome 메뉴(⋮)를 열고 "홈 화면에 추가"를 선택합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        설치 확인
+                    </div>
+                    <p class="step-description">
+                        "추가" 버튼을 눌러 설치를 완료합니다. 
+                        홈 화면에 다솔시스템 아이콘이 생성됩니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- iOS 가이드 -->
+            <div id="ios-guide" class="guide-content">
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        Safari 브라우저로 접속
+                    </div>
+                    <p class="step-description">
+                        iPhone에서 Safari 브라우저로 다솔시스템에 접속합니다.
+                        (Chrome은 iOS에서 PWA 설치를 지원하지 않습니다)
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        공유 버튼 클릭
+                    </div>
+                    <p class="step-description">
+                        화면 하단의 공유 버튼(□↑)을 클릭합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        "홈 화면에 추가" 선택
+                    </div>
+                    <p class="step-description">
+                        메뉴에서 "홈 화면에 추가"를 선택하고 "추가" 버튼을 누릅니다.
+                        홈 화면에 다솔시스템 아이콘이 생성됩니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Chrome Desktop 가이드 -->
+            <div id="chrome-guide" class="guide-content">
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        Chrome 브라우저로 접속
+                    </div>
+                    <p class="step-description">
+                        PC에서 Chrome 브라우저로 다솔시스템에 접속합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        주소창의 설치 아이콘 클릭
+                    </div>
+                    <p class="step-description">
+                        주소창 오른쪽에 나타나는 "설치" 아이콘(➕)을 클릭하거나,
+                        Chrome 메뉴(⋮)에서 "다솔시스템 설치..."를 선택합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        설치 완료
+                    </div>
+                    <p class="step-description">
+                        "설치" 버튼을 클릭합니다. 
+                        바탕화면과 시작 메뉴에 바로가기가 생성됩니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Edge Desktop 가이드 -->
+            <div id="edge-guide" class="guide-content">
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        Edge 브라우저로 접속
+                    </div>
+                    <p class="step-description">
+                        PC에서 Edge 브라우저로 다솔시스템에 접속합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        주소창의 설치 아이콘 클릭
+                    </div>
+                    <p class="step-description">
+                        주소창 오른쪽에 나타나는 "앱 설치 가능" 아이콘을 클릭하거나,
+                        Edge 메뉴(...)에서 "앱 > 이 사이트를 앱으로 설치"를 선택합니다.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        설치 완료
+                    </div>
+                    <p class="step-description">
+                        "설치" 버튼을 클릭합니다. 
+                        작업 표시줄에 고정하거나 시작 메뉴에 추가할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <button id="installBtn" class="install-now-btn" onclick="installApp()">
+            📱 지금 바로 설치하기
+        </button>
+
+        <div style="text-align: center;">
+            <a href="/dashboard-final.html" class="back-btn">← 대시보드로 돌아가기</a>
+        </div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+
+        // PWA 설치 프롬프트 저장
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').disabled = false;
+        });
+
+        // 탭 전환
+        function showGuide(device) {
+            // 모든 탭 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 모든 가이드 숨기기
+            document.querySelectorAll('.guide-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            
+            // 선택된 가이드 표시
+            document.getElementById(device + '-guide').classList.add('active');
+        }
+
+        // 앱 설치 실행
+        async function installApp() {
+            if (!deferredPrompt) {
+                alert('이 브라우저에서는 자동 설치가 지원되지 않습니다.\n위의 수동 설치 방법을 참고해주세요.');
+                return;
+            }
+
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                alert('✓ 앱 설치가 완료되었습니다!');
+                document.getElementById('installBtn').disabled = true;
+                document.getElementById('installBtn').textContent = '✓ 설치 완료';
+            }
+            
+            deferredPrompt = null;
+        }
+
+        // 이미 설치된 경우
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installBtn').disabled = true;
+            document.getElementById('installBtn').textContent = '✓ 설치 완료';
+        });
+
+        // 페이지 로드 시 설치 버튼 비활성화
+        window.addEventListener('load', () => {
+            if (!deferredPrompt) {
+                document.getElementById('installBtn').disabled = true;
+                document.getElementById('installBtn').textContent = '설치 불가 (수동 설치 참고)';
+            }
+        });
+    </script>
+</body>
+</html>

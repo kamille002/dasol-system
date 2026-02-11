@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 다솔물환경연구소</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .signup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+
+        .signup-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .signup-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .signup-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .signup-form {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
+        }
+
+        .password-hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .login-link a:hover {
+            color: #764ba2;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .team-info {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #4b5563;
+            display: none;
+        }
+
+        .team-info.show {
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .signup-header {
+                padding: 30px 20px;
+            }
+
+            .signup-header h1 {
+                font-size: 24px;
+            }
+
+            .signup-form {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1>다솔물환경연구소</h1>
+            <p>통합 업무관리 시스템 회원가입</p>
+        </div>
+
+        <div class="signup-form">
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="email">이메일 <span class="required">*</span></label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="example@dasol.co.kr" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">비밀번호 <span class="required">*</span></label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="8자 이상 입력하세요" 
+                        required
+                    >
+                    <div class="password-hint">영문, 숫자 포함 8자 이상</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passwordConfirm">비밀번호 확인 <span class="required">*</span></label>
+                    <input 
+                        type="password" 
+                        id="passwordConfirm" 
+                        placeholder="비밀번호를 다시 입력하세요" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="name">이름 <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        placeholder="실명을 입력하세요" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="position">직급 <span class="required">*</span></label>
+                    <select id="position" required>
+                        <option value="">선택하세요</option>
+                        <option value="사원">사원</option>
+                        <option value="주임">주임</option>
+                        <option value="대리">대리</option>
+                        <option value="과장">과장</option>
+                        <option value="차장">차장</option>
+                        <option value="부장">부장</option>
+                        <option value="상무">상무</option>
+                        <option value="전무">전무</option>
+                        <option value="이사">이사</option>
+                        <option value="대표이사">대표이사</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="team">소속 부서 <span class="required">*</span></label>
+                    <select id="team" required>
+                        <option value="">선택하세요</option>
+                        <option value="영업팀">영업팀</option>
+                        <option value="총무팀">총무팀</option>
+                        <option value="분석팀">분석팀</option>
+                    </select>
+                    <div class="team-info" id="teamInfo"></div>
+                </div>
+
+                <button type="submit" class="submit-btn">회원가입</button>
+            </form>
+
+            <div class="login-link">
+                이미 계정이 있으신가요? <a href="index.html">로그인</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 직급별 레벨 매핑
+        const POSITION_LEVELS = {
+            '사원': 10,
+            '주임': 9,
+            '대리': 8,
+            '과장': 7,
+            '차장': 6,
+            '부장': 5,
+            '상무': 4,
+            '전무': 3,
+            '이사': 2,
+            '대표이사': 1
+        };
+
+        // 부서별 안내 메시지
+        const TEAM_INFO = {
+            '영업팀': '✓ 가입 승인 후 영업팀장이 업무지역을 설정합니다.<br>✓ 업무지역에 따라 자동으로 의뢰가 배정됩니다.',
+            '총무팀': '✓ 가입 승인 후 즉시 시스템을 이용하실 수 있습니다.',
+            '분석팀': '✓ 가입 승인 후 분석실장이 분석항목을 설정합니다.<br>✓ 분석항목에 따라 자동으로 분석업무가 배정됩니다.'
+        };
+
+        // 부서 선택 시 안내 메시지 표시
+        document.getElementById('team').addEventListener('change', function() {
+            const teamInfo = document.getElementById('teamInfo');
+            const selectedTeam = this.value;
+
+            if (selectedTeam && TEAM_INFO[selectedTeam]) {
+                teamInfo.innerHTML = TEAM_INFO[selectedTeam];
+                teamInfo.classList.add('show');
+            } else {
+                teamInfo.classList.remove('show');
+            }
+        });
+
+        // 폼 제출
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+            const name = document.getElementById('name').value.trim();
+            const position = document.getElementById('position').value;
+            const team = document.getElementById('team').value;
+
+            // 유효성 검사
+            if (!email || !password || !passwordConfirm || !name || !position || !team) {
+                showError('모든 필드를 입력해주세요.');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showError('비밀번호가 일치하지 않습니다.');
+                return;
+            }
+
+            if (password.length < 8) {
+                showError('비밀번호는 8자 이상이어야 합니다.');
+                return;
+            }
+
+            // 기존 사용자 체크
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const existingUser = users.find(u => u.email === email);
+
+            if (existingUser) {
+                showError('이미 등록된 이메일입니다.');
+                return;
+            }
+
+            // 신규 사용자 생성
+            const newUser = {
+                id: 'USER' + Date.now(),
+                email: email,
+                password: password, // 실제로는 해싱 필요
+                name: name,
+                position: position,
+                level: POSITION_LEVELS[position],
+                team: team,
+                status: 'pending', // pending/approved/active
+                workRegions: [],
+                analysisItems: [],
+                createdAt: new Date().toISOString(),
+                approvedBy: null,
+                approvedAt: null
+            };
+
+            users.push(newUser);
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            // 알림 생성 (Kamille님에게)
+            createNotification(newUser);
+
+            // 성공 메시지
+            showSuccess('회원가입이 완료되었습니다!<br>관리자 승인 후 로그인하실 수 있습니다.');
+
+            // 3초 후 로그인 페이지로 이동
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        });
+
+        function createNotification(user) {
+            const notifications = JSON.parse(localStorage.getItem('dasol_notifications') || '[]');
+
+            const notification = {
+                id: 'NOTIF' + Date.now(),
+                type: 'user_approval',
+                targetUsers: ['KAMILLE'], // Kamille님은 모든 승인 가능
+                userId: user.id,
+                userName: user.name,
+                userEmail: user.email,
+                userPosition: user.position,
+                userTeam: user.team,
+                status: 'unread',
+                createdAt: new Date().toISOString()
+            };
+
+            notifications.push(notification);
+            localStorage.setItem('dasol_notifications', JSON.stringify(notifications));
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+
+            // 성공 메시지 숨김
+            document.getElementById('successMessage').style.display = 'none';
+
+            // 3초 후 자동 숨김
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = message;
+            successDiv.style.display = 'block';
+
+            // 에러 메시지 숨김
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // 초기 데이터 생성 (최초 1회)
+        function initializeSystem() {
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            
+            // Kamille님 계정이 없으면 생성
+            if (!users.find(u => u.email === 'kamille@dasol.co.kr')) {
+                const kamille = {
+                    id: 'KAMILLE',
+                    email: 'kamille@dasol.co.kr',
+                    password: 'kamille2026', // 임시 비밀번호
+                    name: 'Kamille',
+                    position: 'CEO',
+                    level: 0, // 초월적 존재
+                    team: '경영진',
+                    status: 'active',
+                    workRegions: [],
+                    analysisItems: [],
+                    createdAt: new Date().toISOString(),
+                    approvedBy: null,
+                    approvedAt: null,
+                    isAdmin: true,
+                    isSuperAdmin: true
+                };
+
+                users.push(kamille);
+                localStorage.setItem('dasol_users', JSON.stringify(users));
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        initializeSystem();
+    </script>
+</body>
+</html>

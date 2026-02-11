@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>품의서 작성 - 다솔물환경연구소</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .approval-line {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .approval-line h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .approver-list {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .approver-item {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .approver-item .position {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+
+        .approver-item .name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 품의서 (일반 결재)</h1>
+        <a href="../../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <h2 class="form-title">품의서</h2>
+        <p class="form-subtitle">일반 업무에 대한 승인을 요청합니다</p>
+
+        <form id="proposalForm">
+            <!-- 기본 정보 -->
+            <div class="form-group">
+                <label>제목 <span class="required">*</span></label>
+                <input type="text" id="title" placeholder="예: 사무용품 구매 건의" required>
+            </div>
+
+            <div class="form-group">
+                <label>품의 내용 <span class="required">*</span></label>
+                <textarea id="content" placeholder="품의 내용을 상세히 작성해주세요..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>예상 금액 (선택)</label>
+                <input type="number" id="amount" placeholder="금액을 입력하세요 (원)">
+            </div>
+
+            <div class="form-group">
+                <label>첨부 파일 (선택)</label>
+                <input type="file" id="attachment" multiple>
+            </div>
+
+            <!-- 결재선 -->
+            <div class="approval-line">
+                <h3>📋 결재선</h3>
+                <div class="approver-list">
+                    <div class="approver-item">
+                        <div class="position">기안</div>
+                        <div class="name">김대리</div>
+                    </div>
+                    <div class="approver-item">
+                        <div class="position">→</div>
+                    </div>
+                    <div class="approver-item">
+                        <div class="position">팀장</div>
+                        <div class="name">이과장</div>
+                    </div>
+                    <div class="approver-item">
+                        <div class="position">→</div>
+                    </div>
+                    <div class="approver-item">
+                        <div class="position">최종</div>
+                        <div class="name">박부장</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 버튼 -->
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="saveDraft()">임시 저장</button>
+                <button type="submit" class="btn btn-primary">결재 요청</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('proposalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (confirm('결재를 요청하시겠습니까?')) {
+                alert('✅ 결재가 요청되었습니다!\n이과장님에게 알림이 전송되었습니다.');
+                window.location.href = '../../dashboard-final.html';
+            }
+        });
+
+        function saveDraft() {
+            alert('💾 임시 저장되었습니다.');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>의뢰 접수 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+        h1 {
+            font-size: 28px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+        .form-section {
+            margin-bottom: 32px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+        .date-range {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        .date-separator {
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .auto-assign-box {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        .auto-assign-box h3 {
+            font-size: 16px;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        .auto-assign-box p {
+            font-size: 14px;
+            color: #1e3a8a;
+        }
+        .assigned-person {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+            justify-content: flex-end;
+        }
+        .info-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 의뢰 접수</h1>
+        <p class="subtitle">새로운 수질검사 의뢰를 접수합니다</p>
+
+        <form id="requestForm">
+            <!-- 시료 정보 -->
+            <div class="form-section">
+                <div class="section-title">시료 정보</div>
+                
+                <div class="form-group">
+                    <label>시료 종류 <span class="required">*</span></label>
+                    <select id="sampleType" required>
+                        <option value="">선택하세요</option>
+                        <option value="저수조">저수조</option>
+                        <option value="옥내급수관">옥내급수관</option>
+                        <option value="정수기">정수기</option>
+                        <option value="지하수">지하수</option>
+                        <option value="자가측정">자가측정</option>
+                        <option value="엔지니어링">엔지니어링</option>
+                        <option value="용역">용역</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>채수 지점 주소 <span class="required">*</span></label>
+                    <input type="text" id="address" placeholder="예: 서울시 강남구 테헤란로 123" required>
+                    <p class="info-text">💡 주소를 입력하면 담당 영업사원이 자동으로 배정됩니다</p>
+                </div>
+            </div>
+
+            <!-- 의뢰자 정보 -->
+            <div class="form-section">
+                <div class="section-title">의뢰자 정보</div>
+                
+                <div class="form-group">
+                    <label>의뢰자 성명 <span class="required">*</span></label>
+                    <input type="text" id="clientName" placeholder="예: 홍길동" required>
+                </div>
+
+                <div class="form-group">
+                    <label>의뢰자 연락처 <span class="required">*</span></label>
+                    <input type="tel" id="clientPhone" placeholder="예: 010-1234-5678" required>
+                </div>
+            </div>
+
+            <!-- 채수 일정 -->
+            <div class="form-section">
+                <div class="section-title">채수 일정</div>
+                
+                <div class="form-group">
+                    <label>채수 희망 기간 <span class="required">*</span></label>
+                    <div class="date-range">
+                        <input type="date" id="desiredDateStart" required>
+                        <span class="date-separator">~</span>
+                        <input type="date" id="desiredDateEnd">
+                    </div>
+                    <p class="info-text">종료일은 선택사항입니다. 특정 날짜를 원하시면 시작일만 입력하세요.</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="flexibleSchedule">
+                        <label for="flexibleSchedule">임의 채수 가능 (영업사원이 일정 조율 가능)</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isUrgent">
+                        <label for="isUrgent" style="color: #ef4444; font-weight: 700;">🔴 긴급 의뢰</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 접수 메모 -->
+            <div class="form-section">
+                <div class="section-title">접수 메모</div>
+                
+                <div class="form-group">
+                    <label>의뢰자 요청사항</label>
+                    <textarea id="notes" placeholder="예: 2층 저수조도 함께 채수해주세요&#10;입구 비밀번호는 1234입니다"></textarea>
+                    <p class="info-text">의뢰자가 전달한 특이사항이나 요청사항을 입력하세요</p>
+                </div>
+            </div>
+
+            <!-- 자동 할당 정보 -->
+            <div class="auto-assign-box" id="autoAssignBox" style="display: none;">
+                <h3>✅ 담당자 자동 배정</h3>
+                <div class="assigned-person">
+                    <span style="font-size: 20px;">👤</span>
+                    <span id="assignedPerson">-</span>
+                </div>
+                <p style="margin-top: 8px; font-size: 13px;">주소 기반으로 담당 영업사원이 자동 배정되었습니다</p>
+            </div>
+
+            <!-- 버튼 -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
+                <button type="submit" class="btn btn-primary">접수 완료</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 현재 로그인 사용자 정보
+        const currentUser = JSON.parse(localStorage.getItem('dasol_session') || '{}');
+
+        // 주소 입력 시 자동 할당
+        document.getElementById('address').addEventListener('input', function() {
+            const address = this.value.trim();
+            if (address.length > 5) {
+                autoAssignSalesperson(address);
+            }
+        });
+
+        // 자동 할당 함수
+        function autoAssignSalesperson(address) {
+            // 주소에서 지역 추출
+            const region = extractRegion(address);
+            
+            if (!region) {
+                document.getElementById('autoAssignBox').style.display = 'none';
+                // 경고 메시지 표시
+                showWarning('주소에서 지역을 파악할 수 없습니다. 주소를 "서울 강남구" 형식으로 입력해주세요.');
+                return;
+            }
+
+            // 사용자 DB에서 해당 지역 담당자 찾기
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const assignedUser = users.find(user => 
+                user.team === '영업팀' && 
+                user.status === 'active' &&
+                user.workRegions && 
+                user.workRegions.some(r => region.includes(r) || r.includes(region))
+            );
+
+            if (assignedUser) {
+                document.getElementById('autoAssignBox').style.display = 'block';
+                document.getElementById('assignedPerson').textContent = 
+                    `${assignedUser.name} (${assignedUser.position})`;
+                
+                // 폼에 할당 정보 저장
+                document.getElementById('requestForm').dataset.assignedTo = assignedUser.id;
+                document.getElementById('requestForm').dataset.assignedName = assignedUser.name;
+                
+                // 경고 숨기기
+                hideWarning();
+            } else {
+                document.getElementById('autoAssignBox').style.display = 'none';
+                document.getElementById('requestForm').dataset.assignedTo = '';
+                
+                // 경고 메시지 표시
+                showWarning(`⚠️ "${region}" 지역 담당 영업사원을 찾을 수 없습니다.\n관리자에게 문의하거나 다른 주소를 입력해주세요.`);
+            }
+        }
+
+        // 경고 메시지 표시
+        function showWarning(message) {
+            let warningBox = document.getElementById('warningBox');
+            if (!warningBox) {
+                warningBox = document.createElement('div');
+                warningBox.id = 'warningBox';
+                warningBox.style.cssText = `
+                    background: #fef2f2;
+                    border: 2px solid #ef4444;
+                    border-radius: 8px;
+                    padding: 16px;
+                    margin-top: 12px;
+                    color: #991b1b;
+                    font-size: 14px;
+                    font-weight: 600;
+                `;
+                document.getElementById('address').parentElement.appendChild(warningBox);
+            }
+            warningBox.textContent = message;
+            warningBox.style.display = 'block';
+        }
+
+        // 경고 메시지 숨기기
+        function hideWarning() {
+            const warningBox = document.getElementById('warningBox');
+            if (warningBox) {
+                warningBox.style.display = 'none';
+            }
+        }
+
+        // 주소에서 지역 추출
+        function extractRegion(address) {
+            // 먼저 간단한 형태 체크: "서울 강동구", "경기 수원시"
+            const simpleMatch = address.match(/^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)\s+([가-힣]+[시군구])/);
+            if (simpleMatch) {
+                return `${simpleMatch[1]} ${simpleMatch[2]}`;
+            }
+            
+            // 복잡한 형태 체크: "서울특별시 강동구", "경기도 수원시"
+            const complexMatch = address.match(/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)(?:특별시|광역시|특별자치시|도|특별자치도)?\s*([가-힣]+[시군구])/);
+            
+            if (complexMatch) {
+                const city = complexMatch[1];
+                const district = complexMatch[2];
+                
+                // "서울 강남구" 형식으로 반환
+                if (city === '서울') return `서울 ${district}`;
+                if (city === '경기') return `경기 ${district}`;
+                return `${city} ${district}`;
+            }
+            
+            return null;
+        }
+
+        // 폼 제출
+        document.getElementById('requestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let assignedTo = this.dataset.assignedTo;
+            let assignedName = this.dataset.assignedName;
+
+            // 시료 종류 체크
+            const sampleType = document.getElementById('sampleType').value;
+            if (!sampleType) {
+                alert('❌ 시료 종류를 선택해주세요.');
+                document.getElementById('sampleType').focus();
+                return;
+            }
+
+            // 담당자가 없으면 "미배정"으로 처리
+            if (!assignedTo) {
+                if (!confirm('⚠️ 담당 영업사원이 자동 배정되지 않았습니다.\n\n"미배정" 상태로 접수하시겠습니까?\n(영업팀장에게 알림이 전송됩니다)')) {
+                    return;
+                }
+                assignedTo = null;
+                assignedName = '미배정';
+            }
+
+            // 의뢰 번호 생성 (YY-MM-NNNNN)
+            const now = new Date();
+            const year = String(now.getFullYear()).slice(2);
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const requests = JSON.parse(localStorage.getItem('dasol_requests') || '[]');
+            const todayRequests = requests.filter(r => r.requestNumber.startsWith(`${year}-${month}`));
+            const sequence = String(todayRequests.length + 1).padStart(5, '0');
+            const requestNumber = `${year}-${month}-${sequence}`;
+
+            const newRequest = {
+                id: 'REQ' + Date.now(),
+                requestNumber: requestNumber,
+                
+                // 시료 정보
+                sampleType: sampleType,
+                address: document.getElementById('address').value,
+                
+                // 의뢰자 정보
+                clientName: document.getElementById('clientName').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                
+                // 채수 일정
+                desiredDateStart: document.getElementById('desiredDateStart').value,
+                desiredDateEnd: document.getElementById('desiredDateEnd').value || null,
+                flexibleSchedule: document.getElementById('flexibleSchedule').checked,
+                isUrgent: document.getElementById('isUrgent').checked,
+                
+                // 메모
+                notes: document.getElementById('notes').value,
+                
+                // 자동 생성 정보
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.name || '접수자',
+                createdById: currentUser.id || 'UNKNOWN',
+                assignedTo: assignedTo,
+                assignedName: assignedName,
+                isUnassigned: assignedTo === null,  // 미배정 여부
+                
+                // 상태
+                status: 'pending',  // pending, in-progress, completed
+                sampledAt: null,
+                completedAt: null
+            };
+
+            // 저장
+            requests.push(newRequest);
+            localStorage.setItem('dasol_requests', JSON.stringify(requests));
+
+            const statusMessage = assignedTo ? 
+                `✅ 의뢰가 접수되었습니다!\n\n의뢰번호: ${requestNumber}\n담당자: ${assignedName}\n시료종류: ${sampleType}` :
+                `✅ 의뢰가 접수되었습니다!\n\n의뢰번호: ${requestNumber}\n상태: 미배정 (영업팀장 확인 필요)\n시료종류: ${sampleType}`;
+            
+            alert(statusMessage);
+            
+            // 대시보드로 이동
+            window.location.href = '../dashboard-final.html';
+        });
+
+        function goBack() {
+            if (confirm('작성 중인 내용이 사라집니다. 취소하시겠습니까?')) {
+                window.location.href = '../dashboard-final.html';
+            }
+        }
+
+        // 오늘 날짜를 기본값으로
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('desiredDateStart').value = today;
+        document.getElementById('desiredDateStart').min = today;
+        document.getElementById('desiredDateEnd').min = today;
+    </script>
+</body>
+</html>

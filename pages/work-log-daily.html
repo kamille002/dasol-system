@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>업무일지 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #059669;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .date-selector input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .date-selector button {
+            padding: 10px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 32px;
+        }
+        
+        .report-header {
+            border-bottom: 3px solid #111827;
+            padding-bottom: 20px;
+            margin-bottom: 32px;
+        }
+        .report-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+        .report-info {
+            display: flex;
+            gap: 24px;
+            font-size: 15px;
+            color: #6b7280;
+        }
+        .report-info-item {
+            display: flex;
+            gap: 8px;
+        }
+        .report-info-label {
+            font-weight: 600;
+        }
+        
+        .log-item {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 24px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        .log-item.sampling {
+            border-left-color: #10b981;
+        }
+        .log-item.sales {
+            border-left-color: #f59e0b;
+        }
+        .log-time {
+            position: absolute;
+            left: -12px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 3px solid #10b981;
+            border-radius: 50%;
+        }
+        .log-item.sales .log-time {
+            border-color: #f59e0b;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+        .log-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .log-type.sampling {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .log-type.sales {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .log-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .log-time-text {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .log-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .log-detail {
+            font-size: 15px;
+            color: #374151;
+        }
+        .log-detail-label {
+            font-weight: 600;
+            color: #6b7280;
+            margin-right: 8px;
+        }
+        .log-samples {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+        .log-samples-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .sample-tag {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .log-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            margin-top: 8px;
+        }
+        .log-content {
+            background: #fffbeb;
+            border: 2px solid #fde68a;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 15px;
+            color: #78350f;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .log-card {
+            margin-top: 12px;
+            text-align: center;
+        }
+        .log-card img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .summary {
+            border-top: 3px solid #111827;
+            padding-top: 24px;
+            margin-top: 40px;
+        }
+        .summary-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .summary-card {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .summary-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .header-actions,
+            .date-selector,
+            .btn {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <h1>📝 업무일지</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="window.location.href='field-request.html'">📍 현장 의뢰서</button>
+                <button class="btn btn-warning" onclick="window.location.href='sales-activity.html'">💼 영업활동</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+            </div>
+        </div>
+        
+        <div class="date-selector">
+            <input type="date" id="dateSelector" value="">
+            <button onclick="changeDate(-1)">◀ 전날</button>
+            <button onclick="changeDate(0)">오늘</button>
+            <button onclick="changeDate(1)">다음 ▶</button>
+            <button onclick="window.print()">🖨️ 인쇄</button>
+        </div>
+    </div>
+
+    <div class="content" id="reportContent">
+        <!-- JavaScript로 동적 생성 -->
+    </div>
+
+    <script>
+        let currentDate = new Date();
+
+        function init() {
+            // 오늘 날짜로 초기화
+            document.getElementById('dateSelector').value = formatDateInput(currentDate);
+            renderReport();
+            
+            // 날짜 변경 이벤트
+            document.getElementById('dateSelector').addEventListener('change', function() {
+                currentDate = new Date(this.value);
+                renderReport();
+            });
+        }
+
+        function changeDate(days) {
+            if (days === 0) {
+                currentDate = new Date();
+            } else {
+                currentDate.setDate(currentDate.getDate() + days);
+            }
+            document.getElementById('dateSelector').value = formatDateInput(currentDate);
+            renderReport();
+        }
+
+        function renderReport() {
+            const workLogs = JSON.parse(localStorage.getItem('dasol_work_logs') || '[]');
+            const currentUser = JSON.parse(localStorage.getItem('dasol_session') || '{}');
+            
+            // 선택한 날짜의 로그만 필터링
+            const targetDate = formatDateInput(currentDate);
+            const todayLogs = workLogs.filter(log => {
+                const logDate = formatDateInput(new Date(log.createdAt));
+                return logDate === targetDate && log.createdBy === currentUser.name;
+            });
+
+            // 시간순 정렬
+            todayLogs.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+            const content = document.getElementById('reportContent');
+
+            if (todayLogs.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">등록된 업무가 없습니다</p>
+                        <p style="font-size: 14px;">현장 의뢰서 또는 영업활동을 등록하세요</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 통계 계산
+            const stats = calculateStats(todayLogs);
+
+            // 리포트 생성
+            let html = `
+                <div class="report-header">
+                    <div class="report-title">${formatDateKorean(currentDate)} 업무일지</div>
+                    <div class="report-info">
+                        <div class="report-info-item">
+                            <span class="report-info-label">작성자:</span>
+                            <span>${currentUser.name} (${currentUser.position || '직급'})</span>
+                        </div>
+                        <div class="report-info-item">
+                            <span class="report-info-label">소속:</span>
+                            <span>${currentUser.team || '팀'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 로그 항목들
+            todayLogs.forEach(log => {
+                if (log.type === 'sampling') {
+                    html += renderSamplingLog(log);
+                } else {
+                    html += renderSalesLog(log);
+                }
+            });
+
+            // 요약
+            html += renderSummary(stats);
+
+            content.innerHTML = html;
+        }
+
+        function renderSamplingLog(log) {
+            const time = new Date(log.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            const samplesText = log.samples.map(s => `${s.type} ${s.count}개`).join(', ');
+            
+            return `
+                <div class="log-item sampling">
+                    <div class="log-time"></div>
+                    <div class="log-header">
+                        <div>
+                            <div class="log-type sampling">📍 채수</div>
+                            <div class="log-title">${log.clientName}</div>
+                        </div>
+                        <div class="log-time-text">${time}</div>
+                    </div>
+                    <div class="log-details">
+                        <div class="log-detail">
+                            <span class="log-detail-label">주소:</span>
+                            ${log.address}
+                        </div>
+                    </div>
+                    <div class="log-samples">
+                        <div class="log-samples-list">
+                            ${log.samples.map(s => `
+                                <span class="sample-tag">${s.type} ${s.count}개</span>
+                            `).join('')}
+                        </div>
+                        <div class="log-amount">💰 ${log.totalAmount.toLocaleString()}원</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSalesLog(log) {
+            const time = new Date(log.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            
+            return `
+                <div class="log-item sales">
+                    <div class="log-time"></div>
+                    <div class="log-header">
+                        <div>
+                            <div class="log-type sales">💼 영업활동</div>
+                            <div class="log-title">${log.visitPlace}</div>
+                        </div>
+                        <div class="log-time-text">${time}</div>
+                    </div>
+                    <div class="log-details">
+                        <div class="log-detail">
+                            <span class="log-detail-label">주소:</span>
+                            ${log.address}
+                        </div>
+                        ${log.contactPerson ? `
+                            <div class="log-detail">
+                                <span class="log-detail-label">면담자:</span>
+                                ${log.contactPerson}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="log-content">${log.activityContent}</div>
+                    ${log.businessCard ? `
+                        <div class="log-card">
+                            <img src="${log.businessCard}" alt="명함">
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderSummary(stats) {
+            return `
+                <div class="summary">
+                    <div class="summary-title">📊 하루 요약</div>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-label">총 채수</div>
+                            <div class="summary-value">${stats.totalSampling}건</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">시료 개수</div>
+                            <div class="summary-value">${stats.totalSamples}개</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">영업활동</div>
+                            <div class="summary-value">${stats.totalSales}건</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">총 매출</div>
+                            <div class="summary-value" style="color: #10b981;">${stats.totalRevenue.toLocaleString()}원</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateStats(logs) {
+            const samplingLogs = logs.filter(l => l.type === 'sampling');
+            const salesLogs = logs.filter(l => l.type === 'sales');
+            
+            return {
+                totalSampling: samplingLogs.length,
+                totalSamples: samplingLogs.reduce((sum, log) => sum + log.totalSamples, 0),
+                totalSales: salesLogs.length,
+                totalRevenue: samplingLogs.reduce((sum, log) => sum + log.totalAmount, 0)
+            };
+        }
+
+        function formatDateInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateKorean(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            const dayOfWeek = days[date.getDay()];
+            return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
+        }
+
+        init();
+    </script>
+</body>
+</html>

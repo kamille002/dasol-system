@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 관리 - 다솔물환경연구소</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: #4b5563;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 16px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: #f9fafb;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .user-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .user-card:hover {
+            border-color: #667eea;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .user-details {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .user-detail-item {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .user-detail-item strong {
+            color: #374151;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-item input {
+            width: auto;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            margin: 0;
+            font-weight: normal;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .user-header {
+                flex-direction: column;
+            }
+
+            .user-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>사용자 관리</h1>
+        <a href="../dashboard-final.html" class="back-btn">← 대시보드</a>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="switchTab('pending')">
+                승인 대기
+                <span class="tab-badge" id="pendingCount">0</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('active')">
+                활성 사용자
+                <span class="tab-badge" style="background: #10b981" id="activeCount">0</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('all')">
+                전체 사용자
+            </button>
+        </div>
+
+        <div id="pendingTab" class="tab-content active">
+            <div id="pendingUsers"></div>
+        </div>
+
+        <div id="activeTab" class="tab-content">
+            <div id="activeUsers"></div>
+        </div>
+
+        <div id="allTab" class="tab-content">
+            <div id="allUsers"></div>
+        </div>
+    </div>
+
+    <!-- 업무지역 설정 모달 -->
+    <div id="regionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">업무지역 설정</div>
+            <div id="regionForm"></div>
+        </div>
+    </div>
+
+    <!-- 분석항목 설정 모달 -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">분석항목 설정</div>
+            <div id="analysisForm"></div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentUser = null;
+        let users = [];
+
+        // 업무지역 목록 (서울 25개 구 + 경기도 주요 시)
+        const WORK_REGIONS = [
+            '서울 강남구', '서울 강동구', '서울 강북구', '서울 강서구',
+            '서울 관악구', '서울 광진구', '서울 구로구', '서울 금천구',
+            '서울 노원구', '서울 도봉구', '서울 동대문구', '서울 동작구',
+            '서울 마포구', '서울 서대문구', '서울 서초구', '서울 성동구',
+            '서울 성북구', '서울 송파구', '서울 양천구', '서울 영등포구',
+            '서울 용산구', '서울 은평구', '서울 종로구', '서울 중구', '서울 중랑구',
+            '경기 수원', '경기 성남', '경기 안양', '경기 부천', '경기 고양',
+            '경기 용인', '경기 화성', '경기 남양주', '경기 평택'
+        ];
+
+        // 분석항목 목록
+        const ANALYSIS_ITEMS = [
+            'pH', '탁도', '색도', '냄새', '맛', '과망간산칼륨소비량',
+            '총경도', '잔류염소', '암모니아성질소', '질산성질소', '아질산성질소',
+            '염소이온', '황산이온', '총대장균군', '대장균', '일반세균',
+            '납', '비소', '수은', '카드뮴', '크롬', '구리', '아연', '철', '망간',
+            '불소', '세레늄', '보론', '페놀', '다이아지논', '파라티온', '페니트로티온'
+        ];
+
+        // 초기화
+        function init() {
+            // 세션 체크
+            const session = JSON.parse(localStorage.getItem('dasol_session') || '{}');
+            if (!session.id) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 권한 체크 (Kamille님 또는 관리자만)
+            if (!session.isSuperAdmin && !session.isAdmin) {
+                alert('권한이 없습니다.');
+                window.location.href = '../dashboard-final.html';
+                return;
+            }
+
+            currentUser = session;
+            loadUsers();
+        }
+
+        // 사용자 로드
+        function loadUsers() {
+            users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            renderUsers();
+        }
+
+        // 사용자 렌더링
+        function renderUsers() {
+            const pending = users.filter(u => u.status === 'pending');
+            const active = users.filter(u => u.status === 'active' || u.status === 'approved');
+
+            // 카운트 업데이트
+            document.getElementById('pendingCount').textContent = pending.length;
+            document.getElementById('activeCount').textContent = active.length;
+
+            // 승인 대기
+            renderUserList(pending, 'pendingUsers', 'pending');
+
+            // 활성 사용자
+            renderUserList(active, 'activeUsers', 'active');
+
+            // 전체
+            renderUserList(users, 'allUsers', 'all');
+        }
+
+        // 사용자 목록 렌더링
+        function renderUserList(userList, containerId, type) {
+            const container = document.getElementById(containerId);
+
+            if (userList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <p>${type === 'pending' ? '승인 대기중인 사용자가 없습니다.' : '사용자가 없습니다.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = userList.map(user => `
+                <div class="user-card">
+                    <div class="user-header">
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-details">
+                                <div class="user-detail-item">
+                                    <strong>이메일:</strong> ${user.email}
+                                </div>
+                                <div class="user-detail-item">
+                                    <strong>직급:</strong> ${user.position}
+                                </div>
+                                <div class="user-detail-item">
+                                    <strong>부서:</strong> ${user.team}
+                                </div>
+                                ${user.workRegions && user.workRegions.length > 0 ? `
+                                    <div class="user-detail-item">
+                                        <strong>업무지역:</strong> ${user.workRegions.join(', ')}
+                                    </div>
+                                ` : ''}
+                                ${user.analysisItems && user.analysisItems.length > 0 ? `
+                                    <div class="user-detail-item">
+                                        <strong>분석항목:</strong> ${user.analysisItems.join(', ')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <span class="status-badge status-${user.status}">
+                            ${user.status === 'pending' ? '승인 대기' : user.status === 'active' || user.status === 'approved' ? '활성' : '거부'}
+                        </span>
+                    </div>
+
+                    <div class="user-actions">
+                        ${user.status === 'pending' ? `
+                            <button class="btn btn-success" onclick="approveUser('${user.id}')">
+                                ✓ 승인
+                            </button>
+                            <button class="btn btn-danger" onclick="rejectUser('${user.id}')">
+                                ✗ 거부
+                            </button>
+                        ` : ''}
+                        
+                        ${(user.status === 'active' || user.status === 'approved') && user.team === '영업팀' ? `
+                            <button class="btn btn-primary" onclick="setWorkRegions('${user.id}')">
+                                📍 업무지역 설정
+                            </button>
+                        ` : ''}
+                        
+                        ${(user.status === 'active' || user.status === 'approved') && user.team === '분석팀' ? `
+                            <button class="btn btn-primary" onclick="setAnalysisItems('${user.id}')">
+                                🔬 분석항목 설정
+                            </button>
+                        ` : ''}
+                        
+                        ${(user.status === 'active' || user.status === 'approved') && user.id !== 'KAMILLE' ? `
+                            <button class="btn btn-danger" onclick="deactivateUser('${user.id}')">
+                                🚫 비활성화
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 탭 전환
+        function switchTab(tab) {
+            // 버튼 활성화
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 탭 전환
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // 사용자 승인
+        function approveUser(userId) {
+            if (!confirm('이 사용자를 승인하시겠습니까?')) return;
+
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex === -1) return;
+
+            users[userIndex].status = 'active';
+            users[userIndex].approvedBy = currentUser.id;
+            users[userIndex].approvedAt = new Date().toISOString();
+
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            // 알림 생성 (팀장에게)
+            createTeamNotification(users[userIndex]);
+
+            alert('승인되었습니다.');
+            loadUsers();
+        }
+
+        // 팀별 알림 생성
+        function createTeamNotification(user) {
+            const notifications = JSON.parse(localStorage.getItem('dasol_notifications') || '[]');
+
+            let notifType = '';
+            let message = '';
+
+            if (user.team === '영업팀') {
+                notifType = 'region_setting';
+                message = `신규 영업팀원 ${user.name}님의 업무지역을 설정해주세요.`;
+            } else if (user.team === '분석팀') {
+                notifType = 'analysis_setting';
+                message = `신규 분석팀원 ${user.name}님의 분석항목을 설정해주세요.`;
+            }
+
+            if (notifType) {
+                notifications.push({
+                    id: 'NOTIF' + Date.now(),
+                    type: notifType,
+                    targetUsers: ['KAMILLE'], // 팀장 ID 추가 필요
+                    userId: user.id,
+                    userName: user.name,
+                    userTeam: user.team,
+                    message: message,
+                    status: 'unread',
+                    createdAt: new Date().toISOString()
+                });
+
+                localStorage.setItem('dasol_notifications', JSON.stringify(notifications));
+            }
+        }
+
+        // 사용자 거부
+        function rejectUser(userId) {
+            if (!confirm('이 사용자를 거부하시겠습니까?')) return;
+
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex === -1) return;
+
+            users[userIndex].status = 'rejected';
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            alert('거부되었습니다.');
+            loadUsers();
+        }
+
+        // 업무지역 설정
+        function setWorkRegions(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            const modal = document.getElementById('regionModal');
+            const form = document.getElementById('regionForm');
+
+            form.innerHTML = `
+                <div class="form-group">
+                    <label>${user.name}님의 업무지역을 선택하세요</label>
+                    <div class="checkbox-group">
+                        ${WORK_REGIONS.map(region => `
+                            <div class="checkbox-item">
+                                <input 
+                                    type="checkbox" 
+                                    id="region-${region}" 
+                                    value="${region}"
+                                    ${user.workRegions && user.workRegions.includes(region) ? 'checked' : ''}
+                                >
+                                <label for="region-${region}">${region}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('regionModal')">취소</button>
+                    <button class="btn btn-primary" onclick="saveWorkRegions('${userId}')">저장</button>
+                </div>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        // 업무지역 저장
+        function saveWorkRegions(userId) {
+            const selected = [];
+            document.querySelectorAll('#regionForm input[type="checkbox"]:checked').forEach(cb => {
+                selected.push(cb.value);
+            });
+
+            if (selected.length === 0) {
+                alert('최소 1개 이상의 업무지역을 선택해주세요.');
+                return;
+            }
+
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex === -1) return;
+
+            users[userIndex].workRegions = selected;
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            alert('업무지역이 설정되었습니다.');
+            closeModal('regionModal');
+            loadUsers();
+        }
+
+        // 분석항목 설정
+        function setAnalysisItems(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            const modal = document.getElementById('analysisModal');
+            const form = document.getElementById('analysisForm');
+
+            form.innerHTML = `
+                <div class="form-group">
+                    <label>${user.name}님의 분석항목을 선택하세요</label>
+                    <div class="checkbox-group">
+                        ${ANALYSIS_ITEMS.map(item => `
+                            <div class="checkbox-item">
+                                <input 
+                                    type="checkbox" 
+                                    id="analysis-${item}" 
+                                    value="${item}"
+                                    ${user.analysisItems && user.analysisItems.includes(item) ? 'checked' : ''}
+                                >
+                                <label for="analysis-${item}">${item}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('analysisModal')">취소</button>
+                    <button class="btn btn-primary" onclick="saveAnalysisItems('${userId}')">저장</button>
+                </div>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        // 분석항목 저장
+        function saveAnalysisItems(userId) {
+            const selected = [];
+            document.querySelectorAll('#analysisForm input[type="checkbox"]:checked').forEach(cb => {
+                selected.push(cb.value);
+            });
+
+            if (selected.length === 0) {
+                alert('최소 1개 이상의 분석항목을 선택해주세요.');
+                return;
+            }
+
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex === -1) return;
+
+            users[userIndex].analysisItems = selected;
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            alert('분석항목이 설정되었습니다.');
+            closeModal('analysisModal');
+            loadUsers();
+        }
+
+        // 모달 닫기
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // 사용자 비활성화
+        function deactivateUser(userId) {
+            if (!confirm('이 사용자를 비활성화하시겠습니까?')) return;
+
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex === -1) return;
+
+            users[userIndex].status = 'inactive';
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            alert('비활성화되었습니다.');
+            loadUsers();
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        // 초기화
+        init();
+    </script>
+</body>
+</html>

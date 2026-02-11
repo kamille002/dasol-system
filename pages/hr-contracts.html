@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근로계약서 관리 - 다솔물환경연구소</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        td {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-ended {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 근로계약서 관리</h1>
+        <div class="header-actions">
+            <button class="btn btn-success" onclick="generateContractLedger()" style="background: #10b981;">📄 계약서 관리대장 출력</button>
+            <button class="btn btn-primary" onclick="openAddModal()">+ 계약서 등록</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <table>
+            <thead>
+                <tr>
+                    <th>직원명</th>
+                    <th>직급</th>
+                    <th>계약유형</th>
+                    <th>계약기간</th>
+                    <th>급여</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody id="contractTable">
+                <!-- JavaScript로 동적 생성 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 계약서 등록 모달 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">근로계약서 등록</div>
+            <form id="contractForm">
+                <div class="form-group">
+                    <label>직원명</label>
+                    <input type="text" id="employeeName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>직급</label>
+                    <select id="position" required>
+                        <option value="">선택하세요</option>
+                        <option value="사원">사원</option>
+                        <option value="주임">주임</option>
+                        <option value="대리">대리</option>
+                        <option value="과장">과장</option>
+                        <option value="차장">차장</option>
+                        <option value="부장">부장</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>계약유형</label>
+                    <select id="contractType" required>
+                        <option value="정규직">정규직</option>
+                        <option value="계약직">계약직</option>
+                        <option value="인턴">인턴</option>
+                        <option value="파트타임">파트타임</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>계약시작일</label>
+                    <input type="date" id="startDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>계약종료일</label>
+                    <input type="date" id="endDate">
+                    <small style="color: #6b7280;">정규직은 비워두세요</small>
+                </div>
+
+                <div class="form-group">
+                    <label>월급여 (원)</label>
+                    <input type="number" id="salary" placeholder="예: 3000000" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let contracts = [];
+
+        function init() {
+            loadContracts();
+            renderTable();
+        }
+
+        function loadContracts() {
+            contracts = JSON.parse(localStorage.getItem('dasol_contracts') || '[]');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('contractTable');
+
+            if (contracts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            등록된 근로계약서가 없습니다
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = contracts.map(contract => {
+                const status = getStatus(contract);
+                const salaryFormatted = Number(contract.salary).toLocaleString();
+
+                return `
+                    <tr>
+                        <td><strong>${contract.employeeName}</strong></td>
+                        <td>${contract.position}</td>
+                        <td>${contract.contractType}</td>
+                        <td>${formatDate(contract.startDate)} ~ ${contract.endDate ? formatDate(contract.endDate) : '무기한'}</td>
+                        <td>${salaryFormatted}원</td>
+                        <td>
+                            <span class="status-badge status-${status}">
+                                ${status === 'active' ? '진행중' : '종료'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="deleteContract('${contract.id}')">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatus(contract) {
+            if (!contract.endDate) return 'active';
+
+            const today = new Date();
+            const end = new Date(contract.endDate);
+            return today <= end ? 'active' : 'ended';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            document.getElementById('contractForm').reset();
+        }
+
+        document.getElementById('contractForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newContract = {
+                id: 'CONTRACT' + Date.now(),
+                employeeName: document.getElementById('employeeName').value,
+                position: document.getElementById('position').value,
+                contractType: document.getElementById('contractType').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value || null,
+                salary: document.getElementById('salary').value,
+                createdAt: new Date().toISOString()
+            };
+
+            contracts.push(newContract);
+            localStorage.setItem('dasol_contracts', JSON.stringify(contracts));
+
+            closeAddModal();
+            renderTable();
+            alert('근로계약서가 등록되었습니다.');
+        });
+
+        function deleteContract(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+
+            contracts = contracts.filter(c => c.id !== id);
+            localStorage.setItem('dasol_contracts', JSON.stringify(contracts));
+            renderTable();
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        // 계약서 관리대장 출력
+        function generateContractLedger() {
+            const allContracts = JSON.parse(localStorage.getItem('dasol_contracts') || '[]');
+            
+            if (allContracts.length === 0) {
+                alert('등록된 계약서가 없습니다.');
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('ko-KR');
+            
+            let html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>근로계약서 관리대장 - 다솔물환경연구소</title>
+                    <style>
+                        @page { size: A4 landscape; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', sans-serif;
+                            padding: 20px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            font-size: 24px;
+                            margin-bottom: 10px;
+                        }
+                        .header .info {
+                            font-size: 12px;
+                            color: #666;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 11px;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 6px 4px;
+                            text-align: center;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .expired {
+                            background: #fee2e2;
+                            color: #991b1b;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>다솔물환경연구소</h1>
+                        <h2>근로계약서 관리대장</h2>
+                        <div class="info">출력일: ${today}</div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">번호</th>
+                                <th style="width: 100px;">직원명</th>
+                                <th style="width: 100px;">부서</th>
+                                <th style="width: 80px;">직급</th>
+                                <th style="width: 80px;">계약형태</th>
+                                <th style="width: 100px;">계약시작일</th>
+                                <th style="width: 100px;">계약종료일</th>
+                                <th style="width: 80px;">기간(개월)</th>
+                                <th style="width: 80px;">갱신여부</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allContracts.map((contract, index) => {
+                                const isExpired = contract.contractType === 'fixed' && 
+                                                new Date(contract.endDate) < new Date();
+                                const expiredClass = isExpired ? 'expired' : '';
+                                
+                                return `
+                                    <tr class="${expiredClass}">
+                                        <td>${index + 1}</td>
+                                        <td>${contract.employeeName}</td>
+                                        <td>${contract.department}</td>
+                                        <td>${contract.position}</td>
+                                        <td>${contract.contractType === 'permanent' ? '정규직' : '계약직'}</td>
+                                        <td>${formatDate(contract.startDate)}</td>
+                                        <td>${contract.contractType === 'permanent' ? '-' : formatDate(contract.endDate)}</td>
+                                        <td>${contract.contractType === 'permanent' ? '-' : calculateMonths(contract.startDate, contract.endDate)}</td>
+                                        <td>${contract.autoRenewal ? '자동갱신' : '수동갱신'}</td>
+                                        <td>${contract.notes || '-'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="no-print" style="margin-top: 20px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-left: 10px;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=1200,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        init();
+    </script>
+</body>
+</html>

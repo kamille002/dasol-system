@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직원 게시판 - 다솔물환경연구소</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .board-container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .board-list {
+            border-top: 2px solid #f3f4f6;
+        }
+
+        .board-item {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 20px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .board-item:hover {
+            background: #f9fafb;
+            padding-left: 10px;
+            padding-right: 10px;
+            margin: 0 -10px;
+        }
+
+        .board-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .board-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge.new {
+            background: #ef4444;
+            color: white;
+        }
+
+        .badge.file {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .board-item-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        .board-item-content {
+            font-size: 15px;
+            color: #6b7280;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 2px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 22px;
+            color: #1f2937;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 2px solid #f3f4f6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .file-warning {
+            margin-top: 10px;
+            padding: 12px;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        .comment-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f3f4f6;
+        }
+
+        .comment-item {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .comment-date {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .comment-content {
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>💬 직원 게시판</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+                <button class="btn btn-primary" onclick="openWriteModal()">+ 글쓰기</button>
+            </div>
+        </div>
+
+        <!-- 게시글 목록 -->
+        <div class="board-container">
+            <div class="board-list" id="boardList">
+                <!-- JavaScript로 동적 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 글쓰기 모달 -->
+    <div class="modal-overlay" id="writeModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>✍️ 게시글 작성</h3>
+                <button class="close-btn" onclick="closeWriteModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">제목</label>
+                    <input type="text" class="form-input" id="postTitle" placeholder="제목을 입력하세요">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">내용</label>
+                    <textarea class="form-input" id="postContent" rows="10" placeholder="내용을 입력하세요"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">파일 첨부</label>
+                    <input type="file" class="form-input" id="postFile" onchange="showFileWarning()" multiple>
+                    <div id="fileWarning" class="file-warning" style="display: none;">
+                        <div style="display: flex; align-items: start; gap: 10px;">
+                            <span style="font-size: 20px;">⚠️</span>
+                            <div>
+                                <div style="font-weight: 600; color: #92400e; margin-bottom: 4px;">파일 자동 삭제 안내</div>
+                                <div style="font-size: 14px; color: #78350f;">
+                                    첨부된 파일은 <strong>3일 후 자동으로 삭제</strong>됩니다.<br>
+                                    중요한 파일은 별도로 보관해주세요.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeWriteModal()">취소</button>
+                <button class="btn btn-primary" onclick="submitPost()">등록</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상세보기 모달 -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>💬 게시글</h3>
+                <button class="close-btn" onclick="closeDetailModal()">✕</button>
+            </div>
+            
+            <div class="modal-body" id="detailContent">
+                <!-- JavaScript로 동적 생성 -->
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDetailModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 게시글 데이터 관리
+        function getPosts() {
+            const posts = localStorage.getItem('boardPosts');
+            return posts ? JSON.parse(posts) : [];
+        }
+
+        function savePosts(posts) {
+            localStorage.setItem('boardPosts', JSON.stringify(posts));
+        }
+
+        // 게시글 목록 렌더링
+        function renderPosts() {
+            const posts = getPosts();
+            const boardList = document.getElementById('boardList');
+            
+            if (posts.length === 0) {
+                boardList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">게시글이 없습니다</div>
+                        <div>첫 번째 게시글을 작성해보세요!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            boardList.innerHTML = posts.map((post, index) => {
+                const isNew = isNewPost(post.date);
+                const hasFile = post.files && post.files.length > 0;
+                
+                return `
+                    <div class="board-item" onclick="openDetailModal(${index})">
+                        <div class="board-item-header">
+                            <div class="board-item-title">
+                                ${isNew ? '<span class="badge new">NEW</span>' : ''}
+                                ${hasFile ? '<span class="badge file">📎</span>' : ''}
+                                ${post.title}
+                            </div>
+                        </div>
+                        <div class="board-item-content">
+                            ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}
+                        </div>
+                        <div class="board-item-meta">
+                            <span>👤 ${post.author}</span>
+                            <span>📅 ${formatDate(post.date)}</span>
+                            <span>👁️ 조회 ${post.views || 0}</span>
+                            <span>💬 댓글 ${post.comments ? post.comments.length : 0}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 날짜 포맷
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return '방금 전';
+            if (diff < 3600000) return Math.floor(diff / 60000) + '분 전';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + '시간 전';
+            if (diff < 172800000) return '어제';
+            
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${month}-${day}`;
+        }
+
+        // 새 글 판정 (24시간 이내)
+        function isNewPost(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            return (now - date) < 86400000;
+        }
+
+        // 글쓰기 모달
+        function openWriteModal() {
+            document.getElementById('writeModal').classList.add('active');
+        }
+
+        function closeWriteModal() {
+            document.getElementById('writeModal').classList.remove('active');
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            document.getElementById('postFile').value = '';
+            document.getElementById('fileWarning').style.display = 'none';
+        }
+
+        function showFileWarning() {
+            const fileInput = document.getElementById('postFile');
+            const warning = document.getElementById('fileWarning');
+            warning.style.display = fileInput.files.length > 0 ? 'block' : 'none';
+        }
+
+        function submitPost() {
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const fileInput = document.getElementById('postFile');
+            
+            if (!title) {
+                alert('제목을 입력해주세요.');
+                return;
+            }
+            
+            if (!content) {
+                alert('내용을 입력해주세요.');
+                return;
+            }
+
+            const posts = getPosts();
+            const newPost = {
+                id: Date.now(),
+                title: title,
+                content: content,
+                author: '김영업', // 실제로는 로그인한 사용자
+                date: new Date().toISOString(),
+                views: 0,
+                comments: [],
+                files: Array.from(fileInput.files).map(f => ({
+                    name: f.name,
+                    size: f.size,
+                    uploadDate: new Date().toISOString()
+                }))
+            };
+
+            posts.unshift(newPost);
+            savePosts(posts);
+            renderPosts();
+            closeWriteModal();
+            alert('게시글이 등록되었습니다!');
+        }
+
+        // 상세보기 모달
+        function openDetailModal(index) {
+            const posts = getPosts();
+            const post = posts[index];
+            
+            // 조회수 증가
+            post.views = (post.views || 0) + 1;
+            posts[index] = post;
+            savePosts(posts);
+
+            const detailContent = document.getElementById('detailContent');
+            detailContent.innerHTML = `
+                <div style="padding-bottom: 20px; border-bottom: 2px solid #f3f4f6;">
+                    <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 12px;">${post.title}</h2>
+                    <div style="display: flex; gap: 15px; font-size: 14px; color: #6b7280; margin-bottom: 20px;">
+                        <span>👤 ${post.author}</span>
+                        <span>📅 ${formatDate(post.date)}</span>
+                        <span>👁️ 조회 ${post.views}</span>
+                    </div>
+                    <div style="font-size: 15px; line-height: 1.7; color: #374151; white-space: pre-line;">
+${post.content}
+                    </div>
+                    
+                    ${post.files && post.files.length > 0 ? `
+                    <div style="margin-top: 15px; padding: 12px; background: #f9fafb; border-radius: 8px;">
+                        <div style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">📎 첨부파일 (3일 후 자동 삭제)</div>
+                        ${post.files.map(file => `
+                            <div style="color: #667eea; font-size: 14px; margin-top: 4px;">📄 ${file.name} (${(file.size / 1024).toFixed(1)}KB)</div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="comment-section">
+                    <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 15px;">
+                        💬 댓글 ${post.comments ? post.comments.length : 0}
+                    </div>
+                    
+                    <div id="commentList">
+                        ${post.comments && post.comments.length > 0 ? post.comments.map(comment => `
+                            <div class="comment-item">
+                                <div class="comment-header">
+                                    <span class="comment-author">${comment.author}</span>
+                                    <span class="comment-date">${formatDate(comment.date)}</span>
+                                </div>
+                                <div class="comment-content">${comment.content}</div>
+                            </div>
+                        `).join('') : '<div style="text-align: center; color: #9ca3af; padding: 20px;">첫 번째 댓글을 작성해보세요!</div>'}
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <textarea class="form-input" id="commentInput" rows="3" placeholder="댓글을 입력하세요"></textarea>
+                        <button class="btn btn-primary" onclick="submitComment(${index})" style="margin-top: 10px; width: 100%;">댓글 작성</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detailModal').classList.add('active');
+            renderPosts(); // 조회수 업데이트 반영
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function submitComment(postIndex) {
+            const commentInput = document.getElementById('commentInput');
+            const content = commentInput.value.trim();
+            
+            if (!content) {
+                alert('댓글 내용을 입력해주세요.');
+                return;
+            }
+
+            const posts = getPosts();
+            const post = posts[postIndex];
+            
+            if (!post.comments) {
+                post.comments = [];
+            }
+
+            post.comments.push({
+                author: '김영업', // 실제로는 로그인한 사용자
+                content: content,
+                date: new Date().toISOString()
+            });
+
+            posts[postIndex] = post;
+            savePosts(posts);
+            
+            openDetailModal(postIndex); // 새로고침
+            alert('댓글이 등록되었습니다!');
+        }
+
+        // 초기 렌더링
+        renderPosts();
+    </script>
+</body>
+</html>

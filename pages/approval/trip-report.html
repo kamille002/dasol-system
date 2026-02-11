@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>출장보고서 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; }
+        .back-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }
+        .container { max-width: 900px; margin: 30px auto; background: white; border-radius: 16px; padding: 40px; }
+        .form-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        textarea { min-height: 120px; }
+        .btn { flex: 1; padding: 16px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .button-group { display: flex; gap: 15px; margin-top: 30px; }
+        .required { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 출장보고서</h1>
+        <a href="../../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <h2 class="form-title">출장보고서</h2>
+
+        <form onsubmit="event.preventDefault(); if(confirm('출장보고서를 제출하시겠습니까?')){ alert('✅ 제출 완료!'); window.location.href='../../dashboard-final.html'; }">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>출장지 <span class="required">*</span></label>
+                    <input type="text" placeholder="예: 서울 강남구" required>
+                </div>
+                <div class="form-group">
+                    <label>출장 기간 <span class="required">*</span></label>
+                    <input type="text" placeholder="예: 2026-02-01 ~ 2026-02-03" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>방문 기관/업체명</label>
+                <input type="text" placeholder="예: ABC제조, XYZ산업">
+            </div>
+
+            <div class="form-group">
+                <label>출장 목적 및 주요 업무 <span class="required">*</span></label>
+                <textarea placeholder="출장 목적과 수행한 주요 업무를 상세히 작성하세요" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>주요 성과 및 결과</label>
+                <textarea placeholder="달성한 성과, 체결한 계약, 확보한 정보 등을 작성하세요"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>향후 조치사항</label>
+                <textarea placeholder="후속 업무, 필요한 조치사항 등을 작성하세요"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>총 지출 경비 (원)</label>
+                    <input type="number" placeholder="실제 지출 금액">
+                </div>
+                <div class="form-group">
+                    <label>영수증 첨부</label>
+                    <input type="file" accept="image/*,.pdf">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">보고서 제출</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

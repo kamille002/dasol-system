@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>차량운행일지 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; }
+        .back-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }
+        .container { max-width: 900px; margin: 30px auto; background: white; border-radius: 16px; padding: 40px; }
+        .form-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .btn { padding: 16px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .required { color: #ef4444; }
+        .calc-display { background: #f0fdf4; padding: 15px; border-radius: 8px; border: 2px solid #10b981; text-align: center; font-size: 18px; font-weight: 700; color: #047857; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚗 차량운행일지</h1>
+        <a href="../../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <h2 class="form-title">차량운행일지</h2>
+
+        <form id="vehicleForm" onsubmit="event.preventDefault(); if(confirm('차량운행일지를 제출하시겠습니까?')){ alert('✅ 제출 완료!'); window.location.href='../../dashboard-final.html'; }">
+            <div class="form-group">
+                <label>운행일 <span class="required">*</span></label>
+                <input type="date" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>차량번호 <span class="required">*</span></label>
+                    <input type="text" placeholder="예: 12가3456" required>
+                </div>
+                <div class="form-group">
+                    <label>운전자 <span class="required">*</span></label>
+                    <input type="text" placeholder="홍길동" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>목적지 <span class="required">*</span></label>
+                <input type="text" placeholder="예: ABC제조 (서울 강남구)" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>출발시간 <span class="required">*</span></label>
+                    <input type="time" required>
+                </div>
+                <div class="form-group">
+                    <label>도착시간 <span class="required">*</span></label>
+                    <input type="time" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>출발시 계기판 (km) <span class="required">*</span></label>
+                    <input type="number" id="startKm" placeholder="예: 45000" required oninput="calcDistance()">
+                </div>
+                <div class="form-group">
+                    <label>도착시 계기판 (km) <span class="required">*</span></label>
+                    <input type="number" id="endKm" placeholder="예: 45080" required oninput="calcDistance()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>주행거리 (자동 계산)</label>
+                <div class="calc-display" id="distance">-</div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>주유 여부</label>
+                    <select>
+                        <option>없음</option>
+                        <option>주유 완료</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>주유량 (L)</label>
+                    <input type="number" step="0.1" placeholder="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>비고</label>
+                <textarea style="min-height: 60px;" placeholder="특이사항이 있으면 작성하세요"></textarea>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button type="submit" class="btn btn-primary">제출하기</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function calcDistance() {
+            const start = parseInt(document.getElementById('startKm').value) || 0;
+            const end = parseInt(document.getElementById('endKm').value) || 0;
+            const distance = end - start;
+            
+            if (distance > 0) {
+                document.getElementById('distance').textContent = distance + ' km';
+            } else {
+                document.getElementById('distance').textContent = '-';
+            }
+        }
+    </script>
+</body>
+</html>

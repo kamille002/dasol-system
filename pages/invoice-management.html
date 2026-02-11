@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>청구서 관리 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        
+        .overdue {
+            color: #ef4444;
+            font-weight: 700;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .invoice-items {
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .invoice-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .invoice-item:last-child {
+            border-bottom: none;
+        }
+        .invoice-item.header {
+            font-weight: 700;
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 청구서 관리</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openInvoiceModal()">+ 청구서 작성</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-card">
+            <div class="stat-label">총 미납금액</div>
+            <div class="stat-value" id="totalUnpaid">0원</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="stat-label">30일 초과</div>
+            <div class="stat-value" id="overdueAmount">0원</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="stat-label">미납 건수</div>
+            <div class="stat-value" id="unpaidCount">0건</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="stat-label">이번 달 회수</div>
+            <div class="stat-value" id="monthlyCollected">0원</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h3 style="margin-bottom: 16px;">미납 청구 내역</h3>
+        <table id="invoiceTable">
+            <thead>
+                <tr>
+                    <th>고객명</th>
+                    <th>의뢰일자</th>
+                    <th>미납금액</th>
+                    <th>경과일</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceTableBody">
+                <!-- JavaScript로 동적 생성 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 청구서 작성 모달 -->
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 24px;">청구서 작성</h2>
+            
+            <div class="form-group">
+                <label>고객 선택</label>
+                <select id="clientSelect" onchange="loadClientUnpaid()">
+                    <option value="">고객을 선택하세요</option>
+                </select>
+            </div>
+
+            <div id="unpaidItemsSection" style="display: none;">
+                <h3 style="margin: 20px 0 12px 0; font-size: 16px;">미납 의뢰 내역</h3>
+                <div class="invoice-items" id="unpaidItems"></div>
+                
+                <div style="text-align: right; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                    <div style="font-size: 18px; font-weight: 700; color: #ef4444;">
+                        총 미납금액: <span id="selectedTotal">0원</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-secondary" onclick="closeInvoiceModal()" style="flex: 1;">취소</button>
+                <button class="btn btn-primary" onclick="generateInvoice()" style="flex: 1;">청구서 발송</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let requests = [];
+        let clients = [];
+
+        function init() {
+            requests = JSON.parse(localStorage.getItem('dasol_requests') || '[]');
+            loadUnpaidRequests();
+            updateStats();
+            renderInvoiceTable();
+        }
+
+        function loadUnpaidRequests() {
+            // 미납 의뢰만 필터링
+            const unpaidRequests = requests.filter(r => 
+                r.payment && r.payment.status === 'unpaid'
+            );
+
+            // 고객별로 그룹화
+            const clientsMap = new Map();
+            unpaidRequests.forEach(req => {
+                const clientName = req.client.name;
+                if (!clientsMap.has(clientName)) {
+                    clientsMap.set(clientName, {
+                        name: clientName,
+                        phone: req.client.phone,
+                        requests: []
+                    });
+                }
+                clientsMap.get(clientName).requests.push(req);
+            });
+
+            clients = Array.from(clientsMap.values());
+            
+            // 고객 선택 드롭다운 채우기
+            const select = document.getElementById('clientSelect');
+            select.innerHTML = '<option value="">고객을 선택하세요</option>' +
+                clients.map((c, i) => `<option value="${i}">${c.name} (${c.requests.length}건)</option>`).join('');
+        }
+
+        function updateStats() {
+            const unpaidRequests = requests.filter(r => 
+                r.payment && r.payment.status === 'unpaid'
+            );
+
+            let totalUnpaid = 0;
+            let overdueAmount = 0;
+            const today = new Date();
+
+            unpaidRequests.forEach(req => {
+                const amount = req.billing.grandTotal;
+                totalUnpaid += amount;
+
+                const createdDate = new Date(req.createdAt);
+                const daysPassed = Math.floor((today - createdDate) / (1000 * 60 * 60 * 24));
+                
+                if (daysPassed > 30) {
+                    overdueAmount += amount;
+                }
+            });
+
+            document.getElementById('totalUnpaid').textContent = totalUnpaid.toLocaleString() + '원';
+            document.getElementById('overdueAmount').textContent = overdueAmount.toLocaleString() + '원';
+            document.getElementById('unpaidCount').textContent = unpaidRequests.length + '건';
+
+            // 이번 달 회수액 (예시)
+            document.getElementById('monthlyCollected').textContent = '0원';
+        }
+
+        function renderInvoiceTable() {
+            const tbody = document.getElementById('invoiceTableBody');
+            
+            if (clients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                            미납 내역이 없습니다
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const today = new Date();
+            const rows = [];
+
+            clients.forEach(client => {
+                client.requests.forEach(req => {
+                    const createdDate = new Date(req.createdAt);
+                    const daysPassed = Math.floor((today - createdDate) / (1000 * 60 * 60 * 24));
+                    const isOverdue = daysPassed > 30;
+
+                    rows.push({
+                        clientName: client.name,
+                        date: req.createdAt,
+                        amount: req.billing.grandTotal,
+                        days: daysPassed,
+                        isOverdue: isOverdue,
+                        requestId: req.id
+                    });
+                });
+            });
+
+            // 경과일 순으로 정렬 (오래된 것부터)
+            rows.sort((a, b) => b.days - a.days);
+
+            tbody.innerHTML = rows.map(row => `
+                <tr>
+                    <td style="font-weight: 600;">${row.clientName}</td>
+                    <td>${formatDate(row.date)}</td>
+                    <td style="font-weight: 700; color: #ef4444;">${row.amount.toLocaleString()}원</td>
+                    <td class="${row.isOverdue ? 'overdue' : ''}">
+                        ${row.days}일 ${row.isOverdue ? '⚠️' : ''}
+                    </td>
+                    <td>
+                        <button class="btn-small" style="background: #667eea; color: white;" onclick="sendInvoiceByClient('${row.clientName}')">청구서 발송</button>
+                        <button class="btn-small" style="background: #10b981; color: white;" onclick="sendReminder('${row.clientName}')">문자 독촉</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openInvoiceModal() {
+            document.getElementById('invoiceModal').classList.add('show');
+            document.getElementById('unpaidItemsSection').style.display = 'none';
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoiceModal').classList.remove('show');
+        }
+
+        function loadClientUnpaid() {
+            const selectIndex = document.getElementById('clientSelect').value;
+            if (!selectIndex) {
+                document.getElementById('unpaidItemsSection').style.display = 'none';
+                return;
+            }
+
+            const client = clients[selectIndex];
+            const container = document.getElementById('unpaidItems');
+            
+            let total = 0;
+            let html = '<div class="invoice-item header"><div>의뢰내역</div><div>의뢰일</div><div>금액</div><div>경과</div></div>';
+            
+            client.requests.forEach(req => {
+                const createdDate = new Date(req.createdAt);
+                const daysPassed = Math.floor((new Date() - createdDate) / (1000 * 60 * 60 * 24));
+                total += req.billing.grandTotal;
+
+                html += `
+                    <div class="invoice-item">
+                        <div>${req.sample.type} - ${req.requestNumber}</div>
+                        <div>${formatDate(req.createdAt)}</div>
+                        <div style="font-weight: 700;">${req.billing.grandTotal.toLocaleString()}원</div>
+                        <div>${daysPassed}일</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('selectedTotal').textContent = total.toLocaleString() + '원';
+            document.getElementById('unpaidItemsSection').style.display = 'block';
+        }
+
+        function generateInvoice() {
+            const selectIndex = document.getElementById('clientSelect').value;
+            if (!selectIndex) {
+                alert('고객을 선택해주세요.');
+                return;
+            }
+
+            const client = clients[selectIndex];
+            generateInvoicePDF(client);
+            closeInvoiceModal();
+        }
+
+        function sendInvoiceByClient(clientName) {
+            const client = clients.find(c => c.name === clientName);
+            generateInvoicePDF(client);
+        }
+
+        function generateInvoicePDF(client) {
+            let totalAmount = 0;
+            let totalDeposit = 0;
+            let totalUnpaid = 0;
+
+            client.requests.forEach(req => {
+                totalAmount += req.billing.grandTotal;
+                totalUnpaid += req.billing.grandTotal;
+            });
+
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>청구서 - ${client.name}</title>
+                    <style>
+                        @page { size: A4; margin: 20mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', sans-serif;
+                            padding: 30px;
+                            line-height: 1.8;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 32px;
+                            font-weight: 700;
+                            margin-bottom: 40px;
+                            padding-bottom: 15px;
+                            border-bottom: 3px double #000;
+                        }
+                        .info-section {
+                            margin-bottom: 30px;
+                        }
+                        .info-row {
+                            display: flex;
+                            margin-bottom: 12px;
+                            font-size: 14px;
+                        }
+                        .info-label {
+                            width: 150px;
+                            font-weight: 700;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .info-label::before {
+                            content: "▣";
+                            margin-right: 8px;
+                        }
+                        .info-value {
+                            flex: 1;
+                        }
+                        .amount-highlight {
+                            background: #fef3c7;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            margin: 30px 0;
+                            border: 2px solid #f59e0b;
+                        }
+                        .amount-highlight .label {
+                            font-size: 16px;
+                            color: #92400e;
+                            margin-bottom: 10px;
+                        }
+                        .amount-highlight .value {
+                            font-size: 28px;
+                            font-weight: 700;
+                            color: #ef4444;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 10px;
+                            text-align: center;
+                            font-size: 13px;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .footer {
+                            margin-top: 40px;
+                            text-align: center;
+                            padding-top: 20px;
+                            border-top: 1px solid #000;
+                        }
+                        .company-info {
+                            margin-top: 40px;
+                            text-align: right;
+                            line-height: 2;
+                        }
+                        .notice {
+                            background: #f3f4f6;
+                            padding: 15px;
+                            border-radius: 8px;
+                            margin-top: 20px;
+                            font-size: 12px;
+                            color: #6b7280;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">청 구 서</div>
+                    
+                    <div class="info-section">
+                        <div class="info-row">
+                            <div class="info-label">수질검사총수수료</div>
+                            <div class="info-value">${convertNumberToKorean(totalAmount)}원정 (₩ ${totalAmount.toLocaleString()})</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">입 금 수 수 료</div>
+                            <div class="info-value">${convertNumberToKorean(totalDeposit)}원정 (₩ ${totalDeposit.toLocaleString()})</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">미 납 수 수 료</div>
+                            <div class="info-value" style="color: #ef4444; font-weight: 700; font-size: 16px;">${convertNumberToKorean(totalUnpaid)}원정 (₩ ${totalUnpaid.toLocaleString()})</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">입 금 계 좌 번 호</div>
+                            <div class="info-value">(국민) 220401-04-219973 주식회사 다솔물환경연구소</div>
+                        </div>
+                    </div>
+
+                    <div class="amount-highlight">
+                        <div class="label">미납금액</div>
+                        <div class="value">₩ ${totalUnpaid.toLocaleString()}원</div>
+                    </div>
+
+                    <p style="text-align: center; margin: 30px 0; font-size: 15px;">
+                        상기 금액을 수질검사수수료로 청구하오니 입금하여 주시기 바랍니다.
+                    </p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">월/일</th>
+                                <th style="width: 120px;">의뢰자</th>
+                                <th>채수장소</th>
+                                <th style="width: 100px;">검체</th>
+                                <th style="width: 100px;">수수료</th>
+                                <th style="width: 100px;">입금</th>
+                                <th style="width: 100px;">잔액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>이월</td>
+                                <td colspan="4"></td>
+                                <td>0</td>
+                                <td>0</td>
+                            </tr>
+                            ${client.requests.map(req => `
+                                <tr>
+                                    <td>${formatDateShort(req.createdAt)}</td>
+                                    <td>${client.name}</td>
+                                    <td style="text-align: left; padding-left: 10px;">${req.client.address || req.sampling?.address || '-'}</td>
+                                    <td>${req.sample.type}</td>
+                                    <td style="text-align: right; font-weight: 700;">${req.billing.grandTotal.toLocaleString()}</td>
+                                    <td>0</td>
+                                    <td style="text-align: right; color: #ef4444; font-weight: 700;">${req.billing.grandTotal.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                            <tr style="background: #f9fafb; font-weight: 700;">
+                                <td colspan="4">총 합 계</td>
+                                <td style="text-align: right;">${totalAmount.toLocaleString()}</td>
+                                <td style="text-align: right;">${totalDeposit.toLocaleString()}</td>
+                                <td style="text-align: right; color: #ef4444;">${totalUnpaid.toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="notice">
+                        * 본 청구서는 ${new Date().toLocaleDateString('ko-KR')} 기준으로 작성된 내용이므로<br>
+                        그 이후에 입금하신 내역에 대해서는 차이가 있을 수 있습니다.
+                    </div>
+
+                    <div class="company-info">
+                        <div>${new Date().getFullYear()}년 ${String(new Date().getMonth() + 1).padStart(2, '0')}월 ${String(new Date().getDate()).padStart(2, '0')}일</div>
+                        <div style="margin-top: 20px;">경기도 하남시 초광산단로 126</div>
+                        <div>(주) 다솔물환경연구소</div>
+                        <div>대 표  심 태 보 (인)</div>
+                    </div>
+
+                    <div class="footer">
+                        <strong>${client.name}</strong> 귀 하
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=900,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        function sendReminder(clientName) {
+            const client = clients.find(c => c.name === clientName);
+            if (!client) return;
+
+            let totalAmount = 0;
+            client.requests.forEach(req => {
+                totalAmount += req.billing.grandTotal;
+            });
+
+            const message = `[다솔물환경연구소]
+${clientName}님, 수질검사 대금이 미납되어 있습니다.
+미납금액: ${totalAmount.toLocaleString()}원
+입금 부탁드립니다.
+국민은행 220401-04-219973`;
+
+            if (confirm(`${clientName}님께 문자를 발송하시겠습니까?\n\n${message}`)) {
+                // 실제로는 문자 발송 API 연동
+                alert('문자가 발송되었습니다.');
+            }
+        }
+
+        function convertNumberToKorean(num) {
+            const units = ['', '만', '억', '조'];
+            const nums = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+            const positions = ['', '십', '백', '천'];
+            
+            if (num === 0) return '영';
+            
+            let result = '';
+            let unitIndex = 0;
+            
+            while (num > 0) {
+                const part = num % 10000;
+                if (part > 0) {
+                    let partStr = '';
+                    let tempPart = part;
+                    let posIndex = 0;
+                    
+                    while (tempPart > 0) {
+                        const digit = tempPart % 10;
+                        if (digit > 0) {
+                            partStr = nums[digit] + positions[posIndex] + partStr;
+                        }
+                        tempPart = Math.floor(tempPart / 10);
+                        posIndex++;
+                    }
+                    
+                    result = partStr + units[unitIndex] + result;
+                }
+                num = Math.floor(num / 10000);
+                unitIndex++;
+            }
+            
+            return result;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        function formatDateShort(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        init();
+    </script>
+</body>
+</html>

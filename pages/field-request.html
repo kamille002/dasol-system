@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>현장 의뢰서 작성 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 12px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            font-size: 22px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        /* 시료 입력 */
+        .sample-grid {
+            display: grid;
+            gap: 12px;
+        }
+        .sample-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9fafb;
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        .sample-item.active {
+            border-color: #667eea;
+            background: #f0f9ff;
+        }
+        .sample-info {
+            flex: 1;
+        }
+        .sample-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .sample-price {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .sample-count {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .count-btn {
+            width: 36px;
+            height: 36px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .count-btn:active {
+            background: #667eea;
+            color: white;
+        }
+        .count-input {
+            width: 50px;
+            height: 36px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        /* 금액 표시 */
+        .total-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .total-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 6px;
+        }
+        .total-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        /* 사진 촬영 */
+        .photo-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .photo-btn {
+            aspect-ratio: 1;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            background: #f9fafb;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .photo-btn:active {
+            background: #f3f4f6;
+        }
+        .photo-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .photo-text {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .photo-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        /* 버튼 */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            margin-top: 24px;
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            margin-top: 12px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 현장 의뢰서 작성</h1>
+        <p class="subtitle">채수 완료 후 자동으로 업무일지에 추가됩니다</p>
+
+        <form id="fieldRequestForm">
+            <!-- 거래처 정보 -->
+            <div class="section">
+                <div class="section-title">거래처 정보</div>
+                
+                <div class="form-group">
+                    <label>거래처명 <span class="required">*</span></label>
+                    <input type="text" id="clientName" placeholder="예: ABC건물" required>
+                </div>
+
+                <div class="form-group">
+                    <label>채수 주소 <span class="required">*</span></label>
+                    <input type="text" id="address" placeholder="예: 서울시 강남구 테헤란로 123" required>
+                </div>
+            </div>
+
+            <!-- 시료 정보 -->
+            <div class="section">
+                <div class="section-title">시료 종류 및 개수</div>
+                
+                <div class="sample-grid">
+                    <div class="sample-item" data-type="저수조" data-price="60000">
+                        <div class="sample-info">
+                            <div class="sample-name">저수조</div>
+                            <div class="sample-price">60,000원 / 개</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('저수조')">-</button>
+                            <input type="number" class="count-input" id="count-저수조" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('저수조')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="sample-item" data-type="정수기" data-price="50000">
+                        <div class="sample-info">
+                            <div class="sample-name">정수기</div>
+                            <div class="sample-price">50,000원 / 대</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('정수기')">-</button>
+                            <input type="number" class="count-input" id="count-정수기" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('정수기')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="sample-item" data-type="옥내급수관" data-price="55000">
+                        <div class="sample-info">
+                            <div class="sample-name">옥내급수관</div>
+                            <div class="sample-price">55,000원 / 개</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('옥내급수관')">-</button>
+                            <input type="number" class="count-input" id="count-옥내급수관" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('옥내급수관')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="sample-item" data-type="지하수" data-price="100000">
+                        <div class="sample-info">
+                            <div class="sample-name">지하수</div>
+                            <div class="sample-price">100,000원 / 개</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('지하수')">-</button>
+                            <input type="number" class="count-input" id="count-지하수" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('지하수')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="sample-item" data-type="자가측정" data-price="80000">
+                        <div class="sample-info">
+                            <div class="sample-name">자가측정</div>
+                            <div class="sample-price">80,000원 / 개</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('자가측정')">-</button>
+                            <input type="number" class="count-input" id="count-자가측정" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('자가측정')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="sample-item" data-type="엔지니어링" data-price="150000">
+                        <div class="sample-info">
+                            <div class="sample-name">엔지니어링</div>
+                            <div class="sample-price">150,000원 / 건</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('엔지니어링')">-</button>
+                            <input type="number" class="count-input" id="count-엔지니어링" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('엔지니어링')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="sample-item" data-type="용역" data-price="200000">
+                        <div class="sample-info">
+                            <div class="sample-name">용역</div>
+                            <div class="sample-price">200,000원 / 건</div>
+                        </div>
+                        <div class="sample-count">
+                            <button type="button" class="count-btn" onclick="decreaseCount('용역')">-</button>
+                            <input type="number" class="count-input" id="count-용역" value="0" min="0" readonly>
+                            <button type="button" class="count-btn" onclick="increaseCount('용역')">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 예상 매출 -->
+                <div class="total-box">
+                    <div class="total-label">예상 매출</div>
+                    <div class="total-amount" id="totalAmount">0원</div>
+                </div>
+            </div>
+
+            <!-- 시료 사진 -->
+            <div class="section">
+                <div class="section-title">시료 사진 (선택)</div>
+                
+                <div class="photo-section">
+                    <div class="photo-btn" onclick="document.getElementById('photo1').click()">
+                        <div class="photo-icon">📸</div>
+                        <div class="photo-text">사진 1</div>
+                        <img id="preview1" class="photo-preview" style="display: none;">
+                        <button type="button" class="photo-delete" id="delete1" style="display: none;" onclick="deletePhoto(1, event)">✕</button>
+                    </div>
+                    <input type="file" id="photo1" accept="image/*" capture="environment" onchange="handlePhoto(1, event)">
+
+                    <div class="photo-btn" onclick="document.getElementById('photo2').click()">
+                        <div class="photo-icon">📸</div>
+                        <div class="photo-text">사진 2</div>
+                        <img id="preview2" class="photo-preview" style="display: none;">
+                        <button type="button" class="photo-delete" id="delete2" style="display: none;" onclick="deletePhoto(2, event)">✕</button>
+                    </div>
+                    <input type="file" id="photo2" accept="image/*" capture="environment" onchange="handlePhoto(2, event)">
+
+                    <div class="photo-btn" onclick="document.getElementById('photo3').click()">
+                        <div class="photo-icon">📸</div>
+                        <div class="photo-text">사진 3</div>
+                        <img id="preview3" class="photo-preview" style="display: none;">
+                        <button type="button" class="photo-delete" id="delete3" style="display: none;" onclick="deletePhoto(3, event)">✕</button>
+                    </div>
+                    <input type="file" id="photo3" accept="image/*" capture="environment" onchange="handlePhoto(3, event)">
+
+                    <div class="photo-btn" onclick="document.getElementById('photo4').click()">
+                        <div class="photo-icon">📸</div>
+                        <div class="photo-text">사진 4</div>
+                        <img id="preview4" class="photo-preview" style="display: none;">
+                        <button type="button" class="photo-delete" id="delete4" style="display: none;" onclick="deletePhoto(4, event)">✕</button>
+                    </div>
+                    <input type="file" id="photo4" accept="image/*" capture="environment" onchange="handlePhoto(4, event)">
+                </div>
+            </div>
+
+            <!-- 제출 버튼 -->
+            <button type="submit" class="btn btn-primary">✅ 채수 완료 (업무일지 자동 추가)</button>
+            <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
+        </form>
+    </div>
+
+    <script>
+        const samplePrices = {
+            '저수조': 60000,
+            '정수기': 50000,
+            '옥내급수관': 55000,
+            '지하수': 100000,
+            '자가측정': 80000,
+            '엔지니어링': 150000,
+            '용역': 200000
+        };
+
+        const photoData = {
+            1: null,
+            2: null,
+            3: null,
+            4: null
+        };
+
+        function increaseCount(type) {
+            const input = document.getElementById(`count-${type}`);
+            input.value = parseInt(input.value) + 1;
+            updateTotal();
+            updateItemStyle(type);
+        }
+
+        function decreaseCount(type) {
+            const input = document.getElementById(`count-${type}`);
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+                updateTotal();
+                updateItemStyle(type);
+            }
+        }
+
+        function updateItemStyle(type) {
+            const item = document.querySelector(`[data-type="${type}"]`);
+            const count = parseInt(document.getElementById(`count-${type}`).value);
+            if (count > 0) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        }
+
+        function updateTotal() {
+            let total = 0;
+            Object.keys(samplePrices).forEach(type => {
+                const count = parseInt(document.getElementById(`count-${type}`).value);
+                total += count * samplePrices[type];
+            });
+            document.getElementById('totalAmount').textContent = total.toLocaleString() + '원';
+        }
+
+        function handlePhoto(index, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoData[index] = e.target.result;
+                document.getElementById(`preview${index}`).src = e.target.result;
+                document.getElementById(`preview${index}`).style.display = 'block';
+                document.getElementById(`delete${index}`).style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deletePhoto(index, event) {
+            event.stopPropagation();
+            photoData[index] = null;
+            document.getElementById(`preview${index}`).style.display = 'none';
+            document.getElementById(`delete${index}`).style.display = 'none';
+            document.getElementById(`photo${index}`).value = '';
+        }
+
+        // 폼 제출
+        document.getElementById('fieldRequestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 시료 개수 확인
+            let totalSamples = 0;
+            const samples = [];
+            Object.keys(samplePrices).forEach(type => {
+                const count = parseInt(document.getElementById(`count-${type}`).value);
+                if (count > 0) {
+                    totalSamples += count;
+                    samples.push({
+                        type: type,
+                        count: count,
+                        price: samplePrices[type],
+                        amount: count * samplePrices[type]
+                    });
+                }
+            });
+
+            if (totalSamples === 0) {
+                alert('❌ 시료를 최소 1개 이상 입력해주세요.');
+                return;
+            }
+
+            // 총 금액 계산
+            const totalAmount = samples.reduce((sum, s) => sum + s.amount, 0);
+
+            // 현장 의뢰서 데이터
+            const fieldRequest = {
+                id: 'FIELD' + Date.now(),
+                type: 'sampling',  // sampling 또는 sales
+                
+                clientName: document.getElementById('clientName').value,
+                address: document.getElementById('address').value,
+                
+                samples: samples,
+                totalSamples: totalSamples,
+                totalAmount: totalAmount,
+                
+                photos: Object.values(photoData).filter(p => p !== null),
+                
+                createdAt: new Date().toISOString(),
+                createdBy: JSON.parse(localStorage.getItem('dasol_session') || '{}').name || '영업사원'
+            };
+
+            // 업무일지에 추가
+            const workLogs = JSON.parse(localStorage.getItem('dasol_work_logs') || '[]');
+            workLogs.push(fieldRequest);
+            localStorage.setItem('dasol_work_logs', JSON.stringify(workLogs));
+
+            alert(`✅ 채수 완료!\n\n거래처: ${fieldRequest.clientName}\n시료: ${totalSamples}개\n금액: ${totalAmount.toLocaleString()}원\n\n업무일지에 자동 추가되었습니다.`);
+            
+            // 업무일지 페이지로 이동
+            window.location.href = 'work-log-daily.html';
+        });
+
+        function goBack() {
+            if (confirm('작성 중인 내용이 사라집니다. 취소하시겠습니까?')) {
+                window.location.href = '../dashboard-final.html';
+            }
+        }
+    </script>
+</body>
+</html>

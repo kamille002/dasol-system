@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지출결의서 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; text-decoration: none; }
+        .container { max-width: 900px; margin: 30px auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .form-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 10px; color: #1f2937; }
+        .form-subtitle { text-align: center; color: #6b7280; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #374151; }
+        input, textarea, select { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s; }
+        input:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .approval-line { background: #fef3c7; padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #f59e0b; }
+        .approval-line h3 { font-size: 16px; margin-bottom: 15px; color: #92400e; }
+        .approver-list { display: flex; gap: 10px; flex-wrap: wrap; }
+        .approver-item { background: white; padding: 12px 16px; border-radius: 8px; border: 2px solid #fde68a; text-align: center; min-width: 90px; }
+        .approver-item .position { font-size: 11px; color: #92400e; margin-bottom: 4px; }
+        .approver-item .name { font-weight: 600; color: #78350f; }
+        .button-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn { flex: 1; padding: 16px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .required { color: #ef4444; }
+        .amount-info { background: #dbeafe; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 14px; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 지출결의서</h1>
+        <a href="../../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <h2 class="form-title">지출결의서</h2>
+        <p class="form-subtitle">업무 관련 지출에 대한 승인을 요청합니다</p>
+
+        <form id="expenseForm">
+            <div class="form-group">
+                <label>지출 제목 <span class="required">*</span></label>
+                <input type="text" id="title" placeholder="예: 2월 사무용품 구매" required>
+            </div>
+
+            <div class="form-group">
+                <label>지출 금액 <span class="required">*</span></label>
+                <input type="number" id="amount" placeholder="금액을 입력하세요 (원)" required oninput="updateApprovalLine()">
+                <div class="amount-info" id="amountInfo" style="display:none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>지출 내역 <span class="required">*</span></label>
+                <textarea id="description" placeholder="지출 내역을 상세히 작성해주세요..." style="min-height: 100px;" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>지출 일자 <span class="required">*</span></label>
+                <input type="date" id="expenseDate" required>
+            </div>
+
+            <div class="form-group">
+                <label>증빙서류</label>
+                <input type="file" id="receipt" multiple>
+            </div>
+
+            <!-- 결재선 (금액별 자동 구성) -->
+            <div class="approval-line">
+                <h3>📋 결재선 (금액별 자동 구성)</h3>
+                <div class="approver-list" id="approverList">
+                    <div class="approver-item">
+                        <div class="position">기안</div>
+                        <div class="name">김대리</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="saveDraft()">임시 저장</button>
+                <button type="submit" class="btn btn-primary">결재 요청</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function updateApprovalLine() {
+            const amount = parseInt(document.getElementById('amount').value) || 0;
+            const approverList = document.getElementById('approverList');
+            const amountInfo = document.getElementById('amountInfo');
+            
+            let approvers = [
+                { position: '기안', name: '김대리' }
+            ];
+
+            if (amount > 0) {
+                amountInfo.style.display = 'block';
+                
+                if (amount < 100000) {
+                    amountInfo.textContent = '💡 10만원 미만: 팀장 승인';
+                    approvers.push(
+                        { position: '→' },
+                        { position: '팀장', name: '이과장' }
+                    );
+                } else if (amount < 1000000) {
+                    amountInfo.textContent = '💡 100만원 미만: 팀장 → 부장 승인';
+                    approvers.push(
+                        { position: '→' },
+                        { position: '팀장', name: '이과장' },
+                        { position: '→' },
+                        { position: '부장', name: '박부장' }
+                    );
+                } else {
+                    amountInfo.textContent = '💡 100만원 이상: 팀장 → 부장 → 실장 → 대표이사 승인';
+                    approvers.push(
+                        { position: '→' },
+                        { position: '팀장', name: '이과장' },
+                        { position: '→' },
+                        { position: '부장', name: '박부장' },
+                        { position: '→' },
+                        { position: '실장', name: '최실장' },
+                        { position: '→' },
+                        { position: '대표', name: '김대표' }
+                    );
+                }
+            } else {
+                amountInfo.style.display = 'none';
+            }
+
+            approverList.innerHTML = approvers.map(a => `
+                <div class="approver-item">
+                    <div class="position">${a.position}</div>
+                    ${a.name ? `<div class="name">${a.name}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const amount = parseInt(document.getElementById('amount').value);
+            
+            if (confirm(`${amount.toLocaleString()}원 지출에 대한 결재를 요청하시겠습니까?`)) {
+                alert('✅ 결재가 요청되었습니다!\n💰 회계 시스템에 자동 반영됩니다.');
+                window.location.href = '../../dashboard-final.html';
+            }
+        });
+
+        function saveDraft() {
+            alert('💾 임시 저장되었습니다.');
+        }
+    </script>
+</body>
+</html>

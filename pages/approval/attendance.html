@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근태신청서 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 900px; margin: 30px auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .form-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        .type-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .type-btn { padding: 20px; border: 2px solid #e5e7eb; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; background: white; }
+        .type-btn:hover { border-color: #667eea; background: #f0f4ff; }
+        .type-btn.active { border-color: #667eea; background: #667eea; color: white; }
+        .type-btn .icon { font-size: 32px; margin-bottom: 8px; }
+        .type-btn .label { font-size: 14px; font-weight: 600; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; }
+        .btn { flex: 1; padding: 16px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .button-group { display: flex; gap: 15px; margin-top: 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏖️ 근태신청서</h1>
+        <a href="../../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <h2 class="form-title">근태신청서</h2>
+
+        <div class="type-selector">
+            <div class="type-btn active" onclick="selectType('연차')">
+                <div class="icon">🏖️</div>
+                <div class="label">연차</div>
+            </div>
+            <div class="type-btn" onclick="selectType('반차')">
+                <div class="icon">⏰</div>
+                <div class="label">반차</div>
+            </div>
+            <div class="type-btn" onclick="selectType('병가')">
+                <div class="icon">🏥</div>
+                <div class="label">병가</div>
+            </div>
+            <div class="type-btn" onclick="selectType('경조사')">
+                <div class="icon">💐</div>
+                <div class="label">경조사</div>
+            </div>
+            <div class="type-btn" onclick="selectType('외출')">
+                <div class="icon">🚶</div>
+                <div class="label">외출</div>
+            </div>
+            <div class="type-btn" onclick="selectType('조퇴')">
+                <div class="icon">🏃</div>
+                <div class="label">조퇴</div>
+            </div>
+        </div>
+
+        <form id="attendanceForm">
+            <input type="hidden" id="selectedType" value="연차">
+
+            <div class="form-group">
+                <label>시작일</label>
+                <input type="date" id="startDate" required>
+            </div>
+
+            <div class="form-group" id="endDateGroup">
+                <label>종료일</label>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="form-group">
+                <label>사유</label>
+                <textarea id="reason" placeholder="사유를 입력하세요" style="min-height: 100px;"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">신청하기</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function selectType(type) {
+            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('selectedType').value = type;
+        }
+
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const type = document.getElementById('selectedType').value;
+            
+            if (confirm(`${type} 신청을 하시겠습니까?`)) {
+                alert('✅ 신청이 완료되었습니다!');
+                window.location.href = '../../dashboard-final.html';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>법인카드사용신청서</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; }
+        .back-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }
+        .container { max-width: 900px; margin: 30px auto; background: white; border-radius: 16px; padding: 40px; }
+        .form-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .btn { padding: 16px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .required { color: #ef4444; }
+        .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💳 법인카드사용신청서</h1>
+        <a href="../../dashboard-final.html" class="back-btn">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <h2 class="form-title">법인카드사용신청서</h2>
+
+        <form onsubmit="event.preventDefault(); if(confirm('법인카드 사용을 신청하시겠습니까?')){ alert('✅ 신청 완료!'); window.location.href='../../dashboard-final.html'; }">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>사용 예정일 <span class="required">*</span></label>
+                    <input type="date" required>
+                </div>
+                <div class="form-group">
+                    <label>예상 금액 (원) <span class="required">*</span></label>
+                    <input type="number" placeholder="0" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>사용 목적 <span class="required">*</span></label>
+                <select required>
+                    <option>거래처 접대</option>
+                    <option>출장 경비</option>
+                    <option>사무용품 구매</option>
+                    <option>장비 구매</option>
+                    <option>교육비</option>
+                    <option>기타</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>사용처 (예정) <span class="required">*</span></label>
+                <input type="text" placeholder="예: 강남 레스토랑, 호텔신라" required>
+            </div>
+
+            <div class="form-group">
+                <label>상세 내용</label>
+                <textarea style="min-height: 100px;" placeholder="사용 목적 및 상세 내용을 작성하세요"></textarea>
+            </div>
+
+            <div class="info-box">
+                <strong>📌 사용 후 처리:</strong> 사용 후 3일 이내 영수증 제출 필수
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button type="submit" class="btn btn-primary">신청하기</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

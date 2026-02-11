@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 다솔물환경연구소</title>
+    
+    <!-- PWA 메타태그 -->
+    <meta name="description" content="수질검사 전문 연구소 통합 업무관리 시스템">
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="다솔시스템">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- 아이콘 -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    
+    <!-- iOS Safari -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="384x384" href="/icons/icon-384x384.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .login-form {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+
+        .remember-me input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            font-size: 14px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: #764ba2;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .signup-link a:hover {
+            color: #764ba2;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .info-message {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .login-header {
+                padding: 40px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 28px;
+            }
+
+            .login-form {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>다솔물환경연구소</h1>
+            <p>통합 업무관리 시스템</p>
+        </div>
+
+        <div class="login-form">
+            <div class="error-message" id="errorMessage"></div>
+            <div class="info-message" id="infoMessage"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">이메일</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="example@dasol.co.kr" 
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">비밀번호</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="비밀번호를 입력하세요" 
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span>로그인 상태 유지</span>
+                    </label>
+                    <a href="#" class="forgot-password" onclick="alert('관리자에게 문의하세요.'); return false;">비밀번호 찾기</a>
+                </div>
+
+                <button type="submit" class="login-btn">로그인</button>
+            </form>
+
+            <div class="signup-link">
+                계정이 없으신가요? <a href="signup.html">회원가입</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 자동 로그인 체크
+        window.addEventListener('DOMContentLoaded', function() {
+            // 기본 관리자 계정 자동 생성
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const adminExists = users.find(u => u.email === 'cybok001@naver.com');
+            
+            if (!adminExists) {
+                users.push({
+                    id: 'ADMIN001',
+                    email: 'cybok001@naver.com',
+                    password: 'kamille002!',
+                    name: '카밀레',
+                    phone: '010-1234-5678',
+                    team: '영업팀',
+                    position: '대표이사',
+                    level: 10,
+                    role: 'admin',
+                    workRegions: ['서울 강남구', '서울 서초구', '서울 강동구', '서울 송파구', '서울 강서구'],
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                });
+                localStorage.setItem('dasol_users', JSON.stringify(users));
+                console.log('✅ 관리자 계정(cybok001@naver.com) 자동 생성 완료!');
+            }
+            
+            const savedSession = localStorage.getItem('dasol_session');
+            const rememberMe = localStorage.getItem('dasol_remember_me');
+
+            if (savedSession && rememberMe === 'true') {
+                const session = JSON.parse(savedSession);
+                // 세션이 유효한지 확인 (24시간 이내)
+                const sessionTime = new Date(session.loginAt).getTime();
+                const now = new Date().getTime();
+                const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
+
+                if (hoursDiff < 24) {
+                    showInfo('자동 로그인 중...');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard-final.html';
+                    }, 500);
+                    return;
+                }
+            }
+
+            // 저장된 이메일 불러오기
+            const savedEmail = localStorage.getItem('dasol_saved_email');
+            if (savedEmail) {
+                document.getElementById('email').value = savedEmail;
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+
+        // 로그인 폼 제출
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // 유효성 검사
+            if (!email || !password) {
+                showError('이메일과 비밀번호를 입력해주세요.');
+                return;
+            }
+
+            // 사용자 인증
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (!user) {
+                showError('이메일 또는 비밀번호가 올바르지 않습니다.');
+                return;
+            }
+
+            // 승인 상태 확인
+            if (user.status === 'pending') {
+                showError('관리자 승인 대기 중입니다.<br>승인 후 로그인하실 수 있습니다.');
+                return;
+            }
+
+            if (user.status !== 'active' && user.status !== 'approved') {
+                showError('계정이 비활성화되었습니다.<br>관리자에게 문의하세요.');
+                return;
+            }
+
+            // 로그인 성공
+            const session = {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                position: user.position,
+                level: user.level,
+                team: user.team,
+                workRegions: user.workRegions || [],
+                analysisItems: user.analysisItems || [],
+                isAdmin: user.isAdmin || false,
+                isSuperAdmin: user.isSuperAdmin || false,
+                loginAt: new Date().toISOString()
+            };
+
+            // 세션 저장
+            localStorage.setItem('dasol_session', JSON.stringify(session));
+            
+            // 자동 로그인 설정
+            if (rememberMe) {
+                localStorage.setItem('dasol_remember_me', 'true');
+                localStorage.setItem('dasol_saved_email', email);
+            } else {
+                localStorage.removeItem('dasol_remember_me');
+                localStorage.removeItem('dasol_saved_email');
+            }
+
+            // 로그인 로그 기록
+            logLogin(user);
+
+            // 대시보드로 이동
+            showInfo('로그인 성공! 이동 중...');
+            setTimeout(() => {
+                window.location.href = 'dashboard-final.html';
+            }, 500);
+        });
+
+        function logLogin(user) {
+            const loginLogs = JSON.parse(localStorage.getItem('dasol_login_logs') || '[]');
+            loginLogs.push({
+                userId: user.id,
+                userName: user.name,
+                email: user.email,
+                timestamp: new Date().toISOString()
+            });
+            // 최근 100개만 유지
+            if (loginLogs.length > 100) {
+                loginLogs.shift();
+            }
+            localStorage.setItem('dasol_login_logs', JSON.stringify(loginLogs));
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('infoMessage').style.display = 'none';
+
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showInfo(message) {
+            const infoDiv = document.getElementById('infoMessage');
+            infoDiv.innerHTML = message;
+            infoDiv.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // 초기 데이터 생성 (Kamille님 계정)
+        function initializeSystem() {
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            
+            // Kamille님 계정이 없으면 생성
+            if (!users.find(u => u.email === 'kamille@dasol.co.kr')) {
+                const kamille = {
+                    id: 'KAMILLE',
+                    email: 'kamille@dasol.co.kr',
+                    password: 'kamille2026',
+                    name: 'Kamille',
+                    position: 'CEO',
+                    level: 0,
+                    team: '경영진',
+                    status: 'active',
+                    workRegions: [],
+                    analysisItems: [],
+                    createdAt: new Date().toISOString(),
+                    approvedBy: null,
+                    approvedAt: null,
+                    isAdmin: true,
+                    isSuperAdmin: true
+                };
+
+                users.push(kamille);
+                localStorage.setItem('dasol_users', JSON.stringify(users));
+            }
+        }
+
+        initializeSystem();
+    </script>
+
+    <!-- PWA Service Worker 등록 -->
+    <script>
+        // Service Worker 등록
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('✓ Service Worker 등록 성공:', registration.scope);
+                        
+                        // 업데이트 확인
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // 새 버전 있음
+                                    if (confirm('새로운 버전이 있습니다. 업데이트하시겠습니까?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('✗ Service Worker 등록 실패:', error);
+                    });
+            });
+        }
+
+        // PWA 설치 버튼
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // 기본 설치 프롬프트 방지
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // 설치 가능 알림 표시
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            // 로그인 화면에 설치 안내 표시 (선택사항)
+            console.log('✓ PWA 설치 가능');
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✓ PWA 설치 완료');
+            deferredPrompt = null;
+        });
+
+        // 온라인/오프라인 상태 감지
+        window.addEventListener('online', () => {
+            console.log('✓ 온라인 모드');
+            showInfo('인터넷에 연결되었습니다.');
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('✗ 오프라인 모드');
+            showInfo('오프라인 모드입니다. 일부 기능이 제한될 수 있습니다.');
+        });
+    </script>
+</body>
+</html>

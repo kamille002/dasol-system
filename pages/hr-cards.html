@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인사카드 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .employee-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .employee-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        .employee-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        .employee-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .employee-info h3 {
+            font-size: 18px;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        .employee-info p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .employee-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .detail-label {
+            color: #6b7280;
+        }
+        .detail-value {
+            color: #374151;
+            font-weight: 500;
+        }
+        .employee-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👤 인사카드</h1>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-primary" onclick="openAddModal()">+ 직원 등록</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-final.html'">← 대시보드</button>
+        </div>
+    </div>
+
+    <div class="card-grid" id="cardGrid"></div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">직원 등록</div>
+            <form id="employeeForm">
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label>직급</label>
+                    <select id="position" required>
+                        <option value="">선택하세요</option>
+                        <option value="사원">사원</option>
+                        <option value="주임">주임</option>
+                        <option value="대리">대리</option>
+                        <option value="과장">과장</option>
+                        <option value="차장">차장</option>
+                        <option value="부장">부장</option>
+                        <option value="상무">상무</option>
+                        <option value="전무">전무</option>
+                        <option value="이사">이사</option>
+                        <option value="대표이사">대표이사</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>부서</label>
+                    <select id="team" required>
+                        <option value="">선택하세요</option>
+                        <option value="영업팀">영업팀</option>
+                        <option value="총무팀">총무팀</option>
+                        <option value="분석팀">분석팀</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>입사일</label>
+                    <input type="date" id="joinDate" required>
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <input type="tel" id="phone" placeholder="010-1234-5678">
+                </div>
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="email" placeholder="example@dasol.co.kr">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+
+        function init() {
+            loadEmployees();
+            renderCards();
+        }
+
+        function loadEmployees() {
+            employees = JSON.parse(localStorage.getItem('dasol_employees') || '[]');
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('cardGrid');
+
+            if (employees.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #9ca3af;">등록된 직원이 없습니다</div>';
+                return;
+            }
+
+            grid.innerHTML = employees.map(emp => {
+                const initial = emp.name.charAt(0);
+                const yearsOfService = calculateYears(emp.joinDate);
+
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header">
+                            <div class="employee-avatar">${initial}</div>
+                            <div class="employee-info">
+                                <h3>${emp.name}</h3>
+                                <p>${emp.position} · ${emp.team}</p>
+                            </div>
+                        </div>
+                        <div class="employee-details">
+                            <div class="detail-item">
+                                <span class="detail-label">입사일</span>
+                                <span class="detail-value">${formatDate(emp.joinDate)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">근속연수</span>
+                                <span class="detail-value">${yearsOfService}년</span>
+                            </div>
+                            ${emp.phone ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">연락처</span>
+                                    <span class="detail-value">${emp.phone}</span>
+                                </div>
+                            ` : ''}
+                            ${emp.email ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">이메일</span>
+                                    <span class="detail-value">${emp.email}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="employee-actions">
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="deleteEmployee('${emp.id}')">삭제</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calculateYears(joinDate) {
+            const join = new Date(joinDate);
+            const now = new Date();
+            const diff = now - join;
+            return Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            document.getElementById('employeeForm').reset();
+        }
+
+        document.getElementById('employeeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newEmployee = {
+                id: 'EMP' + Date.now(),
+                name: document.getElementById('name').value,
+                position: document.getElementById('position').value,
+                team: document.getElementById('team').value,
+                joinDate: document.getElementById('joinDate').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                createdAt: new Date().toISOString()
+            };
+
+            employees.push(newEmployee);
+            localStorage.setItem('dasol_employees', JSON.stringify(employees));
+
+            closeAddModal();
+            renderCards();
+            alert('직원이 등록되었습니다.');
+        });
+
+        function deleteEmployee(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            employees = employees.filter(e => e.id !== id);
+            localStorage.setItem('dasol_employees', JSON.stringify(employees));
+            renderCards();
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
