@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근로계약서 작성 - 다솔물환경연구소</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .contract-preview {
+            background: white;
+            padding: 40px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.8;
+        }
+
+        .contract-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .contract-section {
+            margin-bottom: 30px;
+        }
+
+        .contract-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .contract-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .contract-table th,
+        .contract-table td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .contract-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            width: 30%;
+        }
+
+        .contract-article {
+            margin-bottom: 25px;
+        }
+
+        .contract-article h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .contract-footer {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .signature-area {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+        }
+
+        .signature-box {
+            text-align: center;
+        }
+
+        .signature-box p {
+            margin-bottom: 10px;
+        }
+
+        .signature-line {
+            width: 200px;
+            border-top: 1px solid #000;
+            margin: 40px auto 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .action-buttons button {
+            padding: 15px 40px;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .contract-preview {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 근로계약서 작성</h1>
+            <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">← 대시보드</button>
+        </div>
+
+        <!-- 직원 선택 -->
+        <div class="card">
+            <h2>👤 직원 선택</h2>
+            <div class="form-group">
+                <label>인사카드에서 선택 *</label>
+                <select id="employeeSelect" onchange="loadEmployeeData()">
+                    <option value="">-- 직원을 선택하세요 --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 계약 조건 -->
+        <div class="card">
+            <h2>💼 계약 조건</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>계약 시작일 *</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label>계약 종료일</label>
+                    <input type="date" id="endDate" placeholder="정규직은 비워두세요">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>근무 형태 *</label>
+                    <select id="workType" required>
+                        <option value="정규직">정규직</option>
+                        <option value="계약직">계약직</option>
+                        <option value="인턴">인턴</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>직무 *</label>
+                    <input type="text" id="jobTitle" placeholder="예: 수질 분석 업무">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>급여 (월) *</label>
+                    <input type="number" id="monthlySalary" placeholder="3000000" required>
+                </div>
+                <div class="form-group">
+                    <label>급여일 *</label>
+                    <select id="paymentDay" required>
+                        <option value="매월 25일">매월 25일</option>
+                        <option value="매월 말일">매월 말일</option>
+                        <option value="익월 5일">익월 5일</option>
+                        <option value="익월 10일">익월 10일</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>근무 시간 *</label>
+                <input type="text" id="workHours" value="평일 09:00 ~ 18:00 (휴게시간 12:00 ~ 13:00)" required>
+            </div>
+
+            <div class="form-group">
+                <label>근무 장소 *</label>
+                <input type="text" id="workPlace" value="경기도 성남시 분당구 ..." required>
+            </div>
+        </div>
+
+        <!-- 미리보기 -->
+        <div class="card">
+            <h2>📋 계약서 미리보기</h2>
+            <div class="contract-preview" id="contractPreview">
+                <div class="contract-title">근 로 계 약 서</div>
+
+                <div class="contract-section">
+                    <table class="contract-table">
+                        <tr>
+                            <th>성명</th>
+                            <td id="preview_name">-</td>
+                        </tr>
+                        <tr>
+                            <th>생년월일</th>
+                            <td id="preview_birth">-</td>
+                        </tr>
+                        <tr>
+                            <th>주소</th>
+                            <td id="preview_address">-</td>
+                        </tr>
+                        <tr>
+                            <th>연락처</th>
+                            <td id="preview_phone">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="contract-article">
+                    <h4>제1조 (계약 기간)</h4>
+                    <p>본 계약의 기간은 <span id="preview_start">____</span>년 <span id="preview_start_month">__</span>월 <span id="preview_start_day">__</span>일부터 
+                    <span id="preview_end_text">기간의 정함이 없음</span> 까지로 한다.</p>
+                </div>
+
+                <div class="contract-article">
+                    <h4>제2조 (근무 장소 및 업무 내용)</h4>
+                    <p>① 근무 장소: <span id="preview_workplace">-</span></p>
+                    <p>② 업무 내용: <span id="preview_job">-</span></p>
+                </div>
+
+                <div class="contract-article">
+                    <h4>제3조 (근로 시간)</h4>
+                    <p>근무 시간은 <span id="preview_hours">-</span> 로 한다.</p>
+                </div>
+
+                <div class="contract-article">
+                    <h4>제4조 (급여)</h4>
+                    <p>① 월 급여: <span id="preview_salary">-</span>원 (세전)</p>
+                    <p>② 지급일: <span id="preview_payday">-</span></p>
+                    <p>③ 지급 방법: 근로자 명의 계좌로 이체</p>
+                </div>
+
+                <div class="contract-article">
+                    <h4>제5조 (휴일 및 휴가)</h4>
+                    <p>① 주휴일: 매주 일요일</p>
+                    <p>② 연차 유급 휴가: 근로기준법에 따름</p>
+                </div>
+
+                <div class="contract-article">
+                    <h4>제6조 (기타)</h4>
+                    <p>본 계약서에 명시되지 않은 사항은 근로기준법 및 관계 법령에 따른다.</p>
+                </div>
+
+                <div class="contract-footer">
+                    <p id="preview_date">2026년 2월 12일</p>
+
+                    <div class="signature-area">
+                        <div class="signature-box">
+                            <p><strong>사업주 (갑)</strong></p>
+                            <p>상호: 다솔물환경연구소</p>
+                            <p>주소: 경기도 성남시 분당구...</p>
+                            <p>대표자: 000 (인)</p>
+                            <div class="signature-line"></div>
+                        </div>
+
+                        <div class="signature-box">
+                            <p><strong>근로자 (을)</strong></p>
+                            <p>성명: <span id="preview_name2">-</span></p>
+                            <p>주소: <span id="preview_address2">-</span></p>
+                            <div class="signature-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 액션 버튼 -->
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="generatePDF()">📄 PDF 다운로드</button>
+            <button class="btn btn-primary" onclick="saveContract()">💾 저장</button>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+        let selectedEmployee = null;
+
+        // 페이지 로드 시
+        window.addEventListener('load', () => {
+            loadEmployees();
+            loadEmployeeOptions();
+            
+            // 오늘 날짜로 계약일 설정
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            
+            // 미리보기 날짜 설정
+            const now = new Date();
+            document.getElementById('preview_date').textContent = 
+                `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
+        });
+
+        // 직원 데이터 로드
+        function loadEmployees() {
+            const saved = localStorage.getItem('dasol_employees');
+            if (saved) {
+                employees = JSON.parse(saved);
+            }
+        }
+
+        // 직원 옵션 로드
+        function loadEmployeeOptions() {
+            const select = document.getElementById('employeeSelect');
+            
+            // 재직중인 직원만 필터링
+            const activeEmployees = employees.filter(e => e.status === '재직중');
+            
+            activeEmployees.forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp.id;
+                option.textContent = `${emp.name} - ${emp.department} ${emp.currentPosition || emp.position || ''}`;
+                select.appendChild(option);
+            });
+        }
+
+        // 직원 데이터 불러오기
+        function loadEmployeeData() {
+            const employeeId = document.getElementById('employeeSelect').value;
+            if (!employeeId) return;
+
+            selectedEmployee = employees.find(e => e.id === employeeId);
+            if (!selectedEmployee) return;
+
+            // 미리보기 업데이트
+            document.getElementById('preview_name').textContent = selectedEmployee.name;
+            document.getElementById('preview_name2').textContent = selectedEmployee.name;
+            document.getElementById('preview_birth').textContent = selectedEmployee.birthDate;
+            document.getElementById('preview_address').textContent = selectedEmployee.address || '-';
+            document.getElementById('preview_address2').textContent = selectedEmployee.address || '-';
+            document.getElementById('preview_phone').textContent = selectedEmployee.phone;
+
+            // 직무 자동 설정
+            const jobTitles = {
+                '영업1팀': '영업 및 고객관리 업무',
+                '영업2팀': '영업 및 고객관리 업무',
+                '총무팀': '총무 및 행정 업무',
+                '분석팀': '수질 분석 업무',
+                '수질자가측정팀': '수질자가측정 업무',
+                '먹는물검사팀': '먹는물 수질검사 업무'
+            };
+            document.getElementById('jobTitle').value = jobTitles[selectedEmployee.department] || '';
+
+            updatePreview();
+        }
+
+        // 미리보기 업데이트
+        function updatePreview() {
+            // 계약 기간
+            const startDate = document.getElementById('startDate').value;
+            if (startDate) {
+                const date = new Date(startDate);
+                document.getElementById('preview_start').textContent = date.getFullYear();
+                document.getElementById('preview_start_month').textContent = date.getMonth() + 1;
+                document.getElementById('preview_start_day').textContent = date.getDate();
+            }
+
+            const endDate = document.getElementById('endDate').value;
+            if (endDate) {
+                const date = new Date(endDate);
+                document.getElementById('preview_end_text').textContent = 
+                    `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+            } else {
+                document.getElementById('preview_end_text').textContent = '기간의 정함이 없음';
+            }
+
+            // 근무 장소
+            document.getElementById('preview_workplace').textContent = 
+                document.getElementById('workPlace').value || '-';
+
+            // 업무 내용
+            document.getElementById('preview_job').textContent = 
+                document.getElementById('jobTitle').value || '-';
+
+            // 근무 시간
+            document.getElementById('preview_hours').textContent = 
+                document.getElementById('workHours').value || '-';
+
+            // 급여
+            const salary = document.getElementById('monthlySalary').value;
+            if (salary) {
+                document.getElementById('preview_salary').textContent = 
+                    parseInt(salary).toLocaleString();
+            }
+
+            // 급여일
+            document.getElementById('preview_payday').textContent = 
+                document.getElementById('paymentDay').value || '-';
+        }
+
+        // 입력 필드 변경 시 미리보기 업데이트
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('change', updatePreview);
+            element.addEventListener('input', updatePreview);
+        });
+
+        // PDF 생성
+        async function generatePDF() {
+            if (!selectedEmployee) {
+                alert('⚠️ 직원을 먼저 선택해주세요!');
+                return;
+            }
+
+            const preview = document.getElementById('contractPreview');
+            
+            try {
+                const canvas = await html2canvas(preview, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(`근로계약서_${selectedEmployee.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+                
+                alert('✅ PDF가 다운로드되었습니다!');
+            } catch (error) {
+                console.error('PDF 생성 오류:', error);
+                alert('❌ PDF 생성 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 저장
+        function saveContract() {
+            if (!selectedEmployee) {
+                alert('⚠️ 직원을 먼저 선택해주세요!');
+                return;
+            }
+
+            const contractData = {
+                id: `CONTRACT-${Date.now()}`,
+                employeeId: selectedEmployee.id,
+                employeeName: selectedEmployee.name,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                workType: document.getElementById('workType').value,
+                jobTitle: document.getElementById('jobTitle').value,
+                monthlySalary: document.getElementById('monthlySalary').value,
+                paymentDay: document.getElementById('paymentDay').value,
+                workHours: document.getElementById('workHours').value,
+                workPlace: document.getElementById('workPlace').value,
+                createdAt: new Date().toISOString()
+            };
+
+            // 저장
+            let contracts = JSON.parse(localStorage.getItem('dasol_contracts') || '[]');
+            contracts.push(contractData);
+            localStorage.setItem('dasol_contracts', JSON.stringify(contracts));
+
+            alert('✅ 저장되었습니다!');
+        }
+    </script>
+</body>
+</html>
