@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수질자가측정 검사 의뢰서 - 다솔물환경연구소</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #3b82f6;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .item-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .item-card:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .item-card.selected {
+            border-color: #3b82f6;
+            background: #dbeafe;
+        }
+
+        .item-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .item-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .item-checkbox label {
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .item-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .item-input input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .item-input span {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+        }
+
+        .category-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .action-buttons button {
+            padding: 15px 40px;
+            font-size: 16px;
+        }
+
+        .summary-box {
+            background: #f9fafb;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-box h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 수질자가측정 검사 의뢰서</h1>
+            <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">← 돌아가기</button>
+        </div>
+
+        <!-- 기본 정보 -->
+        <div class="card">
+            <h2>📋 기본 정보</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>사업장명 *</label>
+                    <input type="text" id="facilityName" placeholder="예: 한강 폐수처리장">
+                </div>
+                <div class="form-group">
+                    <label>업체명 *</label>
+                    <input type="text" id="companyName" placeholder="예: (주)한강환경">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>담당자명 *</label>
+                    <input type="text" id="contactName" placeholder="예: 홍길동">
+                </div>
+                <div class="form-group">
+                    <label>연락처 *</label>
+                    <input type="tel" id="contactPhone" placeholder="예: 010-1234-5678">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>주소</label>
+                <input type="text" id="address" placeholder="사업장 주소">
+            </div>
+        </div>
+
+        <!-- 업종 선택 -->
+        <div class="card">
+            <h2>🏢 업종 선택</h2>
+            <div class="form-group">
+                <label>업종 분류 *</label>
+                <select id="industryType" onchange="updateStandardsByIndustry()">
+                    <option value="">-- 업종을 선택하세요 --</option>
+                    <option value="폐수처리구역">1. 폐수처리구역 (면적여유한산, 공공폐수처리시설)</option>
+                    <option value="안성제1">2. 안성제1 산업단지 (안성제1, 공공폐수처리시설)</option>
+                    <option value="포천양문">3. 포천양문 (포천양문, 공공폐수처리시설)</option>
+                    <option value="화성마도">4. 화성마도 (화성마도, 공공폐수처리시설)</option>
+                    <option value="파주금파">5. 파주금파 산업단지 (파주금파, 공공폐수처리시설)</option>
+                    <option value="종주선">6. 종주선 산업단지 (종주선, 공공하수처리시설)</option>
+                    <option value="안성제2">7. 안성제2·미양제2 산업단지 (안성제2, 공공폐수처리시설)</option>
+                    <option value="산업단지">8. 산업단지 (명확송탄, 공공폐수처리시설)</option>
+                    <option value="파주금파2">9. 파주금파 산업단지 (파주금파, 공공폐수처리시설)</option>
+                    <option value="김포양촌">10. 김포양촌 산업단지 (김포양촌, 공공하수처리시설)</option>
+                    <option value="화성장안">11. 화성장안 산업단지 (화성장안, 공공폐수처리시설)</option>
+                    <option value="양주검준">12. 양주검준 산업단지 (양주검준, 공공폐수처리시설)</option>
+                    <option value="양주남면">13. 양주남면 산업단지 (양주검준, 공공폐수처리시설)</option>
+                    <option value="파주문산">14. 파주문산 산업단지 (파주문산, 공공폐수처리시설)</option>
+                    <option value="파주LCD">15. 파주 LCD 일반산업단지 (파주LCD, 공공폐수처리시설)</option>
+                    <option value="안산반월">16. 안산반월 국가 지방산업단지 (안산, 공공하수처리시설)</option>
+                    <option value="평택현곡">17. 평택 현곡·오성 산업단지 (평택현곡, 공공폐수처리시설)</option>
+                    <option value="평택진위">18. 평택진위 산업단지 (평택진위, 공공폐수처리시설)</option>
+                    <option value="인천검단">19. 인천검단 산업단지 (인천검단, 공공폐수처리시설)</option>
+                    <option value="파주월롱">20. 파주월롱 산업단지 (파주월롱, 공공폐수처리시설)</option>
+                    <option value="연천백학">21. 연천백학 산업단지 (연천백학, 공공폐수처리시설)</option>
+                    <option value="안성제4">22. 안성제4 산업단지 (안성제4, 공공폐수처리시설)</option>
+                    <option value="양주홀축">23. 양주홀축 산업단지 (양주홀축, 공공폐수처리시설)</option>
+                    <option value="화성정남">24. 화성정남 전곡제3테크노파크 산업단지 (화성정남, 공공폐수처리시설)</option>
+                    <option value="인천강화">25. 인천강화 산업단지 (인천강화, 공공폐수처리시설)</option>
+                    <option value="평택고덕">26. 평택 고덕 국제화 산업단지 (평택고덕국제화산업단지, 공공폐수처리시설)</option>
+                    <option value="인천서운">27. 인천서운 산업단지 (인천서운, 공공폐수처리시설)</option>
+                    <option value="포천정자">28. 포천 정자(신평3리), 에코그린 일반산업단지 (포천 정자(신평3리), 공공폐수처리시설)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 지역 구분 -->
+        <div class="card">
+            <h2>📍 지역 구분 (별표13 기준 적용 시)</h2>
+            <div class="form-group">
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="region" value="청정" onchange="updateStandardsByRegion()">
+                        <span>청정지역</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="region" value="가" checked onchange="updateStandardsByRegion()">
+                        <span>가 지역</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="region" value="나" onchange="updateStandardsByRegion()">
+                        <span>나 지역</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="region" value="특례" onchange="updateStandardsByRegion()">
+                        <span>특례지역</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검사 항목 선택 -->
+        <div class="card">
+            <h2>🧪 검사 항목 선택</h2>
+            <div id="itemsContainer"></div>
+        </div>
+
+        <!-- 요약 -->
+        <div class="card">
+            <h2>📊 선택 요약</h2>
+            <div class="summary-box" id="summaryBox">
+                <h3>선택된 항목: <span id="selectedCount">0</span>개</h3>
+                <div id="summaryContent"></div>
+            </div>
+        </div>
+
+        <!-- 액션 버튼 -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="generateQuote()" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                📄 견적서 생성
+            </button>
+            <button class="btn btn-primary" onclick="generateRequest()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">
+                📋 의뢰서 생성
+            </button>
+            <button class="btn btn-secondary" onclick="saveData()">
+                💾 임시저장
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 검사 항목 데이터베이스
+        const testItems = {
+            기본항목: [
+                { id: 'BOD', name: 'BOD (생물화학적 산소요구량)', unit: 'mg/L', category: '기본' },
+                { id: 'TOC', name: 'TOC (총유기탄소량)', unit: 'mg/L', category: '기본' },
+                { id: 'SS', name: 'SS (부유물질)', unit: 'mg/L', category: '기본' },
+                { id: 'T-N', name: 'T-N (총질소)', unit: 'mg/L', category: '기본' },
+                { id: 'T-P', name: 'T-P (총인)', unit: 'mg/L', category: '기본' },
+                { id: 'pH', name: 'pH (수소이온농도)', unit: '', category: '기본' },
+                { id: '색도', name: '색도', unit: '도', category: '기본' },
+                { id: '온도', name: '온도', unit: '℃', category: '기본' },
+                { id: '총대장균', name: '총대장균군수', unit: '개/mL', category: '기본' }
+            ],
+            중금속: [
+                { id: '구리', name: '구리(동) 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '납', name: '납 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '비소', name: '비소 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '수은', name: '수은 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '카드뮴', name: '카드뮴 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '크롬', name: '크롬 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '6가크롬', name: '6가크롬 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '아연', name: '아연 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '용해성철', name: '용해성철 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '용해성망간', name: '용해성망간 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '니켈', name: '니켈', unit: 'mg/L', category: '중금속' },
+                { id: '바륨', name: '바륨', unit: 'mg/L', category: '중금속' },
+                { id: '셀레늄', name: '셀레늄 함유량', unit: 'mg/L', category: '중금속' },
+                { id: '안티몬', name: '안티몬', unit: 'mg/L', category: '중금속' },
+                { id: '주석', name: '주석', unit: 'mg/L', category: '중금속' }
+            ],
+            유기물질: [
+                { id: '페놀류', name: '페놀류 함유량', unit: 'mg/L', category: '유기물질' },
+                { id: '페놀', name: '페놀', unit: 'mg/L', category: '유기물질' },
+                { id: '펜타클로로페놀', name: '펜타클로로페놀', unit: 'mg/L', category: '유기물질' },
+                { id: '시안', name: '시안 함유량', unit: 'mg/L', category: '유기물질' },
+                { id: '유기인', name: '유기인 함유량', unit: 'mg/L', category: '유기물질' },
+                { id: 'PCB', name: 'PCB 함유량', unit: 'mg/L', category: '유기물질' },
+                { id: '벤젠', name: '벤젠', unit: 'mg/L', category: '유기물질' },
+                { id: '톨루엔', name: '톨루엔', unit: 'mg/L', category: '유기물질' },
+                { id: '자일렌', name: '자일렌', unit: 'mg/L', category: '유기물질' },
+                { id: '나프탈렌', name: '나프탈렌', unit: 'mg/L', category: '유기물질' },
+                { id: '스티렌', name: '스티렌', unit: 'mg/L', category: '유기물질' }
+            ],
+            할로겐화합물: [
+                { id: '트리클로로에틸렌', name: '트리클로로에틸렌', unit: 'mg/L', category: '할로겐' },
+                { id: '테트라클로로에틸렌', name: '테트라클로로에틸렌', unit: 'mg/L', category: '할로겐' },
+                { id: '디클로로메탄', name: '디클로로메탄', unit: 'mg/L', category: '할로겐' },
+                { id: '사염화탄소', name: '사염화탄소', unit: 'mg/L', category: '할로겐' },
+                { id: '1,1-디클로로에틸렌', name: '1,1-디클로로에틸렌', unit: 'mg/L', category: '할로겐' },
+                { id: '1,2-디클로로에탄', name: '1,2-디클로로에탄', unit: 'mg/L', category: '할로겐' },
+                { id: '클로로포름', name: '클로로포름', unit: 'mg/L', category: '할로겐' },
+                { id: '브로모포름', name: '브로모포름', unit: 'mg/L', category: '할로겐' },
+                { id: '염화비닐', name: '염화비닐', unit: 'mg/L', category: '할로겐' }
+            ],
+            기타물질: [
+                { id: '노말헥산추출물광유류', name: '노말헥산추출물질 (광유류)', unit: 'mg/L', category: '기타' },
+                { id: '노말헥산추출물동식물', name: '노말헥산추출물질 (동식물유지류)', unit: 'mg/L', category: '기타' },
+                { id: '불소', name: '플루오르(불소) 함유량', unit: 'mg/L', category: '기타' },
+                { id: '음이온계면활성제', name: '음이온계면활성제', unit: 'mg/L', category: '기타' },
+                { id: '1,4-다이옥산', name: '1,4-다이옥산', unit: 'mg/L', category: '기타' },
+                { id: 'DEHP', name: 'DEHP (디에틸헥실프탈레이트)', unit: 'mg/L', category: '기타' },
+                { id: '아크릴로니트릴', name: '아크릴로니트릴', unit: 'mg/L', category: '기타' },
+                { id: '폼알데하이드', name: '폼알데하이드', unit: 'mg/L', category: '기타' },
+                { id: '에피클로로하이드린', name: '에피클로로하이드린', unit: 'mg/L', category: '기타' },
+                { id: '퍼클로레이트', name: '퍼클로레이트', unit: 'mg/L', category: '기타' },
+                { id: '아크릴아미드', name: '아크릴아미드', unit: 'mg/L', category: '기타' },
+                { id: '비스아디페이트', name: '비스(2-에틸헥실)아디페이트', unit: 'mg/L', category: '기타' },
+                { id: '생태독성', name: '생태독성', unit: 'TU', category: '기타' }
+            ]
+        };
+
+        // 업종별 기준값 (한강유역환경청 별도배출허용기준)
+        const industryStandards = {
+            '폐수처리구역': { BOD: 3000, TOC: 1700, SS: 2500 },
+            '안성제1': { BOD: 1500, TOC: 850, SS: 1500, 'T-N': 600, 'T-P': 80 },
+            '포천양문': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수', '수소아온': '원폐수', 'n-H(광,동)': '원폐수', '색도': '원폐수' },
+            '화성마도': { BOD: 3000, TOC: 1700, SS: 3000, 'T-N': 600, 'T-P': 120 },
+            '파주금파': { BOD: '초량금속 5000이하', TOC: '초량금속 2800이하', SS: '초량금속 5000이하', 'T-N': '폐기물매립장 600이하', 'T-P': '폐기물매립장 200이하' },
+            '종주선': { BOD: '피혁제조업 1400이하', TOC: '피혁제조업 850이하', SS: '피혁제조업 1500이하', 'T-N': '피혁제조업 2000이하', '색도': '피혁제조업 8000이하' },
+            '안성제2': { BOD: 800, TOC: 390, SS: 500 },
+            '산업단지': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수' },
+            '파주금파2': { BOD: '육지동물공장 2,2000이하', TOC: '육지동물공장 4450이하', SS: '육지동물공장 7500이하', 'T-N': '육지동물공장 700이하', 'T-P': '육지동물공장 150이하' },
+            '김포양촌': { BOD: 500, TOC: 280, SS: 500, 'T-N': '원폐수', 'T-P': '원폐수' },
+            '화성장안': { BOD: '음식료품 3500이하', TOC: '음식료품 1950이하', SS: '음식료품 3500이하', 'T-N': '폐기물매립장 600이하', 'T-P': '폐기물매립장 150이하' },
+            '양주검준': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수', '수소아온': '원폐수', 'n-H(광,동)': '원폐수', '색도': '원폐수' },
+            '양주남면': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수' },
+            '파주문산': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수' },
+            '파주LCD': { BOD: 4000, TOC: 2450, SS: '파주LCD환경안전협의회 6500이하', 'T-N': '파주LCD환경안전협의회 780이하', 'T-P': '파주LCD환경안전협의회 210이하' },
+            '안산반월': { 'T-N': '염색폐수 600이하' },
+            '평택현곡': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수' },
+            '평택진위': { BOD: '매립장정침출수 300이하', TOC: '매립장정침출수 170이하', SS: '매립장정침출수 300이하', 'T-N': '매립장정침출수 600이하', 'T-P': 200 },
+            '인천검단': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수' },
+            '파주월롱': { BOD: '원폐수', TOC: '원폐수', SS: '원폐수', 'T-N': '원폐수', 'T-P': '원폐수' },
+            '연천백학': { BOD: '화학물질 3000이하', TOC: '화학물질 1700이하', SS: '화학물질 3000이하', 'T-N': '원폐수', 'T-P': '원폐수' },
+            '안성제4': { BOD: 350, TOC: 225, SS: 350, 'T-N': 600, 'T-P': 200 },
+            '양주홀축': { BOD: 250, TOC: 170, SS: 140, 'T-N': 600, 'T-P': 100 },
+            '화성정남': { BOD: '폐기물처리시설 1400이하', TOC: '폐기물처리시설 850이하', SS: '폐기물처리시설 1500이하', 'T-N': '폐기물처리시설 400이하', 'T-P': '폐기물처리시설 80이하' },
+            '인천강화': { BOD: '음식료품 1,6000이하', TOC: '음식료품 6150이하', SS: '음식료품 6000이하', 'T-N': '1차 금속제조업 500이하', 'T-P': 80 },
+            '평택고덕': { BOD: 240, TOC: 100, SS: 160, 'T-N': 800, 'T-P': 200 },
+            '인천서운': { BOD: 3000, TOC: 1700, SS: 3000, 'T-N': 600, 'T-P': 80 },
+            '포천정자': { BOD: '식품제조업 2,1000이하', TOC: '식품제조업 8400이하', SS: '식품제조업 2,0000이하', 'T-N': '식품제조업 1700이하', 'T-P': '식품제조업 140이하', 'n-H(광,동)': '식품제조업 6250이하' }
+        };
+
+        // 지역별 기준값 (별표13)
+        const regionStandards = {
+            '청정': {
+                pH: '5.8~8.6', '노말헥산추출물광유류': 1, '노말헥산추출물동식물': 5, '페놀류': 1,
+                '페놀': 0.1, '펜타클로로페놀': 0.001, '시안': 0.2, '크롬': 0.5, '용해성철': 2,
+                '아연': 1, '구리': 1, '카드뮴': 0.02, '수은': 0.001, '유기인': 0.2, '비소': 0.05,
+                '납': 0.1, '6가크롬': 0.1, '용해성망간': 2, '불소': 3, 'PCB': '불검출',
+                '총대장균': 100, '색도': 200, '온도': 40, 'T-N': 30, 'T-P': 4,
+                '트리클로로에틸렌': 0.06, '테트라클로로에틸렌': 0.02, '음이온계면활성제': 3,
+                '벤젠': 0.01, '디클로로메탄': 0.02, '생태독성': 1, '셀레늄': 0.1,
+                '사염화탄소': 0.004, '1,1-디클로로에틸렌': 0.03, '1,2-디클로로에탄': 0.03,
+                '클로로포름': 0.08, '니켈': 0.1, '바륨': 1.0, '1,4-다이옥산': 0.05,
+                'DEHP': 0.02, '염화비닐': 0.01, '아크릴로니트릴': 0.01, '브로모포름': 0.03,
+                '나프탈렌': 0.05, '폼알데하이드': 0.5, '에피클로로하이드린': 0.03,
+                '톨루엔': 0.7, '자일렌': 0.5, '퍼클로레이트': 0.03, '아크릴아미드': 0.015,
+                '스티렌': 0.02, '비스아디페이트': 0.2, '안티몬': 0.02, '주석': 0.5
+            },
+            '가': {
+                pH: '5.8~8.6', '노말헥산추출물광유류': 5, '노말헥산추출물동식물': 30, '페놀류': 3,
+                '페놀': 1, '펜타클로로페놀': 0.01, '시안': 1, '크롬': 2, '용해성철': 10,
+                '아연': 5, '구리': 3, '카드뮴': 0.1, '수은': 0.005, '유기인': 1, '비소': 0.25,
+                '납': 0.5, '6가크롬': 0.5, '용해성망간': 10, '불소': 15, 'PCB': 0.003,
+                '총대장균': 3000, '색도': 300, '온도': 40, 'T-N': 60, 'T-P': 8,
+                '트리클로로에틸렌': 0.3, '테트라클로로에틸렌': 0.1, '음이온계면활성제': 5,
+                '벤젠': 0.1, '디클로로메탄': 0.2, '생태독성': 2, '셀레늄': 1,
+                '사염화탄소': 0.04, '1,1-디클로로에틸렌': 0.3, '1,2-디클로로에탄': 0.3,
+                '클로로포름': 0.8, '니켈': 3.0, '바륨': 10.0, '1,4-다이옥산': 4.0,
+                'DEHP': 0.2, '염화비닐': 0.5, '아크릴로니트릴': 0.2, '브로모포름': 0.3,
+                '나프탈렌': 0.5, '폼알데하이드': 5.0, '에피클로로하이드린': 0.3,
+                '톨루엔': 7.0, '자일렌': 5.0, '퍼클로레이트': 0.3, '아크릴아미드': 0.04,
+                '스티렌': 0.2, '비스아디페이트': 2, '안티몬': 0.2, '주석': 5
+            },
+            '나': {
+                pH: '5.8~8.6', '노말헥산추출물광유류': 5, '노말헥산추출물동식물': 30, '페놀류': 3,
+                '페놀': 1, '펜타클로로페놀': 0.01, '시안': 1, '크롬': 2, '용해성철': 10,
+                '아연': 5, '구리': 3, '카드뮴': 0.1, '수은': 0.005, '유기인': 1, '비소': 0.25,
+                '납': 0.5, '6가크롬': 0.5, '용해성망간': 10, '불소': 15, 'PCB': 0.003,
+                '총대장균': 3000, '색도': 400, '온도': 40, 'T-N': 60, 'T-P': 8,
+                '트리클로로에틸렌': 0.3, '테트라클로로에틸렌': 0.1, '음이온계면활성제': 5,
+                '벤젠': 0.1, '디클로로메탄': 0.2, '생태독성': 2, '셀레늄': 1,
+                '사염화탄소': 0.04, '1,1-디클로로에틸렌': 0.3, '1,2-디클로로에탄': 0.3,
+                '클로로포름': 0.8, '니켈': 3.0, '바륨': 10.0, '1,4-다이옥산': 4.0,
+                'DEHP': 0.2, '염화비닐': 0.5, '아크릴로니트릴': 0.2, '브로모포름': 0.3,
+                '나프탈렌': 0.5, '폼알데하이드': 5.0, '에피클로로하이드린': 0.3,
+                '톨루엔': 7.0, '자일렌': 5.0, '퍼클로레이트': 0.3, '아크릴아미드': 0.04,
+                '스티렌': 0.2, '비스아디페이트': 2, '안티몬': 0.2, '주석': 5
+            },
+            '특례': {
+                pH: '5.8~8.6', '노말헥산추출물광유류': 5, '노말헥산추출물동식물': 30, '페놀류': 5,
+                '페놀': 1, '펜타클로로페놀': 0.01, '시안': 1, '크롬': 2, '용해성철': 10,
+                '아연': 5, '구리': 3, '카드뮴': 0.1, '수은': 0.005, '유기인': 1, '비소': 0.25,
+                '납': 0.5, '6가크롬': 0.5, '용해성망간': 10, '불소': 15, 'PCB': 0.003,
+                '총대장균': 3000, '색도': 400, '온도': 40, 'T-N': 60, 'T-P': 8,
+                '트리클로로에틸렌': 0.3, '테트라클로로에틸렌': 0.1, '음이온계면활성제': 5,
+                '벤젠': 0.1, '디클로로메탄': 0.2, '생태독성': 2, '셀레늄': 1,
+                '사염화탄소': 0.08, '1,1-디클로로에틸렌': 0.6, '1,2-디클로로에탄': 0.3,
+                '클로로포름': 0.8, '니켈': 3.0, '바륨': 10.0, '1,4-다이옥산': 4.0,
+                'DEHP': 0.8, '염화비닐': 1.0, '아크릴로니트릴': 1.0, '브로모포름': 0.3,
+                '나프탈렌': 0.5, '폼알데하이드': 5.0, '에피클로로하이드린': 0.3,
+                '톨루엔': 7.0, '자일렌': 5.0, '퍼클로레이트': 0.3, '아크릴아미드': 0.04,
+                '스티렌': 0.2, '비스아디페이트': 2, '안티몬': 0.2, '주석': 5
+            }
+        };
+
+        // 페이지 로드 시 항목 렌더링
+        window.addEventListener('load', () => {
+            renderItems();
+            loadSavedData();
+        });
+
+        // 항목 렌더링
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+
+            Object.keys(testItems).forEach(category => {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = category;
+                section.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'items-grid';
+
+                testItems[category].forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.id = `card-${item.id}`;
+
+                    card.innerHTML = `
+                        <div class="item-checkbox">
+                            <input type="checkbox" id="check-${item.id}" onchange="toggleItem('${item.id}')">
+                            <label for="check-${item.id}">${item.name}</label>
+                        </div>
+                        <div class="item-input">
+                            <span>기준:</span>
+                            <input type="text" id="value-${item.id}" placeholder="기준값" onchange="updateSummary()">
+                            <span>${item.unit}</span>
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
+                });
+
+                section.appendChild(grid);
+                container.appendChild(section);
+            });
+        }
+
+        // 항목 선택/해제
+        function toggleItem(itemId) {
+            const card = document.getElementById(`card-${itemId}`);
+            const checkbox = document.getElementById(`check-${itemId}`);
+            
+            if (checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+            
+            updateSummary();
+        }
+
+        // 업종에 따라 기준값 업데이트
+        function updateStandardsByIndustry() {
+            const industry = document.getElementById('industryType').value;
+            
+            if (!industry) return;
+
+            const standards = industryStandards[industry];
+            
+            if (standards) {
+                Object.keys(standards).forEach(itemId => {
+                    const valueInput = document.getElementById(`value-${itemId}`);
+                    if (valueInput) {
+                        valueInput.value = standards[itemId];
+                        
+                        // 기본 항목 자동 체크
+                        const checkbox = document.getElementById(`check-${itemId}`);
+                        if (checkbox && !checkbox.checked) {
+                            checkbox.checked = true;
+                            toggleItem(itemId);
+                        }
+                    }
+                });
+            }
+            
+            updateSummary();
+        }
+
+        // 지역에 따라 기준값 업데이트
+        function updateStandardsByRegion() {
+            const region = document.querySelector('input[name="region"]:checked').value;
+            const standards = regionStandards[region];
+            
+            if (standards) {
+                Object.keys(standards).forEach(itemId => {
+                    const valueInput = document.getElementById(`value-${itemId}`);
+                    if (valueInput && !valueInput.value) {
+                        valueInput.value = standards[itemId];
+                    }
+                });
+            }
+            
+            updateSummary();
+        }
+
+        // 요약 업데이트
+        function updateSummary() {
+            const allItems = Object.values(testItems).flat();
+            const selectedItems = allItems.filter(item => 
+                document.getElementById(`check-${item.id}`)?.checked
+            );
+
+            document.getElementById('selectedCount').textContent = selectedItems.length;
+
+            const summaryContent = document.getElementById('summaryContent');
+            summaryContent.innerHTML = '';
+
+            if (selectedItems.length === 0) {
+                summaryContent.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">선택된 항목이 없습니다.</p>';
+                return;
+            }
+
+            selectedItems.forEach(item => {
+                const value = document.getElementById(`value-${item.id}`).value;
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                div.innerHTML = `
+                    <span><strong>${item.name}</strong></span>
+                    <span>${value ? value + ' ' + item.unit : '기준값 미입력'}</span>
+                `;
+                summaryContent.appendChild(div);
+            });
+        }
+
+        // 견적서 생성
+        function generateQuote() {
+            if (!validateForm()) return;
+
+            const data = collectFormData();
+            
+            // 견적서 생성 로직
+            alert('견적서가 생성되었습니다!\n\n실제로는 PDF가 생성됩니다.');
+            console.log('견적서 데이터:', data);
+        }
+
+        // 의뢰서 생성
+        function generateRequest() {
+            if (!validateForm()) return;
+
+            const data = collectFormData();
+            
+            // 의뢰서 생성 로직
+            alert('의뢰서가 생성되었습니다!\n\n실제로는 PDF가 생성됩니다.');
+            console.log('의뢰서 데이터:', data);
+        }
+
+        // 임시저장
+        function saveData() {
+            const data = collectFormData();
+            localStorage.setItem('dasol_water_monitoring_draft', JSON.stringify(data));
+            alert('✅ 임시 저장되었습니다!');
+        }
+
+        // 저장된 데이터 불러오기
+        function loadSavedData() {
+            const saved = localStorage.getItem('dasol_water_monitoring_draft');
+            if (saved) {
+                const data = JSON.parse(saved);
+                
+                // 기본 정보 복원
+                document.getElementById('facilityName').value = data.facilityName || '';
+                document.getElementById('companyName').value = data.companyName || '';
+                document.getElementById('contactName').value = data.contactName || '';
+                document.getElementById('contactPhone').value = data.contactPhone || '';
+                document.getElementById('address').value = data.address || '';
+                document.getElementById('industryType').value = data.industryType || '';
+                
+                // 지역 복원
+                if (data.region) {
+                    document.querySelector(`input[name="region"][value="${data.region}"]`).checked = true;
+                }
+                
+                // 선택된 항목 복원
+                if (data.selectedItems) {
+                    data.selectedItems.forEach(item => {
+                        const checkbox = document.getElementById(`check-${item.id}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            toggleItem(item.id);
+                            document.getElementById(`value-${item.id}`).value = item.standard;
+                        }
+                    });
+                }
+                
+                updateSummary();
+            }
+        }
+
+        // 폼 데이터 수집
+        function collectFormData() {
+            const allItems = Object.values(testItems).flat();
+            const selectedItems = allItems.filter(item => 
+                document.getElementById(`check-${item.id}`)?.checked
+            ).map(item => ({
+                id: item.id,
+                name: item.name,
+                unit: item.unit,
+                standard: document.getElementById(`value-${item.id}`).value
+            }));
+
+            return {
+                facilityName: document.getElementById('facilityName').value,
+                companyName: document.getElementById('companyName').value,
+                contactName: document.getElementById('contactName').value,
+                contactPhone: document.getElementById('contactPhone').value,
+                address: document.getElementById('address').value,
+                industryType: document.getElementById('industryType').value,
+                region: document.querySelector('input[name="region"]:checked')?.value,
+                selectedItems: selectedItems,
+                createdAt: new Date().toISOString()
+            };
+        }
+
+        // 폼 검증
+        function validateForm() {
+            const facilityName = document.getElementById('facilityName').value;
+            const companyName = document.getElementById('companyName').value;
+            const contactName = document.getElementById('contactName').value;
+            const contactPhone = document.getElementById('contactPhone').value;
+
+            if (!facilityName || !companyName || !contactName || !contactPhone) {
+                alert('⚠️ 필수 정보를 모두 입력해주세요!');
+                return false;
+            }
+
+            const allItems = Object.values(testItems).flat();
+            const selectedCount = allItems.filter(item => 
+                document.getElementById(`check-${item.id}`)?.checked
+            ).length;
+
+            if (selectedCount === 0) {
+                alert('⚠️ 검사 항목을 하나 이상 선택해주세요!');
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>
