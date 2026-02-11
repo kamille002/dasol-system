@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다솔물환경연구소 - 대시보드</title>
+    
+    <!-- PWA 메타태그 -->
+    <meta name="description" content="수질검사 전문 연구소 통합 업무관리 시스템">
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="다솔시스템">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- 아이콘 -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            color: #1f2937;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .header-date {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-left: 15px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        #installAppButton {
+            display: none;
+            padding: 8px 16px;
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #installAppButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+        }
+
+        /* 컨테이너 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 탭 네비게이션 */
+        .tab-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-btn:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 탭 컨텐츠 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 카드 스타일 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+
+        /* 그리드 레이아웃 */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* 알림 박스 */
+        .alert-box {
+            padding: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+        }
+
+        /* 통계 카드 */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* 공지사항 리스트 */
+        .notice-item {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .notice-item:hover {
+            background: #f9fafb;
+        }
+
+        .notice-item:last-child {
+            border-bottom: none;
+        }
+
+        .notice-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .notice-date {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* 할 일 목록 */
+        .todo-item {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-urgent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-normal {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tab-nav {
+                padding: 4px;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="header-left">
+            <h1>🏢 다솔물환경연구소</h1>
+            <span class="header-date" id="currentDate"></span>
+        </div>
+        <div class="header-right">
+            <button id="installAppButton">📱 앱 설치</button>
+            <span class="user-name">로딩중...</span>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+    </div>
+
+    <!-- 컨테이너 -->
+    <div class="container">
+        <!-- 탭 네비게이션 -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('home')">🏠 홈</button>
+            <button class="tab-btn" onclick="switchTab('board')">📢 게시판</button>
+            <button class="tab-btn" onclick="switchTab('work')">💼 내 업무</button>
+            <button class="tab-btn" onclick="switchTab('stats')">📊 통계</button>
+        </div>
+
+        <!-- 홈 탭 -->
+        <div id="home-tab" class="tab-content active">
+            <!-- 긴급 알림 -->
+            <div class="card">
+                <h2>⚠️ 긴급 알림</h2>
+                <div class="alert-box alert-warning">
+                    <span style="font-size: 24px;">⚠️</span>
+                    <div>
+                        <div style="font-weight: 600;">미배정 의뢰 1건</div>
+                        <div style="font-size: 13px; color: #6b7280;">담당자 배정이 필요합니다</div>
+                    </div>
+                </div>
+                <div class="alert-box alert-info">
+                    <span style="font-size: 24px;">💰</span>
+                    <div>
+                        <div style="font-weight: 600;">미수금 독촉 3건</div>
+                        <div style="font-size: 13px; color: #6b7280;">30일 경과 건이 있습니다</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오늘의 통계 -->
+            <div class="card">
+                <h2>📊 오늘의 현황</h2>
+                <div class="grid-4">
+                    <div class="stat-card">
+                        <div class="stat-label">신규 의뢰</div>
+                        <div class="stat-number">5</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">분석 완료</div>
+                        <div class="stat-number">12</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">성적서 발급</div>
+                        <div class="stat-number">8</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">결제 대기</div>
+                        <div class="stat-number">2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 내 할 일 -->
+            <div class="card">
+                <h2>✅ 내 할 일 (3건)</h2>
+                <div class="todo-item">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">홍길동 아파트 현장 채수</div>
+                        <div style="font-size: 13px; color: #6b7280;">오늘 14:00 마감</div>
+                    </div>
+                    <span class="todo-badge badge-urgent">긴급</span>
+                </div>
+                <div class="todo-item">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">견적서 작성 - 동작구청</div>
+                        <div style="font-size: 13px; color: #6b7280;">내일까지</div>
+                    </div>
+                    <span class="todo-badge badge-normal">일반</span>
+                </div>
+                <div class="todo-item">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">차량 정기점검 예약</div>
+                        <div style="font-size: 13px; color: #6b7280;">이번 주</div>
+                    </div>
+                    <span class="todo-badge badge-normal">일반</span>
+                </div>
+            </div>
+
+            <!-- 빠른 링크 -->
+            <div class="card">
+                <h2>⚡ 빠른 링크</h2>
+                <div class="grid-4">
+                    <button class="btn btn-primary" onclick="window.location.href='pages/request-register.html'">
+                        + 의뢰 접수
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.href='pages/field-request.html'">
+                        📝 현장의뢰서
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='pages/request-list-admin.html'">
+                        📋 접수현황
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='pages/board.html'">
+                        📢 게시판
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 게시판 탭 -->
+        <div id="board-tab" class="tab-content">
+            <!-- 회사 공지사항 -->
+            <div class="card">
+                <h2>📢 회사 공지사항</h2>
+                <div id="companyNotices">
+                    <div class="notice-item" onclick="alert('공지사항 상세보기')">
+                        <div class="notice-title">2026년 설 연휴 안내</div>
+                        <div class="notice-date">2026-01-28 18:00</div>
+                    </div>
+                    <div class="notice-item" onclick="alert('공지사항 상세보기')">
+                        <div class="notice-title">수질환경기사 보수교육 일정</div>
+                        <div class="notice-date">2026-02-01 18:00</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="window.location.href='pages/board.html'">
+                    전체 보기
+                </button>
+            </div>
+
+            <!-- 직원 게시판 -->
+            <div class="card">
+                <h2>💬 직원 게시판</h2>
+                <div id="boardPosts">
+                    <div class="notice-item" onclick="alert('게시글 상세보기')">
+                        <div class="notice-title">테스트 게시글입니다</div>
+                        <div class="notice-date">2026-02-08 15:19</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="window.location.href='pages/board.html'">
+                    전체 보기
+                </button>
+            </div>
+
+            <!-- 관보 업데이트 -->
+            <div class="card">
+                <h2>📰 관보 업데이트</h2>
+                <div id="govNotices">
+                    <div class="notice-item" onclick="alert('관보 상세보기')">
+                        <div class="notice-title">수질환경기사 시험과목 및 기준에 관한 규정 일부개정</div>
+                        <div class="notice-date">2026-02-01 18:00</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" style="margin-top: 15px;" onclick="alert('새로고침')">
+                    🔄 새로고침
+                </button>
+            </div>
+        </div>
+
+        <!-- 내 업무 탭 -->
+        <div id="work-tab" class="tab-content">
+            <div class="grid-3">
+                <!-- 총무행정 -->
+                <div class="card">
+                    <h2>💼 총무행정</h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn btn-primary" onclick="window.location.href='pages/request-register.html'">+ 의뢰 접수</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/request-list-admin.html'">📋 접수현황</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/quote-management.html'">📄 견적서</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/invoice-management.html'">💰 청구서</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/vehicle-management.html'">🚗 차량관리</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/hr-certificates.html'">📜 자격증</button>
+                    </div>
+                </div>
+
+                <!-- 영업팀 -->
+                <div class="card">
+                    <h2>📊 영업팀</h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn btn-primary" onclick="window.location.href='pages/field-request.html'">📝 현장의뢰서</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/work-log-daily.html'">📋 업무일지</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/sales-crm.html'">👥 고객관리</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/sales-activity.html'">📊 영업활동</button>
+                    </div>
+                </div>
+
+                <!-- 분석팀 -->
+                <div class="card">
+                    <h2>🔬 분석팀</h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn btn-primary" onclick="alert('시료 접수 (개발 예정)')">🧪 시료 접수</button>
+                        <button class="btn btn-secondary" onclick="alert('분석 현황 (개발 예정)')">📊 분석 현황</button>
+                        <button class="btn btn-secondary" onclick="alert('성적서 (개발 예정)')">📋 성적서</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='pages/equipment-management.html'">⚙️ 장비관리</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 통계 탭 -->
+        <div id="stats-tab" class="tab-content">
+            <div class="card">
+                <h2>📊 월간 실적</h2>
+                <div class="grid-4">
+                    <div class="stat-card">
+                        <div class="stat-label">총 의뢰</div>
+                        <div class="stat-number">156</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">완료</div>
+                        <div class="stat-number">142</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">매출</div>
+                        <div class="stat-number" style="font-size: 20px;">4,500만원</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">달성률</div>
+                        <div class="stat-number">90%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 부서별 현황</h2>
+                <div class="alert-box alert-info">
+                    <span style="font-size: 24px;">ℹ️</span>
+                    <div>
+                        <div style="font-weight: 600;">통계 기능 개발 중</div>
+                        <div style="font-size: 13px; color: #6b7280;">자세한 통계는 추후 업데이트 예정입니다</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 날짜 표시
+        function updateDate() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDate').textContent = 
+                now.toLocaleString('ko-KR', options);
+        }
+        updateDate();
+        setInterval(updateDate, 60000);
+
+        // 사용자 정보 표시
+        function loadUserInfo() {
+            const currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || '{}');
+            if (currentUser.name) {
+                document.querySelector('.user-name').textContent = currentUser.name + '님';
+            }
+        }
+        loadUserInfo();
+
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 모든 탭 컨텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // 로그아웃
+        function logout() {
+            if (confirm('로그아웃하시겠습니까?')) {
+                localStorage.removeItem('dasol_current_user');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // PWA Service Worker 등록
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('✓ Service Worker 등록 성공');
+                    })
+                    .catch((error) => {
+                        console.error('✗ Service Worker 등록 실패:', error);
+                    });
+            });
+        }
+
+        // PWA 설치 프롬프트
+        let deferredPrompt;
+        const installButton = document.getElementById('installAppButton');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            if (installButton) {
+                installButton.style.display = 'block';
+            }
+        });
+
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    // deferredPrompt가 없으면 수동 설치 안내
+                    alert('📱 앱 설치 방법\n\n' +
+                          '■ Android (Chrome):\n' +
+                          '1. 브라우저 메뉴(⋮) 열기\n' +
+                          '2. "홈 화면에 추가" 선택\n\n' +
+                          '■ iPhone (Safari):\n' +
+                          '1. 공유 버튼(□↑) 클릭\n' +
+                          '2. "홈 화면에 추가" 선택\n\n' +
+                          '■ PC (Chrome/Edge):\n' +
+                          '1. 주소창 옆 설치 아이콘(⊕) 클릭\n' +
+                          '2. "설치" 버튼 클릭');
+                    return;
+                }
+                
+                try {
+                    // 로딩 표시
+                    const originalText = installButton.textContent;
+                    installButton.textContent = '⏳ 설치 중...';
+                    installButton.disabled = true;
+                    
+                    // 설치 프롬프트 표시
+                    await deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    
+                    if (outcome === 'accepted') {
+                        console.log('✓ PWA 설치 승인');
+                        installButton.textContent = '✓ 설치 완료';
+                        setTimeout(() => {
+                            installButton.style.display = 'none';
+                        }, 2000);
+                    } else {
+                        console.log('✗ PWA 설치 거부');
+                        installButton.textContent = originalText;
+                        installButton.disabled = false;
+                    }
+                    
+                    deferredPrompt = null;
+                } catch (error) {
+                    console.error('설치 오류:', error);
+                    installButton.textContent = '📱 앱 설치';
+                    installButton.disabled = false;
+                    alert('설치 중 오류가 발생했습니다.\n브라우저 메뉴에서 직접 설치해주세요.');
+                }
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✓ PWA 설치 완료');
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
