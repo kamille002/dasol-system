@@ -1,5 +1,5 @@
 // 다솔물환경연구소 통합시스템 Service Worker
-const CACHE_NAME = 'dasol-system-v1.7.0'; // 2026-02-12: 재무/근태 관리 시스템 추가!
+const CACHE_NAME = 'dasol-system-v1.8.0'; // 2026-02-13: 게시판 확장 + 자동 업데이트 알림!
 const RUNTIME_CACHE = 'dasol-runtime';
 
 // 오프라인에서도 반드시 동작해야 하는 핵심 파일들
@@ -19,6 +19,7 @@ const CORE_ASSETS = [
 // Service Worker 설치
 self.addEventListener('install', (event) => {
   console.log('[Service Worker] 설치 중...');
+  console.log('[Service Worker] 새 버전:', CACHE_NAME);
   
   event.waitUntil(
     caches.open(CACHE_NAME)

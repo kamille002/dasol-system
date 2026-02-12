@@ -478,9 +478,14 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn btn-secondary" style="margin-top: 12px; width: 100%;" onclick="refreshNaramarket()">
-                        🔄 새로고침
-                    </button>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="window.location.href='pages/board.html?tab=naramarket'">
+                            더보기
+                        </button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="refreshNaramarket()">
+                            🔄 새로고침
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 관보 업데이트 -->
@@ -500,9 +505,14 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn btn-secondary" style="margin-top: 12px; width: 100%;" onclick="alert('새로고침')">
-                        🔄 새로고침
-                    </button>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="window.location.href='pages/board.html?tab=gwanbo'">
+                            더보기
+                        </button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="alert('새로고침')">
+                            🔄 새로고침
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -688,18 +698,86 @@
         setInterval(updateDate, 60000);
 
         // 사용자 정보 표시
+        let currentUser = null;
+
+        function checkSession() {
+            console.log('=== 세션 체크 시작 ===');
+            const session = localStorage.getItem('dasol_session');
+            
+            if (!session) {
+                console.error('세션이 없습니다.');
+                alert('로그인이 필요합니다.');
+                window.location.href = 'index.html';
+                return false;
+            }
+
+            try {
+                currentUser = JSON.parse(session);
+                console.log('파싱된 currentUser:', currentUser);
+            } catch (error) {
+                console.error('세션 파싱 에러:', error);
+                alert('세션 데이터가 손상되었습니다. 다시 로그인해주세요.');
+                localStorage.removeItem('dasol_session');
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            // 세션 유효성 검사 (24시간)
+            if (currentUser.loginAt) {
+                const sessionTime = new Date(currentUser.loginAt).getTime();
+                const now = new Date().getTime();
+                const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
+
+                if (hoursDiff > 24) {
+                    console.log('세션 만료됨 (시간 초과)');
+                    alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                    localStorage.removeItem('dasol_session');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+            }
+
+            // 사용자 정보 표시
+            loadUserInfo();
+            console.log('=== 세션 체크 완료 ===');
+            
+            return true;
+        }
+
         function loadUserInfo() {
-            const currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || '{}');
-            if (currentUser.name) {
-                document.querySelector('.user-name').textContent = currentUser.name + '님';
-                
-                // 관리자인 경우 시스템 관리 버튼 표시
-                if (currentUser.isAdmin) {
-                    document.getElementById('adminButton').style.display = 'block';
+            console.log('loadUserInfo 실행 - currentUser:', currentUser);
+            
+            // currentUser 유효성 검사
+            if (!currentUser) {
+                console.error('currentUser가 없습니다!');
+                document.querySelector('.user-name').textContent = '사용자 정보 없음';
+                return;
+            }
+
+            const displayName = currentUser.name || currentUser.email || '사용자';
+            const displayPosition = currentUser.position || '';
+            
+            console.log('표시할 이름:', displayName, displayPosition);
+            
+            // 사용자 이름 표시
+            const userNameEl = document.querySelector('.user-name');
+            if (userNameEl) {
+                userNameEl.textContent = displayPosition ? `${displayName} ${displayPosition}` : `${displayName}님`;
+            }
+            
+            // 관리자인 경우 시스템 관리 버튼 표시
+            if (currentUser.isAdmin || currentUser.isSuperAdmin) {
+                const adminBtn = document.getElementById('adminButton');
+                if (adminBtn) {
+                    adminBtn.style.display = 'block';
                 }
             }
         }
-        loadUserInfo();
+        
+        // 페이지 로드 시 세션 체크
+        if (!checkSession()) {
+            // 세션 체크 실패 시 여기서 멈춤
+        }
 
         // 탭 전환
         function switchTab(tabName) {
@@ -721,7 +799,14 @@
         // 로그아웃
         function logout() {
             if (confirm('로그아웃하시겠습니까?')) {
-                localStorage.removeItem('dasol_current_user');
+                localStorage.removeItem('dasol_session');
+                
+                // 자동 로그인 해제
+                const rememberMe = localStorage.getItem('dasol_remember_me');
+                if (rememberMe !== 'true') {
+                    localStorage.removeItem('dasol_saved_email');
+                }
+                
                 window.location.href = 'index.html';
             }
         }

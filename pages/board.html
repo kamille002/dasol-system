@@ -299,24 +299,116 @@
             font-size: 14px;
             color: #6b7280;
         }
+
+        /* 탭 메뉴 스타일 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .external-link-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .external-link-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .link-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-bid { background: #3b82f6; color: white; }
+        .badge-gwanbo { background: #10b981; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- 헤더 -->
         <div class="header">
-            <h1>💬 직원 게시판</h1>
+            <h1>📋 게시판</h1>
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
             <button class="btn btn-secondary" onclick="window.location.href=\'../dashboard-tabs.html\'">🏠 대시보드</button>
-                <button class="btn btn-primary" onclick="openWriteModal()">+ 글쓰기</button>
+                <button class="btn btn-primary" onclick="openWriteModal()" id="writeBtn">+ 글쓰기</button>
             </div>
         </div>
 
-        <!-- 게시글 목록 -->
-        <div class="board-container">
-            <div class="board-list" id="boardList">
-                <!-- JavaScript로 동적 생성 -->
+        <!-- 탭 메뉴 -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('board')">💬 직원 게시판</button>
+            <button class="tab-btn" onclick="switchTab('naramarket')">🏛️ 나라장터 입찰정보</button>
+            <button class="tab-btn" onclick="switchTab('gwanbo')">📰 관보 업데이트</button>
+        </div>
+
+        <!-- 직원 게시판 탭 -->
+        <div id="board-tab" class="tab-content active">
+            <div class="board-container">
+                <div class="board-list" id="boardList">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 나라장터 입찰정보 탭 -->
+        <div id="naramarket-tab" class="tab-content">
+            <div class="board-container">
+                <div id="naramarketList">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 관보 업데이트 탭 -->
+        <div id="gwanbo-tab" class="tab-content">
+            <div class="board-container">
+                <div id="gwanboList">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
             </div>
         </div>
     </div>
@@ -613,6 +705,171 @@ ${post.content}
 
         // 초기 렌더링
         renderPosts();
+
+        // 탭 전환 함수
+        function switchTab(tab) {
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // 모든 탭 콘텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 선택한 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            // 글쓰기 버튼은 직원 게시판에서만 표시
+            const writeBtn = document.getElementById('writeBtn');
+            if (tab === 'board') {
+                writeBtn.style.display = 'block';
+            } else {
+                writeBtn.style.display = 'none';
+            }
+            
+            // 각 탭별 데이터 렌더링
+            if (tab === 'naramarket') {
+                renderNaramarket();
+            } else if (tab === 'gwanbo') {
+                renderGwanbo();
+            }
+        }
+
+        // 나라장터 입찰정보 렌더링
+        function renderNaramarket() {
+            const list = document.getElementById('naramarketList');
+            
+            // 샘플 데이터 (실제로는 API나 localStorage에서 가져옴)
+            const bids = [
+                {
+                    title: '2026년 하남시 먹는물 수질검사 용역',
+                    category: '먹는물',
+                    agency: '하남시청',
+                    deadline: '2026-02-20',
+                    url: 'https://www.g2b.go.kr'
+                },
+                {
+                    title: '수질오염물질 자가측정 대행 용역',
+                    category: '자가측정',
+                    agency: '경기도청',
+                    deadline: '2026-02-18',
+                    url: 'https://www.g2b.go.kr'
+                },
+                {
+                    title: '공공시설 수질검사 용역 (분기별)',
+                    category: '수질검사',
+                    agency: '광주시청',
+                    deadline: '2026-02-15',
+                    url: 'https://www.g2b.go.kr'
+                },
+                {
+                    title: '2026년 정수장 수질검사 용역',
+                    category: '먹는물',
+                    agency: '서울시청',
+                    deadline: '2026-02-25',
+                    url: 'https://www.g2b.go.kr'
+                },
+                {
+                    title: '폐수배출시설 자가측정 대행',
+                    category: '자가측정',
+                    agency: '인천시청',
+                    deadline: '2026-02-22',
+                    url: 'https://www.g2b.go.kr'
+                }
+            ];
+            
+            list.innerHTML = bids.map(bid => `
+                <div class="external-link-item" onclick="window.open('${bid.url}', '_blank')">
+                    <div>
+                        <div style="margin-bottom: 8px;">
+                            <span class="link-badge badge-bid">${bid.category}</span>
+                            <span style="font-weight: 600; font-size: 15px;">${bid.title}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #6b7280;">
+                            <span>📍 ${bid.agency}</span>
+                            <span style="margin-left: 15px;">⏰ 마감: ${bid.deadline}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 관보 업데이트 렌더링
+        function renderGwanbo() {
+            const list = document.getElementById('gwanboList');
+            
+            // 샘플 데이터
+            const notices = [
+                {
+                    title: '수질환경보전법 시행규칙 일부개정',
+                    date: '2026-02-01 18:00',
+                    category: '법령',
+                    url: 'https://www.gwanbo.go.kr'
+                },
+                {
+                    title: '측정분석기관 정도관리 개정안',
+                    date: '2026-01-28 18:00',
+                    category: '고시',
+                    url: 'https://www.gwanbo.go.kr'
+                },
+                {
+                    title: '수질환경기사 시험과목 및 기준에 관한 규정 일부개정',
+                    date: '2026-02-01 18:00',
+                    category: '고시',
+                    url: 'https://www.gwanbo.go.kr'
+                },
+                {
+                    title: '먹는물 수질기준 및 검사 등에 관한 규칙 개정',
+                    date: '2026-01-25 18:00',
+                    category: '법령',
+                    url: 'https://www.gwanbo.go.kr'
+                },
+                {
+                    title: '환경측정분석기관 지정 및 운영에 관한 규칙 개정',
+                    date: '2026-01-20 18:00',
+                    category: '법령',
+                    url: 'https://www.gwanbo.go.kr'
+                }
+            ];
+            
+            list.innerHTML = notices.map(notice => `
+                <div class="external-link-item" onclick="window.open('${notice.url}', '_blank')">
+                    <div>
+                        <div style="margin-bottom: 8px;">
+                            <span class="link-badge badge-gwanbo">${notice.category}</span>
+                            <span style="font-weight: 600; font-size: 15px;">${notice.title}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #6b7280;">
+                            📅 ${notice.date}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // URL 파라미터로 탭 자동 선택
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            
+            if (tab === 'naramarket' || tab === 'gwanbo') {
+                // 해당 탭으로 전환
+                document.querySelector('.tab-btn.active').classList.remove('active');
+                document.querySelector('.tab-content.active').classList.remove('active');
+                
+                const tabIndex = tab === 'naramarket' ? 1 : 2;
+                document.querySelectorAll('.tab-btn')[tabIndex].classList.add('active');
+                document.getElementById(tab + '-tab').classList.add('active');
+                
+                // 글쓰기 버튼 숨기기
+                document.getElementById('writeBtn').style.display = 'none';
+                
+                // 데이터 렌더링
+                if (tab === 'naramarket') {
+                    renderNaramarket();
+                } else {
+                    renderGwanbo();
+                }
+            }
+        });
     </script>
 </body>
 </html>

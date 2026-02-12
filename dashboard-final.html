@@ -2041,39 +2041,71 @@
         let currentUser = null;
 
         function checkSession() {
+            console.log('=== 세션 체크 시작 ===');
             const session = localStorage.getItem('dasol_session');
             
             if (!session) {
+                console.error('세션이 없습니다.');
                 alert('로그인이 필요합니다.');
                 window.location.href = 'index.html';
                 return false;
             }
 
-            currentUser = JSON.parse(session);
-            
-            // 세션 유효성 검사 (24시간)
-            const sessionTime = new Date(currentUser.loginAt).getTime();
-            const now = new Date().getTime();
-            const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
-
-            if (hoursDiff > 24) {
-                alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+            try {
+                currentUser = JSON.parse(session);
+                console.log('파싱된 currentUser:', currentUser);
+            } catch (error) {
+                console.error('세션 파싱 에러:', error);
+                alert('세션 데이터가 손상되었습니다. 다시 로그인해주세요.');
                 localStorage.removeItem('dasol_session');
                 window.location.href = 'index.html';
                 return false;
             }
+            
+            // 세션 유효성 검사 (24시간)
+            if (currentUser.loginAt) {
+                const sessionTime = new Date(currentUser.loginAt).getTime();
+                const now = new Date().getTime();
+                const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
+
+                if (hoursDiff > 24) {
+                    console.log('세션 만료됨 (시간 초과)');
+                    alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                    localStorage.removeItem('dasol_session');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+            }
 
             // 사용자 정보 표시
             loadUserInfo();
+            console.log('=== 세션 체크 완료 ===');
             
             return true;
         }
 
         function loadUserInfo() {
+            console.log('loadUserInfo 실행 - currentUser:', currentUser);
+            
+            // currentUser 유효성 검사
+            if (!currentUser) {
+                console.error('currentUser가 없습니다!');
+                const userNameElements = document.querySelectorAll('.user-name');
+                userNameElements.forEach(el => {
+                    el.textContent = '사용자 정보 없음';
+                });
+                return;
+            }
+
             // 헤더에 사용자 이름 표시
             const userNameElements = document.querySelectorAll('.user-name');
+            const displayName = currentUser.name || currentUser.email || '사용자';
+            const displayPosition = currentUser.position || '';
+            
+            console.log('표시할 이름:', displayName, displayPosition);
+            
             userNameElements.forEach(el => {
-                el.textContent = `${currentUser.name} ${currentUser.position}`;
+                el.textContent = displayPosition ? `${displayName} ${displayPosition}` : displayName;
             });
 
             // Kamille님이거나 관리자면 관리 메뉴 표시

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 권한 부여 - 다솔물환경연구소</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .user-list {
+            margin-top: 20px;
+        }
+
+        .user-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .user-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .user-team {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .status-admin {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-active {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            color: #5568d3;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 관리자 권한 부여</h1>
+            <p>클릭 한 번으로 사용자에게 관리자 권한을 부여합니다</p>
+        </div>
+
+        <div class="content">
+            <div class="alert alert-info">
+                💡 <strong>안내:</strong> 관리자 권한을 부여하면 즉시 시스템 관리, 사용자 승인, 모든 데이터 접근이 가능해집니다.
+            </div>
+
+            <div id="message"></div>
+
+            <div id="userList" class="user-list"></div>
+
+            <a href="https://dasol-system.vercel.app/index.html" class="back-link">← 로그인 페이지로 돌아가기</a>
+        </div>
+    </div>
+
+    <script>
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const userList = document.getElementById('userList');
+
+            if (users.length === 0) {
+                userList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👤</div>
+                        <p>등록된 사용자가 없습니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            userList.innerHTML = users.map(user => {
+                const isAdmin = user.isAdmin || user.isSuperAdmin;
+                const statusText = isAdmin ? '관리자' : (user.status === 'pending' ? '승인 대기' : '일반 사용자');
+                const statusClass = isAdmin ? 'status-admin' : (user.status === 'pending' ? 'status-pending' : 'status-active');
+
+                return `
+                    <div class="user-item">
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-email">${user.email}</div>
+                            <div class="user-team">📍 ${user.team}</div>
+                            <span class="user-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div>
+                            ${isAdmin ? 
+                                `<button class="btn btn-primary" disabled>✅ 관리자</button>` :
+                                `<button class="btn btn-success" onclick="makeAdmin('${user.id}')">
+                                    🔐 관리자 권한 부여
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function makeAdmin(userId) {
+            if (!confirm('이 사용자에게 관리자 권한을 부여하시겠습니까?\n\n관리자는 모든 시스템에 접근할 수 있습니다.')) {
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('dasol_users') || '[]');
+            const user = users.find(u => u.id === userId);
+
+            if (!user) {
+                showMessage('사용자를 찾을 수 없습니다.', 'warning');
+                return;
+            }
+
+            // 관리자 권한 부여
+            user.isAdmin = true;
+            user.isSuperAdmin = true;
+            user.status = 'active'; // 자동 승인
+            user.approvedBy = 'ADMIN_GRANT';
+            user.approvedAt = new Date().toISOString();
+
+            // 저장
+            localStorage.setItem('dasol_users', JSON.stringify(users));
+
+            // 현재 로그인 중인 사용자라면 세션도 업데이트
+            const currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || 'null');
+            if (currentUser && currentUser.id === userId) {
+                currentUser.isAdmin = true;
+                currentUser.isSuperAdmin = true;
+                currentUser.status = 'active';
+                localStorage.setItem('dasol_current_user', JSON.stringify(currentUser));
+            }
+
+            showMessage(`✅ ${user.name}님에게 관리자 권한이 부여되었습니다!`, 'success');
+            loadUsers();
+        }
+
+        function showMessage(text, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+            
+            // 3초 후 자동 제거
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // 페이지 로드 시 사용자 목록 표시
+        window.addEventListener('load', () => {
+            loadUsers();
+        });
+    </script>
+</body>
+</html>
