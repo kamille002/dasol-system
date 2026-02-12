@@ -935,8 +935,10 @@
                     if (outcome === 'accepted') {
                         console.log('✓ PWA 설치 승인');
                         installButton.textContent = '✓ 설치 완료';
+                        installButton.disabled = false;
+                        // 버튼 유지 (숨기지 않음)
                         setTimeout(() => {
-                            installButton.style.display = 'none';
+                            installButton.textContent = '📱 앱 설치';
                         }, 2000);
                     } else {
                         console.log('✗ PWA 설치 거부');
@@ -956,8 +958,12 @@
 
         window.addEventListener('appinstalled', () => {
             console.log('✓ PWA 설치 완료');
+            // 버튼 유지 (숨기지 않음)
             if (installButton) {
-                installButton.style.display = 'none';
+                installButton.textContent = '✓ 설치 완료';
+                setTimeout(() => {
+                    installButton.textContent = '📱 앱 설치';
+                }, 2000);
             }
         });
     </script>
