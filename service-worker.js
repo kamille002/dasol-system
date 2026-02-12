@@ -1,5 +1,5 @@
 // 다솔물환경연구소 통합시스템 Service Worker
-const CACHE_NAME = 'dasol-system-v1.3.0'; // 최종 버전!
+const CACHE_NAME = 'dasol-system-v1.6.0'; // 2026-02-12: 전체 네비게이션 통일 완료!
 const RUNTIME_CACHE = 'dasol-runtime';
 
 // 오프라인에서도 반드시 동작해야 하는 핵심 파일들

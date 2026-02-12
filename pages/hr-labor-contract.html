@@ -214,17 +214,38 @@
     <div class="container">
         <div class="header">
             <h1>📄 근로계약서 작성</h1>
-            <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">← 대시보드</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
+                <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">🏠 대시보드</button>
+            </div>
         </div>
 
-        <!-- 직원 선택 -->
+        <!-- 직원 정보 -->
         <div class="card">
-            <h2>👤 직원 선택</h2>
+            <h2>👤 직원 정보</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>성명 *</label>
+                    <input type="text" id="employeeName" placeholder="홍길동" required>
+                </div>
+                <div class="form-group">
+                    <label>주민등록번호 *</label>
+                    <input type="text" id="employeeRRN" placeholder="123456-1234567" required>
+                </div>
+            </div>
             <div class="form-group">
-                <label>인사카드에서 선택 *</label>
-                <select id="employeeSelect" onchange="loadEmployeeData()">
-                    <option value="">-- 직원을 선택하세요 --</option>
-                </select>
+                <label>주소 *</label>
+                <input type="text" id="employeeAddress" placeholder="서울특별시 강남구..." required>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>연락처 *</label>
+                    <input type="tel" id="employeePhone" placeholder="010-1234-5678" required>
+                </div>
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="employeeEmail" placeholder="hong@example.com">
+                </div>
             </div>
         </div>
 
@@ -377,14 +398,8 @@
     </div>
 
     <script>
-        let employees = [];
-        let selectedEmployee = null;
-
         // 페이지 로드 시
         window.addEventListener('load', () => {
-            loadEmployees();
-            loadEmployeeOptions();
-            
             // 오늘 날짜로 계약일 설정
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('startDate').value = today;
@@ -393,63 +408,30 @@
             const now = new Date();
             document.getElementById('preview_date').textContent = 
                 `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
-        });
-
-        // 직원 데이터 로드
-        function loadEmployees() {
-            const saved = localStorage.getItem('dasol_employees');
-            if (saved) {
-                employees = JSON.parse(saved);
-            }
-        }
-
-        // 직원 옵션 로드
-        function loadEmployeeOptions() {
-            const select = document.getElementById('employeeSelect');
             
-            // 재직중인 직원만 필터링
-            const activeEmployees = employees.filter(e => e.status === '재직중');
-            
-            activeEmployees.forEach(emp => {
-                const option = document.createElement('option');
-                option.value = emp.id;
-                option.textContent = `${emp.name} - ${emp.department} ${emp.currentPosition || emp.position || ''}`;
-                select.appendChild(option);
+            // 입력 필드 변경 시 미리보기 업데이트
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
             });
-        }
-
-        // 직원 데이터 불러오기
-        function loadEmployeeData() {
-            const employeeId = document.getElementById('employeeSelect').value;
-            if (!employeeId) return;
-
-            selectedEmployee = employees.find(e => e.id === employeeId);
-            if (!selectedEmployee) return;
-
-            // 미리보기 업데이트
-            document.getElementById('preview_name').textContent = selectedEmployee.name;
-            document.getElementById('preview_name2').textContent = selectedEmployee.name;
-            document.getElementById('preview_birth').textContent = selectedEmployee.birthDate;
-            document.getElementById('preview_address').textContent = selectedEmployee.address || '-';
-            document.getElementById('preview_address2').textContent = selectedEmployee.address || '-';
-            document.getElementById('preview_phone').textContent = selectedEmployee.phone;
-
-            // 직무 자동 설정
-            const jobTitles = {
-                '영업1팀': '영업 및 고객관리 업무',
-                '영업2팀': '영업 및 고객관리 업무',
-                '총무팀': '총무 및 행정 업무',
-                '분석팀': '수질 분석 업무',
-                '수질자가측정팀': '수질자가측정 업무',
-                '먹는물검사팀': '먹는물 수질검사 업무'
-            };
-            document.getElementById('jobTitle').value = jobTitles[selectedEmployee.department] || '';
-
-            updatePreview();
-        }
+        });
 
         // 미리보기 업데이트
         function updatePreview() {
+            // 직원 정보
+            document.getElementById('preview_name').textContent = 
+                document.getElementById('employeeName').value || '-';
+            document.getElementById('preview_name2').textContent = 
+                document.getElementById('employeeName').value || '-';
+            document.getElementById('preview_birth').textContent = 
+                document.getElementById('employeeRRN').value || '-';
+            document.getElementById('preview_address').textContent = 
+                document.getElementById('employeeAddress').value || '-';
+            document.getElementById('preview_address2').textContent = 
+                document.getElementById('employeeAddress').value || '-';
+            document.getElementById('preview_phone').textContent = 
+                document.getElementById('employeePhone').value || '-';
+            
             // 계약 기간
             const startDate = document.getElementById('startDate').value;
             if (startDate) {
@@ -533,15 +515,22 @@
 
         // 저장
         function saveContract() {
-            if (!selectedEmployee) {
-                alert('⚠️ 직원을 먼저 선택해주세요!');
+            // 필수 필드 검증
+            const employeeName = document.getElementById('employeeName').value.trim();
+            const employeeRRN = document.getElementById('employeeRRN').value.trim();
+            
+            if (!employeeName || !employeeRRN) {
+                alert('⚠️ 직원 정보를 모두 입력해주세요!');
                 return;
             }
 
             const contractData = {
                 id: `CONTRACT-${Date.now()}`,
-                employeeId: selectedEmployee.id,
-                employeeName: selectedEmployee.name,
+                employeeName: employeeName,
+                employeeRRN: employeeRRN,
+                employeeAddress: document.getElementById('employeeAddress').value,
+                employeePhone: document.getElementById('employeePhone').value,
+                employeeEmail: document.getElementById('employeeEmail').value,
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value,
                 workType: document.getElementById('workType').value,

@@ -237,8 +237,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>📍 현장 의뢰서 작성</h1>
-        <p class="subtitle">채수 완료 후 자동으로 업무일지에 추가됩니다</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h1 style="margin: 0;">📍 현장 의뢰서 작성</h1>
+                <p class="subtitle" style="margin: 5px 0 0 0;">채수 완료 후 자동으로 업무일지에 추가됩니다</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="history.back()" style="width: auto; padding: 10px 20px;">← 뒤로</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='../dashboard-tabs.html'" style="width: auto; padding: 10px 20px;">🏠 대시보드</button>
+            </div>
+        </div>
 
         <form id="fieldRequestForm">
             <!-- 거래처 정보 -->

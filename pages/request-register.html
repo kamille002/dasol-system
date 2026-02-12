@@ -164,8 +164,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>📋 의뢰 접수</h1>
-        <p class="subtitle">새로운 수질검사 의뢰를 접수합니다</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h1 style="margin: 0;">📋 의뢰 접수</h1>
+                <p class="subtitle" style="margin: 5px 0 0 0;">새로운 수질검사 의뢰를 접수합니다</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="history.back()" style="width: auto; padding: 10px 20px;">← 뒤로</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='../dashboard-tabs.html'" style="width: auto; padding: 10px 20px;">🏠 대시보드</button>
+            </div>
+        </div>
 
         <form id="requestForm">
             <!-- 시료 정보 -->
