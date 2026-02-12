@@ -183,6 +183,33 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
+        /* 직원 근태관리 버튼 */
+        .attendance-btn {
+            padding: 12px 24px;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-left: auto;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .attendance-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .attendance-btn:active {
+            transform: translateY(0);
+        }
+
         /* 탭 컨텐츠 */
         .tab-content {
             display: none;
@@ -418,6 +445,11 @@
             <button class="tab-btn" onclick="switchTab('board')">📢 게시판</button>
             <button class="tab-btn" onclick="switchTab('work')">💼 내 업무</button>
             <button class="tab-btn" onclick="switchTab('stats')">📊 통계</button>
+            
+            <!-- 직원 근태관리 버튼 (우측 배치) -->
+            <button class="attendance-btn" onclick="window.location.href='pages/attendance-management.html'">
+                📋 직원 근태관리
+            </button>
         </div>
 
         <!-- 홈 탭 -->
