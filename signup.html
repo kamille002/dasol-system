@@ -245,29 +245,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="position">직급 <span class="required">*</span></label>
-                    <select id="position" required>
-                        <option value="">선택하세요</option>
-                        <option value="사원">사원</option>
-                        <option value="주임">주임</option>
-                        <option value="대리">대리</option>
-                        <option value="과장">과장</option>
-                        <option value="차장">차장</option>
-                        <option value="부장">부장</option>
-                        <option value="상무">상무</option>
-                        <option value="전무">전무</option>
-                        <option value="이사">이사</option>
-                        <option value="대표이사">대표이사</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label for="team">소속 부서 <span class="required">*</span></label>
                     <select id="team" required>
                         <option value="">선택하세요</option>
-                        <option value="영업팀">영업팀</option>
+                        <option value="영업1팀">영업1팀</option>
+                        <option value="영업2팀">영업2팀</option>
                         <option value="총무팀">총무팀</option>
                         <option value="분석팀">분석팀</option>
+                        <option value="수질자가측정팀">수질자가측정팀</option>
+                        <option value="먹는물검사팀">먹는물검사팀</option>
                     </select>
                     <div class="team-info" id="teamInfo"></div>
                 </div>
@@ -282,20 +268,6 @@
     </div>
 
     <script>
-        // 직급별 레벨 매핑
-        const POSITION_LEVELS = {
-            '사원': 10,
-            '주임': 9,
-            '대리': 8,
-            '과장': 7,
-            '차장': 6,
-            '부장': 5,
-            '상무': 4,
-            '전무': 3,
-            '이사': 2,
-            '대표이사': 1
-        };
-
         // 부서별 안내 메시지
         const TEAM_INFO = {
             '영업팀': '✓ 가입 승인 후 영업팀장이 업무지역을 설정합니다.<br>✓ 업무지역에 따라 자동으로 의뢰가 배정됩니다.',
@@ -324,11 +296,10 @@
             const password = document.getElementById('password').value;
             const passwordConfirm = document.getElementById('passwordConfirm').value;
             const name = document.getElementById('name').value.trim();
-            const position = document.getElementById('position').value;
             const team = document.getElementById('team').value;
 
             // 유효성 검사
-            if (!email || !password || !passwordConfirm || !name || !position || !team) {
+            if (!email || !password || !passwordConfirm || !name || !team) {
                 showError('모든 필드를 입력해주세요.');
                 return;
             }
@@ -358,9 +329,8 @@
                 email: email,
                 password: password, // 실제로는 해싱 필요
                 name: name,
-                position: position,
-                level: POSITION_LEVELS[position],
                 team: team,
+                isAdmin: false, // 기본값: 일반 사용자
                 status: 'pending', // pending/approved/active
                 workRegions: [],
                 analysisItems: [],
@@ -394,7 +364,6 @@
                 userId: user.id,
                 userName: user.name,
                 userEmail: user.email,
-                userPosition: user.position,
                 userTeam: user.team,
                 status: 'unread',
                 createdAt: new Date().toISOString()

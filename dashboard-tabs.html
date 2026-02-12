@@ -103,6 +103,24 @@
             transform: scale(1.05);
         }
 
+        .admin-btn {
+            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.9);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none; /* 기본 숨김, 관리자만 표시 */
+        }
+
+        .admin-btn:hover {
+            background: rgba(220, 38, 38, 1);
+            transform: scale(1.05);
+        }
+
         #installAppButton {
             display: none;
             padding: 8px 16px;
@@ -386,6 +404,7 @@
         <div class="header-right">
             <button id="installAppButton">📱 앱 설치</button>
             <button class="cache-clear-btn" onclick="window.location.href='clear-cache.html'" title="대시보드 버튼이 제대로 작동하지 않으면 클릭하세요">🔄 캐시 초기화</button>
+            <button id="adminButton" class="admin-btn" onclick="window.location.href='admin-system.html'" title="관리자 전용">🔐 시스템 관리</button>
             <span class="user-name">로딩중...</span>
             <button class="logout-btn" onclick="logout()">로그아웃</button>
         </div>
@@ -673,6 +692,11 @@
             const currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || '{}');
             if (currentUser.name) {
                 document.querySelector('.user-name').textContent = currentUser.name + '님';
+                
+                // 관리자인 경우 시스템 관리 버튼 표시
+                if (currentUser.isAdmin) {
+                    document.getElementById('adminButton').style.display = 'block';
+                }
             }
         }
         loadUserInfo();
