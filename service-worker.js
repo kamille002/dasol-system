@@ -1,5 +1,5 @@
 // 다솔물환경연구소 통합시스템 Service Worker
-const CACHE_NAME = 'dasol-system-v1.1.0'; // 버전 업데이트!
+const CACHE_NAME = 'dasol-system-v1.2.0'; // 버전 업데이트!
 const RUNTIME_CACHE = 'dasol-runtime';
 
 // 오프라인에서도 반드시 동작해야 하는 핵심 파일들
