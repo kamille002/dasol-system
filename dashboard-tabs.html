@@ -86,6 +86,23 @@
             background: rgba(255,255,255,0.3);
         }
 
+        .cache-clear-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cache-clear-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+
         #installAppButton {
             display: none;
             padding: 8px 16px;
@@ -368,6 +385,7 @@
         </div>
         <div class="header-right">
             <button id="installAppButton">📱 앱 설치</button>
+            <button class="cache-clear-btn" onclick="window.location.href='clear-cache.html'" title="대시보드 버튼이 제대로 작동하지 않으면 클릭하세요">🔄 캐시 초기화</button>
             <span class="user-name">로딩중...</span>
             <button class="logout-btn" onclick="logout()">로그아웃</button>
         </div>
