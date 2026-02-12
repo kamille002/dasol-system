@@ -782,7 +782,7 @@
             alert('✅ 나라장터 입찰정보가 업데이트되었습니다.');
         }
 
-        // 달력 렌더링
+        // 달력 렌더링 (휴가자 자동 연동)
         function renderCalendar() {
             const year = 2026;
             const month = 1; // 2월 (0-based)
@@ -790,17 +790,15 @@
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             
+            // 근태 시스템에서 승인된 휴가 데이터 가져오기
+            const vacationCalendar = JSON.parse(localStorage.getItem('dasol_attendance_calendar') || '[]');
+            
             // 공휴일 및 일정 데이터
             const events = {
                 1: { type: 'holiday', text: '설연휴' },
                 2: { type: 'holiday', text: '설날' },
                 3: { type: 'holiday', text: '설연휴' },
-                5: { type: 'leave', text: '김영업 연차', name: '김영업' },
-                7: { type: 'schedule', text: '성남시 현장', name: '박분석' },
-                11: { type: 'holiday', text: '빨간날' },
-                14: { type: 'leave', text: '최주임 연차', name: '최주임' },
-                20: { type: 'schedule', text: '하남시 출장', name: '이과장' },
-                28: { type: 'leave', text: '정대리 연차', name: '정대리' }
+                11: { type: 'holiday', text: '빨간날' }
             };
             
             let html = `
@@ -823,7 +821,10 @@
             
             // 날짜
             for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const event = events[day];
+                const vacationData = vacationCalendar.find(v => v.date === dateStr);
+                
                 const isWeekend = (firstDay + day - 1) % 7 === 0 || (firstDay + day - 1) % 7 === 6;
                 const isHoliday = event && event.type === 'holiday';
                 
@@ -833,20 +834,18 @@
                 if (isHoliday) {
                     bgColor = '#fee2e2';
                     textColor = '#ef4444';
-                } else if (event && event.type === 'leave') {
+                } else if (vacationData && vacationData.employees.length > 0) {
                     bgColor = '#dbeafe';
                     textColor = '#1e40af';
-                } else if (event && event.type === 'schedule') {
-                    bgColor = '#d1fae5';
-                    textColor = '#065f46';
                 } else if (isWeekend) {
-                    textColor = day % 7 === 0 ? '#ef4444' : '#3b82f6';
+                    textColor = (firstDay + day - 1) % 7 === 0 ? '#ef4444' : '#3b82f6';
                 }
                 
                 html += `
-                    <div style="padding: 10px; border-radius: 8px; background: ${bgColor}; text-align: center; min-height: 60px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="padding: 10px; border-radius: 8px; background: ${bgColor}; text-align: center; min-height: 60px; display: flex; flex-direction: column; gap: 4px; ${vacationData ? 'cursor: pointer;' : ''}" ${vacationData ? `onclick="showVacationDetail('${dateStr}')"` : ''}>
                         <div style="font-weight: 600; color: ${textColor};">${day}</div>
                         ${event ? `<div style="font-size: 10px; color: ${textColor}; font-weight: 600;">${event.text}</div>` : ''}
+                        ${vacationData ? `<div style="font-size: 11px; color: ${textColor}; font-weight: 600;">🏖️ 휴가자 ${vacationData.employees.length}명</div>` : ''}
                     </div>
                 `;
             }
@@ -862,16 +861,35 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <div style="width: 16px; height: 16px; background: #dbeafe; border-radius: 4px;"></div>
-                        <span>연차</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="width: 16px; height: 16px; background: #d1fae5; border-radius: 4px;"></div>
-                        <span>현장/출장</span>
+                        <span>휴가자</span>
                     </div>
                 </div>
             `;
             
             document.getElementById('calendar').innerHTML = html;
+        }
+        
+        // 휴가자 상세 정보 팝업
+        function showVacationDetail(dateStr) {
+            const vacationCalendar = JSON.parse(localStorage.getItem('dasol_attendance_calendar') || '[]');
+            const vacationData = vacationCalendar.find(v => v.date === dateStr);
+            
+            if (!vacationData || vacationData.employees.length === 0) return;
+            
+            const date = new Date(dateStr);
+            const dateText = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+            
+            let details = `📅 ${dateText} 휴가자\n\n`;
+            vacationData.employees.forEach((emp, index) => {
+                details += `${index + 1}. ${emp.name} (${emp.team})\n`;
+                details += `   ${emp.vacationType} (${emp.duration})\n`;
+                if (emp.reason) {
+                    details += `   사유: ${emp.reason}\n`;
+                }
+                details += `\n`;
+            });
+            
+            alert(details);
         }
         
         // 페이지 로드 시 달력 렌더링

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세금계산서 관리 - 다솔물환경연구소</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { font-size: 28px; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: white; color: #667eea; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .stat-card.primary { border-left: 4px solid #667eea; }
+        .stat-card.success { border-left: 4px solid #10b981; }
+        .stat-card.warning { border-left: 4px solid #f59e0b; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .filters input { flex: 1; min-width: 200px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-issued {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 1000px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: #1f2937;
+            border: none;
+            padding: 0;
+        }
+
+        .close-btn {
+            background: #e5e7eb;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .items-table {
+            margin: 20px 0;
+        }
+
+        .items-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .amount-summary {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .amount-row.total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 세금계산서 인쇄 양식 */
+        .invoice-print {
+            display: none;
+            width: 210mm;
+            padding: 20mm;
+            background: white;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .invoice-print, .invoice-print * {
+                visibility: visible;
+            }
+            .invoice-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 세금계산서 관리</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="openInvoiceModal()">+ 세금계산서 발행</button>
+                <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
+                <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">🏠 대시보드</button>
+            </div>
+        </div>
+
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-label">이번 달 발행</div>
+                <div class="stat-value" id="monthlyCount">0건</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-label">이번 달 공급가액</div>
+                <div class="stat-value" id="monthlyAmount">0원</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-label">이번 달 부가세</div>
+                <div class="stat-value" id="monthlyTax">0원</div>
+            </div>
+        </div>
+
+        <!-- 세금계산서 목록 -->
+        <div class="card">
+            <h2>📋 발행 내역</h2>
+            
+            <div class="filters">
+                <input type="month" id="monthFilter" onchange="filterInvoices()">
+                <select id="statusFilter" onchange="filterInvoices()">
+                    <option value="">전체 상태</option>
+                    <option value="issued">발행</option>
+                    <option value="cancelled">취소</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="🔍 거래처명 검색..." onkeyup="filterInvoices()">
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>발행일</th>
+                        <th>세금계산서번호</th>
+                        <th>거래처</th>
+                        <th>공급가액</th>
+                        <th>세액</th>
+                        <th>합계</th>
+                        <th>상태</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 세금계산서 발행 모달 -->
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 세금계산서 발행</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <form id="invoiceForm">
+                <h3 style="margin-bottom: 15px; color: #667eea;">공급받는자 정보</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>상호 (법인명) *</label>
+                        <input type="text" id="buyerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>사업자등록번호 *</label>
+                        <input type="text" id="buyerRegNo" placeholder="123-45-67890" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>주소 *</label>
+                    <input type="text" id="buyerAddress" required>
+                    </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>대표자명 *</label>
+                        <input type="text" id="buyerCEO" required>
+                    </div>
+                    <div class="form-group">
+                        <label>업태 *</label>
+                        <input type="text" id="buyerType" placeholder="제조업" required>
+                    </div>
+                    <div class="form-group">
+                        <label>종목 *</label>
+                        <input type="text" id="buyerItem" placeholder="도소매" required>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>담당자</label>
+                        <input type="text" id="buyerContact">
+                    </div>
+                    <div class="form-group">
+                        <label>이메일</label>
+                        <input type="email" id="buyerEmail">
+                    </div>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+                <h3 style="margin-bottom: 15px; color: #667eea;">거래 내역</h3>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>작성일자 *</label>
+                        <input type="date" id="issueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>공급가액 기준일</label>
+                        <input type="date" id="supplyDate">
+                    </div>
+                </div>
+
+                <div class="items-table">
+                    <table id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">품목</th>
+                                <th style="width: 15%;">규격</th>
+                                <th style="width: 15%;">수량</th>
+                                <th style="width: 15%;">단가</th>
+                                <th style="width: 15%;">공급가액</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody">
+                            <tr>
+                                <td><input type="text" class="item-name" placeholder="수질검사" style="width: 100%;"></td>
+                                <td><input type="text" class="item-spec" placeholder="항목" style="width: 100%;"></td>
+                                <td><input type="number" class="item-qty" value="1" onchange="calculateItem(this)" style="width: 100%;"></td>
+                                <td><input type="number" class="item-price" onchange="calculateItem(this)" style="width: 100%;"></td>
+                                <td><input type="number" class="item-amount" readonly style="width: 100%; background: #f9fafb;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-secondary" onclick="addItem()" style="margin-top: 10px; width: auto;">+ 품목 추가</button>
+                </div>
+
+                <div class="amount-summary">
+                    <div class="amount-row">
+                        <span>공급가액</span>
+                        <span id="totalSupply">0원</span>
+                    </div>
+                    <div class="amount-row">
+                        <span>부가세 (10%)</span>
+                        <span id="totalTax">0원</span>
+                    </div>
+                    <div class="amount-row total">
+                        <span>합계금액</span>
+                        <span id="totalAmount">0원</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>비고</label>
+                    <textarea id="remarks" rows="3" placeholder="특이사항 입력..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 30px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">발행</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()" style="flex: 1;">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let invoices = [];
+        let currentUser = null;
+
+        // 공급자 정보 (다솔물환경연구소)
+        const SUPPLIER = {
+            name: '다솔물환경연구소',
+            regNo: '123-45-67890', // 실제 사업자번호로 변경
+            address: '서울특별시 강남구 테헤란로 123',
+            ceo: '대표이사명',
+            type: '서비스업',
+            item: '수질검사'
+        };
+
+        window.addEventListener('load', () => {
+            currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || 'null');
+            if (!currentUser) {
+                alert('⚠️ 로그인이 필요합니다!');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            loadInvoices();
+            renderInvoices();
+            updateStats();
+
+            // 오늘 날짜 설정
+            document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('supplyDate').value = new Date().toISOString().split('T')[0];
+            
+            // 이번 달 필터 설정
+            const today = new Date();
+            document.getElementById('monthFilter').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        });
+
+        function loadInvoices() {
+            const saved = localStorage.getItem('dasol_tax_invoices');
+            if (saved) {
+                invoices = JSON.parse(saved);
+            }
+        }
+
+        function saveInvoices() {
+            localStorage.setItem('dasol_tax_invoices', JSON.stringify(invoices));
+        }
+
+        function openInvoiceModal() {
+            document.getElementById('invoiceModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('invoiceModal').classList.remove('show');
+            document.getElementById('invoiceForm').reset();
+        }
+
+        function addItem() {
+            const tbody = document.getElementById('itemsBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="item-name" placeholder="품목명" style="width: 100%;"></td>
+                <td><input type="text" class="item-spec" placeholder="규격" style="width: 100%;"></td>
+                <td><input type="number" class="item-qty" value="1" onchange="calculateItem(this)" style="width: 100%;"></td>
+                <td><input type="number" class="item-price" onchange="calculateItem(this)" style="width: 100%;"></td>
+                <td><input type="number" class="item-amount" readonly style="width: 100%; background: #f9fafb;"></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function calculateItem(input) {
+            const row = input.closest('tr');
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const amount = qty * price;
+            row.querySelector('.item-amount').value = amount;
+            
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let totalSupply = 0;
+            document.querySelectorAll('.item-amount').forEach(input => {
+                totalSupply += parseFloat(input.value) || 0;
+            });
+            
+            const totalTax = Math.round(totalSupply * 0.1);
+            const totalAmount = totalSupply + totalTax;
+            
+            document.getElementById('totalSupply').textContent = totalSupply.toLocaleString() + '원';
+            document.getElementById('totalTax').textContent = totalTax.toLocaleString() + '원';
+            document.getElementById('totalAmount').textContent = totalAmount.toLocaleString() + '원';
+        }
+
+        document.getElementById('invoiceForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // 품목 수집
+            const items = [];
+            document.querySelectorAll('#itemsBody tr').forEach(row => {
+                const name = row.querySelector('.item-name').value;
+                const spec = row.querySelector('.item-spec').value;
+                const qty = row.querySelector('.item-qty').value;
+                const price = row.querySelector('.item-price').value;
+                const amount = row.querySelector('.item-amount').value;
+                
+                if (name && price) {
+                    items.push({ name, spec, qty, price, amount });
+                }
+            });
+            
+            if (items.length === 0) {
+                alert('⚠️ 품목을 1개 이상 입력해주세요!');
+                return;
+            }
+            
+            const totalSupply = items.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+            const totalTax = Math.round(totalSupply * 0.1);
+            const totalAmount = totalSupply + totalTax;
+            
+            const invoice = {
+                id: `INV-${Date.now()}`,
+                invoiceNo: generateInvoiceNo(),
+                issueDate: document.getElementById('issueDate').value,
+                supplyDate: document.getElementById('supplyDate').value || document.getElementById('issueDate').value,
+                
+                // 공급자 (다솔물환경연구소)
+                supplier: SUPPLIER,
+                
+                // 공급받는자
+                buyer: {
+                    name: document.getElementById('buyerName').value,
+                    regNo: document.getElementById('buyerRegNo').value,
+                    address: document.getElementById('buyerAddress').value,
+                    ceo: document.getElementById('buyerCEO').value,
+                    type: document.getElementById('buyerType').value,
+                    item: document.getElementById('buyerItem').value,
+                    contact: document.getElementById('buyerContact').value,
+                    email: document.getElementById('buyerEmail').value
+                },
+                
+                items: items,
+                totalSupply: totalSupply,
+                totalTax: totalTax,
+                totalAmount: totalAmount,
+                remarks: document.getElementById('remarks').value,
+                
+                status: 'issued',
+                createdBy: currentUser.name,
+                createdAt: new Date().toISOString()
+            };
+            
+            invoices.unshift(invoice);
+            saveInvoices();
+            renderInvoices();
+            updateStats();
+            closeModal();
+            
+            alert('✅ 세금계산서가 발행되었습니다!');
+        });
+
+        function generateInvoiceNo() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const seq = String(invoices.filter(inv => 
+                inv.issueDate && inv.issueDate.startsWith(`${year}-${month}`)
+            ).length + 1).padStart(4, '0');
+            
+            return `${year}${month}-${seq}`;
+        }
+
+        function renderInvoices() {
+            const tbody = document.getElementById('invoicesTable');
+            const monthFilter = document.getElementById('monthFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = invoices;
+            
+            if (monthFilter) {
+                filtered = filtered.filter(inv => inv.issueDate && inv.issueDate.startsWith(monthFilter));
+            }
+            
+            if (statusFilter) {
+                filtered = filtered.filter(inv => inv.status === statusFilter);
+            }
+            
+            if (searchText) {
+                filtered = filtered.filter(inv => 
+                    inv.buyer.name.toLowerCase().includes(searchText)
+                );
+            }
+            
+            tbody.innerHTML = filtered.map(inv => `
+                <tr>
+                    <td>${inv.issueDate}</td>
+                    <td><strong>${inv.invoiceNo}</strong></td>
+                    <td>${inv.buyer.name}</td>
+                    <td style="text-align: right;">${inv.totalSupply.toLocaleString()}원</td>
+                    <td style="text-align: right;">${inv.totalTax.toLocaleString()}원</td>
+                    <td style="text-align: right;"><strong>${inv.totalAmount.toLocaleString()}원</strong></td>
+                    <td>
+                        <span class="badge ${inv.status === 'issued' ? 'badge-issued' : 'badge-cancelled'}">
+                            ${inv.status === 'issued' ? '발행' : '취소'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewInvoice('${inv.id}')" style="padding: 6px 12px; font-size: 12px;">보기</button>
+                        ${inv.status === 'issued' ? 
+                            `<button class="btn btn-danger" onclick="cancelInvoice('${inv.id}')" style="padding: 6px 12px; font-size: 12px;">취소</button>` 
+                            : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterInvoices() {
+            renderInvoices();
+            updateStats();
+        }
+
+        function updateStats() {
+            const today = new Date();
+            const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            
+            const monthlyInvoices = invoices.filter(inv => 
+                inv.issueDate && inv.issueDate.startsWith(currentMonth) && inv.status === 'issued'
+            );
+            
+            const monthlyAmount = monthlyInvoices.reduce((sum, inv) => sum + inv.totalSupply, 0);
+            const monthlyTax = monthlyInvoices.reduce((sum, inv) => sum + inv.totalTax, 0);
+            
+            document.getElementById('monthlyCount').textContent = monthlyInvoices.length + '건';
+            document.getElementById('monthlyAmount').textContent = monthlyAmount.toLocaleString() + '원';
+            document.getElementById('monthlyTax').textContent = monthlyTax.toLocaleString() + '원';
+        }
+
+        function viewInvoice(id) {
+            const invoice = invoices.find(inv => inv.id === id);
+            if (!invoice) return;
+            
+            alert(`세금계산서 상세 내역\n\n번호: ${invoice.invoiceNo}\n거래처: ${invoice.buyer.name}\n공급가액: ${invoice.totalSupply.toLocaleString()}원\n세액: ${invoice.totalTax.toLocaleString()}원\n합계: ${invoice.totalAmount.toLocaleString()}원\n\nPDF 생성 기능은 곧 추가됩니다!`);
+        }
+
+        function cancelInvoice(id) {
+            if (!confirm('⚠️ 세금계산서를 취소하시겠습니까?')) return;
+            
+            const invoice = invoices.find(inv => inv.id === id);
+            if (invoice) {
+                invoice.status = 'cancelled';
+                invoice.cancelledBy = currentUser.name;
+                invoice.cancelledAt = new Date().toISOString();
+                
+                saveInvoices();
+                renderInvoices();
+                updateStats();
+                
+                alert('✅ 세금계산서가 취소되었습니다.');
+            }
+        }
+    </script>
+</body>
+</html>
