@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인사발령 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 28px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: white; color: #667eea; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .order-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .order-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .order-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        .order-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .order-card p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .type-appointment { background: #dbeafe; color: #1e40af; }
+        .type-reward { background: #fce7f3; color: #9f1239; }
+        .type-discipline { background: #fee2e2; color: #991b1b; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { font-size: 24px; }
+        .modal-body { padding: 25px; }
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .approval-info {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .approval-info p {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 인사발령 관리</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="openModal()">+ 신규 발령</button>
+                <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">← 대시보드</button>
+            </div>
+        </div>
+
+        <!-- 발령 현황 -->
+        <div class="grid-3">
+            <div class="card" style="text-align: center;">
+                <p style="color: #6b7280; margin-bottom: 5px;">대기중</p>
+                <h2 style="font-size: 32px; color: #f59e0b; border: none; padding: 0;" id="pendingCount">0</h2>
+            </div>
+            <div class="card" style="text-align: center;">
+                <p style="color: #6b7280; margin-bottom: 5px;">승인</p>
+                <h2 style="font-size: 32px; color: #10b981; border: none; padding: 0;" id="approvedCount">0</h2>
+            </div>
+            <div class="card" style="text-align: center;">
+                <p style="color: #6b7280; margin-bottom: 5px;">반려</p>
+                <h2 style="font-size: 32px; color: #ef4444; border: none; padding: 0;" id="rejectedCount">0</h2>
+            </div>
+        </div>
+
+        <!-- 발령 목록 -->
+        <div class="card">
+            <h2>📋 발령 목록</h2>
+            <div id="orderList" class="order-list"></div>
+        </div>
+    </div>
+
+    <!-- 신규 발령 모달 -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>신규 인사발령</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <!-- 발령 구분 -->
+                    <div class="form-group">
+                        <label>발령 구분 *</label>
+                        <select id="orderType" required onchange="updateFormFields()">
+                            <option value="">선택</option>
+                            <option value="인사발령">인사발령 (부서이동, 직급변경 등)</option>
+                            <option value="포상">포상</option>
+                            <option value="징계">징계</option>
+                        </select>
+                    </div>
+
+                    <!-- 대상 직원 -->
+                    <div class="form-group">
+                        <label>대상 직원 *</label>
+                        <select id="targetEmployee" required onchange="loadEmployeeInfo()">
+                            <option value="">선택</option>
+                        </select>
+                    </div>
+
+                    <!-- 현재 정보 (자동 표시) -->
+                    <div id="currentInfo" style="display: none;">
+                        <div class="approval-info">
+                            <strong>현재 정보</strong>
+                            <p id="current_dept">부서: -</p>
+                            <p id="current_position">직급: -</p>
+                        </div>
+                    </div>
+
+                    <!-- 인사발령 상세 -->
+                    <div id="appointmentFields" style="display: none;">
+                        <div class="grid-2" style="margin-top: 20px;">
+                            <div class="form-group">
+                                <label>변경 부서</label>
+                                <select id="newDepartment">
+                                    <option value="">변경없음</option>
+                                    <option value="영업1팀">영업1팀</option>
+                                    <option value="영업2팀">영업2팀</option>
+                                    <option value="총무팀">총무팀</option>
+                                    <option value="분석팀">분석팀</option>
+                                    <option value="수질자가측정팀">수질자가측정팀</option>
+                                    <option value="먹는물검사팀">먹는물검사팀</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>변경 직급</label>
+                                <select id="newPosition">
+                                    <option value="">변경없음</option>
+                                    <option value="사원">사원</option>
+                                    <option value="주임">주임</option>
+                                    <option value="대리">대리</option>
+                                    <option value="과장">과장</option>
+                                    <option value="부장">부장</option>
+                                    <option value="실장">실장</option>
+                                    <option value="이사">이사</option>
+                                    <option value="대표이사">대표이사</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 포상 상세 -->
+                    <div id="rewardFields" style="display: none;">
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>포상 종류</label>
+                            <select id="rewardType">
+                                <option value="표창장">표창장</option>
+                                <option value="감사장">감사장</option>
+                                <option value="공로상">공로상</option>
+                                <option value="모범상">모범상</option>
+                                <option value="상금">상금</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>포상 금액 (선택)</label>
+                            <input type="number" id="rewardAmount" placeholder="금액 (원)">
+                        </div>
+                    </div>
+
+                    <!-- 징계 상세 -->
+                    <div id="disciplineFields" style="display: none;">
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>징계 종류</label>
+                            <select id="disciplineType">
+                                <option value="경고">경고</option>
+                                <option value="견책">견책</option>
+                                <option value="감봉">감봉</option>
+                                <option value="정직">정직</option>
+                                <option value="해고">해고</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>징계 기간 (정직의 경우)</label>
+                            <input type="text" id="disciplinePeriod" placeholder="예: 3개월">
+                        </div>
+                    </div>
+
+                    <!-- 공통 -->
+                    <div class="form-group">
+                        <label>발령일 *</label>
+                        <input type="date" id="effectiveDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>사유 *</label>
+                        <textarea id="reason" rows="4" placeholder="발령 사유를 입력하세요" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+                <button class="btn btn-success" onclick="submitOrder()">총무팀 → 대표이사 결재 요청</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상세보기 모달 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>인사발령 상세</h2>
+                <button class="close-btn" onclick="closeDetailModal()">×</button>
+            </div>
+            <div class="modal-body" id="detailContent">
+            </div>
+            <div class="modal-footer" id="detailActions">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+        let orders = [];
+        let currentUser = '총무팀'; // 임시 (실제로는 로그인 정보)
+
+        window.addEventListener('load', () => {
+            loadData();
+            renderOrders();
+            updateCounts();
+        });
+
+        function loadData() {
+            // 직원 목록
+            employees = JSON.parse(localStorage.getItem('dasol_employees') || '[]');
+            const select = document.getElementById('targetEmployee');
+            employees.filter(e => e.status === '재직중').forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp.id;
+                option.textContent = `${emp.name} - ${emp.department} ${emp.currentPosition || emp.position || ''}`;
+                select.appendChild(option);
+            });
+
+            // 발령 목록
+            orders = JSON.parse(localStorage.getItem('dasol_hr_orders') || '[]');
+        }
+
+        function updateFormFields() {
+            const type = document.getElementById('orderType').value;
+            
+            document.getElementById('appointmentFields').style.display = 'none';
+            document.getElementById('rewardFields').style.display = 'none';
+            document.getElementById('disciplineFields').style.display = 'none';
+
+            if (type === '인사발령') {
+                document.getElementById('appointmentFields').style.display = 'block';
+            } else if (type === '포상') {
+                document.getElementById('rewardFields').style.display = 'block';
+            } else if (type === '징계') {
+                document.getElementById('disciplineFields').style.display = 'block';
+            }
+        }
+
+        function loadEmployeeInfo() {
+            const empId = document.getElementById('targetEmployee').value;
+            if (!empId) return;
+
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+
+            document.getElementById('current_dept').textContent = `부서: ${emp.department}`;
+            document.getElementById('current_position').textContent = `직급: ${emp.currentPosition || emp.position || '-'}`;
+            document.getElementById('currentInfo').style.display = 'block';
+        }
+
+        function openModal() {
+            document.getElementById('orderForm').reset();
+            document.getElementById('currentInfo').style.display = 'none';
+            document.getElementById('appointmentFields').style.display = 'none';
+            document.getElementById('rewardFields').style.display = 'none';
+            document.getElementById('disciplineFields').style.display = 'none';
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function submitOrder() {
+            const form = document.getElementById('orderForm');
+            if (!form.checkValidity()) {
+                alert('⚠️ 필수 항목을 모두 입력해주세요!');
+                return;
+            }
+
+            const empId = document.getElementById('targetEmployee').value;
+            const employee = employees.find(e => e.id === empId);
+
+            const orderData = {
+                id: `ORDER-${Date.now()}`,
+                type: document.getElementById('orderType').value,
+                employeeId: empId,
+                employeeName: employee.name,
+                currentDepartment: employee.department,
+                currentPosition: employee.currentPosition || employee.position,
+                effectiveDate: document.getElementById('effectiveDate').value,
+                reason: document.getElementById('reason').value,
+                status: 'pending', // pending/approved/rejected
+                createdBy: currentUser,
+                createdAt: new Date().toISOString(),
+                approvedBy: null,
+                approvedAt: null
+            };
+
+            // 발령 종류별 상세 정보
+            if (orderData.type === '인사발령') {
+                orderData.newDepartment = document.getElementById('newDepartment').value || employee.department;
+                orderData.newPosition = document.getElementById('newPosition').value || (employee.currentPosition || employee.position);
+            } else if (orderData.type === '포상') {
+                orderData.rewardType = document.getElementById('rewardType').value;
+                orderData.rewardAmount = document.getElementById('rewardAmount').value;
+            } else if (orderData.type === '징계') {
+                orderData.disciplineType = document.getElementById('disciplineType').value;
+                orderData.disciplinePeriod = document.getElementById('disciplinePeriod').value;
+            }
+
+            orders.push(orderData);
+            localStorage.setItem('dasol_hr_orders', JSON.stringify(orders));
+
+            alert('✅ 대표이사에게 결재 요청되었습니다!');
+            closeModal();
+            renderOrders();
+            updateCounts();
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('orderList');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6b7280; grid-column: 1/-1;">등록된 발령이 없습니다.</p>';
+                return;
+            }
+
+            // 최신순 정렬
+            const sorted = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            container.innerHTML = sorted.map(order => `
+                <div class="order-card" onclick="viewDetail('${order.id}')">
+                    <span class="type-badge type-${order.type === '인사발령' ? 'appointment' : order.type === '포상' ? 'reward' : 'discipline'}">
+                        ${order.type}
+                    </span>
+                    <h3>${order.employeeName}</h3>
+                    <p>부서: ${order.currentDepartment} ${order.type === '인사발령' && order.newDepartment !== order.currentDepartment ? '→ ' + order.newDepartment : ''}</p>
+                    <p>직급: ${order.currentPosition} ${order.type === '인사발령' && order.newPosition !== order.currentPosition ? '→ ' + order.newPosition : ''}</p>
+                    <p>발령일: ${order.effectiveDate}</p>
+                    <p>작성자: ${order.createdBy}</p>
+                    <span class="status-badge status-${order.status}">
+                        ${order.status === 'pending' ? '대기중' : order.status === 'approved' ? '승인' : '반려'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function updateCounts() {
+            document.getElementById('pendingCount').textContent = orders.filter(o => o.status === 'pending').length;
+            document.getElementById('approvedCount').textContent = orders.filter(o => o.status === 'approved').length;
+            document.getElementById('rejectedCount').textContent = orders.filter(o => o.status === 'rejected').length;
+        }
+
+        function viewDetail(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            let detailHTML = `
+                <div class="approval-info">
+                    <h3 style="margin-bottom: 15px;">${order.type}</h3>
+                    <p><strong>대상 직원:</strong> ${order.employeeName}</p>
+                    <p><strong>발령일:</strong> ${order.effectiveDate}</p>
+                    <p><strong>작성자:</strong> ${order.createdBy}</p>
+                    <p><strong>작성일:</strong> ${new Date(order.createdAt).toLocaleString('ko-KR')}</p>
+                    <p><strong>상태:</strong> ${order.status === 'pending' ? '대기중' : order.status === 'approved' ? '승인' : '반려'}</p>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px;">발령 내용</h4>
+            `;
+
+            if (order.type === '인사발령') {
+                detailHTML += `
+                    <p><strong>현재 부서:</strong> ${order.currentDepartment} → <strong>변경 부서:</strong> ${order.newDepartment}</p>
+                    <p><strong>현재 직급:</strong> ${order.currentPosition} → <strong>변경 직급:</strong> ${order.newPosition}</p>
+                `;
+            } else if (order.type === '포상') {
+                detailHTML += `
+                    <p><strong>포상 종류:</strong> ${order.rewardType}</p>
+                    ${order.rewardAmount ? `<p><strong>포상 금액:</strong> ${parseInt(order.rewardAmount).toLocaleString()}원</p>` : ''}
+                `;
+            } else if (order.type === '징계') {
+                detailHTML += `
+                    <p><strong>징계 종류:</strong> ${order.disciplineType}</p>
+                    ${order.disciplinePeriod ? `<p><strong>징계 기간:</strong> ${order.disciplinePeriod}</p>` : ''}
+                `;
+            }
+
+            detailHTML += `
+                    <p style="margin-top: 15px;"><strong>사유:</strong></p>
+                    <p style="white-space: pre-wrap; background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 10px;">${order.reason}</p>
+                </div>
+            `;
+
+            document.getElementById('detailContent').innerHTML = detailHTML;
+
+            // 결재 버튼 (대표이사만)
+            let actionsHTML = '';
+            if (currentUser === '대표이사' && order.status === 'pending') {
+                actionsHTML = `
+                    <button class="btn btn-success" onclick="approveOrder('${order.id}')">✅ 승인</button>
+                    <button class="btn btn-danger" onclick="rejectOrder('${order.id}')">❌ 반려</button>
+                `;
+            }
+            actionsHTML += `<button class="btn btn-secondary" onclick="closeDetailModal()">닫기</button>`;
+            document.getElementById('detailActions').innerHTML = actionsHTML;
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function approveOrder(orderId) {
+            if (!confirm('승인하시겠습니까?\n\n승인 시 인사카드에 자동 반영됩니다.')) return;
+
+            const orderIndex = orders.findIndex(o => o.id === orderId);
+            const order = orders[orderIndex];
+            
+            order.status = 'approved';
+            order.approvedBy = currentUser;
+            order.approvedAt = new Date().toISOString();
+
+            // 인사카드에 자동 반영
+            const empIndex = employees.findIndex(e => e.id === order.employeeId);
+            if (empIndex !== -1) {
+                if (order.type === '인사발령') {
+                    employees[empIndex].department = order.newDepartment;
+                    employees[empIndex].currentPosition = order.newPosition;
+                }
+                
+                // 인사 이력 추가
+                if (!employees[empIndex].hrHistory) {
+                    employees[empIndex].hrHistory = [];
+                }
+                employees[empIndex].hrHistory.push({
+                    type: order.type,
+                    date: order.effectiveDate,
+                    details: order,
+                    approvedAt: order.approvedAt
+                });
+                
+                localStorage.setItem('dasol_employees', JSON.stringify(employees));
+            }
+
+            localStorage.setItem('dasol_hr_orders', JSON.stringify(orders));
+
+            alert('✅ 승인되었으며 인사카드에 반영되었습니다!');
+            closeDetailModal();
+            renderOrders();
+            updateCounts();
+        }
+
+        function rejectOrder(orderId) {
+            const reason = prompt('반려 사유를 입력하세요:');
+            if (!reason) return;
+
+            const orderIndex = orders.findIndex(o => o.id === orderId);
+            orders[orderIndex].status = 'rejected';
+            orders[orderIndex].rejectedBy = currentUser;
+            orders[orderIndex].rejectedAt = new Date().toISOString();
+            orders[orderIndex].rejectReason = reason;
+
+            localStorage.setItem('dasol_hr_orders', JSON.stringify(orders));
+
+            alert('❌ 반려되었습니다.');
+            closeDetailModal();
+            renderOrders();
+            updateCounts();
+        }
+    </script>
+</body>
+</html>

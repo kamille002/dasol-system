@@ -371,6 +371,14 @@
                 <form id="employeeForm">
                     <input type="hidden" id="employeeId">
 
+                    <!-- 근로계약서에서 불러오기 -->
+                    <div class="form-group">
+                        <label>근로계약서에서 불러오기 (선택사항)</label>
+                        <select id="contractSelect" onchange="loadFromContract()">
+                            <option value="">-- 신규 작성 또는 계약서 선택 --</option>
+                        </select>
+                    </div>
+
                     <!-- 사진 업로드 -->
                     <div class="form-group">
                         <label>사진</label>
@@ -478,6 +486,13 @@
                         <input type="text" id="education" placeholder="예: 서울대학교 환경공학과 졸업">
                     </div>
 
+                    <!-- 경력 사항 -->
+                    <div class="form-group">
+                        <label>이전 경력 사항</label>
+                        <div id="careerList"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addCareer()" style="margin-top: 10px;">+ 경력 추가</button>
+                    </div>
+
                     <!-- 재직 상태 -->
                     <div class="form-group">
                         <label>재직 상태 *</label>
@@ -511,12 +526,101 @@
         let employees = [];
         let currentPhoto = null;
         let editingId = null;
+        let careers = []; // 경력 목록
 
         // 페이지 로드 시
         window.addEventListener('load', () => {
             loadEmployees();
+            loadContracts();
             renderEmployees();
         });
+
+        // 근로계약서 목록 로드
+        function loadContracts() {
+            const contracts = JSON.parse(localStorage.getItem('dasol_contracts') || '[]');
+            const select = document.getElementById('contractSelect');
+            
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract.id;
+                option.textContent = `${contract.employeeName} - ${contract.startDate}`;
+                select.appendChild(option);
+            });
+        }
+
+        // 근로계약서에서 정보 불러오기
+        function loadFromContract() {
+            const contractId = document.getElementById('contractSelect').value;
+            if (!contractId) return;
+
+            const contracts = JSON.parse(localStorage.getItem('dasol_contracts') || '[]');
+            const contract = contracts.find(c => c.id === contractId);
+            if (!contract) return;
+
+            // 기본 정보 자동 채우기
+            document.getElementById('name').value = contract.employeeName;
+            document.getElementById('joinDate').value = contract.startDate;
+            document.getElementById('department').value = contract.department || '';
+            
+            // 경력/신입 판단 (계약서에 직급이 있으면 경력)
+            if (contract.initialPosition) {
+                document.getElementById('employmentType').value = '경력';
+                document.getElementById('careerFields').style.display = 'grid';
+                document.getElementById('position').value = contract.initialPosition;
+                document.getElementById('currentPosition').value = contract.initialPosition;
+            } else {
+                document.getElementById('employmentType').value = '신입';
+            }
+
+            alert('✅ 근로계약서 정보를 불러왔습니다!\n나머지 정보를 입력해주세요.');
+        }
+
+        // 경력 추가
+        function addCareer() {
+            const career = {
+                id: Date.now(),
+                company: '',
+                position: '',
+                department: '',
+                startDate: '',
+                endDate: '',
+                duties: ''
+            };
+            careers.push(career);
+            renderCareers();
+        }
+
+        // 경력 삭제
+        function removeCareer(id) {
+            careers = careers.filter(c => c.id !== id);
+            renderCareers();
+        }
+
+        // 경력 렌더링
+        function renderCareers() {
+            const container = document.getElementById('careerList');
+            if (careers.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 20px;">등록된 경력이 없습니다.</p>';
+                return;
+            }
+
+            container.innerHTML = careers.map((career, index) => `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: #f9fafb;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>경력 ${index + 1}</strong>
+                        <button type="button" onclick="removeCareer(${career.id})" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">삭제</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="text" placeholder="회사명" value="${career.company}" onchange="careers[${index}].company = this.value" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <input type="text" placeholder="직급" value="${career.position}" onchange="careers[${index}].position = this.value" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <input type="text" placeholder="부서" value="${career.department}" onchange="careers[${index}].department = this.value" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <input type="text" placeholder="담당 업무" value="${career.duties}" onchange="careers[${index}].duties = this.value" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <input type="date" placeholder="입사일" value="${career.startDate}" onchange="careers[${index}].startDate = this.value" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <input type="date" placeholder="퇴사일" value="${career.endDate}" onchange="careers[${index}].endDate = this.value" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    </div>
+                </div>
+            `).join('');
+        }
 
         // 직원 데이터 로드
         function loadEmployees() {
@@ -708,6 +812,7 @@
                 email: document.getElementById('email').value,
                 address: document.getElementById('address').value,
                 education: document.getElementById('education').value,
+                careers: careers, // 경력 정보 추가
                 status: document.getElementById('status').value,
                 resignDate: document.getElementById('resignDate').value,
                 notes: document.getElementById('notes').value,
