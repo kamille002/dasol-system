@@ -245,3 +245,345 @@
                 if (rows.length === 1) {
                     removeBtn.style.display = 'none';
                 } else {
+                    removeBtn.style.display = 'block';
+                }
+            });
+        }
+
+        function calculateTotal() {
+            const rows = document.querySelectorAll('.item-row');
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const amount = price * quantity;
+                row.querySelector('.item-amount').value = amount;
+                subtotal += amount;
+            });
+
+            const vat = Math.round(subtotal * 0.1);
+            const grandTotal = subtotal + vat;
+
+            document.getElementById('subtotal').textContent = subtotal.toLocaleString() + '원';
+            document.getElementById('vat').textContent = vat.toLocaleString() + '원';
+            document.getElementById('grandTotal').textContent = grandTotal.toLocaleString() + '원';
+        }
+
+        function saveQuote(status) {
+            const rows = document.querySelectorAll('.item-row');
+            const items = [];
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.item-name').value;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const amount = price * quantity;
+                
+                items.push({ name, price, quantity, amount });
+                subtotal += amount;
+            });
+
+            const vat = Math.round(subtotal * 0.1);
+            const grandTotal = subtotal + vat;
+
+            const quote = {
+                id: editMode ? editId : 'Q' + Date.now(),
+                quoteNumber: document.getElementById('quoteNumber').value,
+                quoteDate: document.getElementById('quoteDate').value,
+                clientName: document.getElementById('clientName').value,
+                clientContact: document.getElementById('clientContact').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                clientEmail: document.getElementById('clientEmail').value,
+                items: items,
+                subtotal: subtotal,
+                vat: vat,
+                grandTotal: grandTotal,
+                notes: document.getElementById('notes').value,
+                status: status,
+                createdAt: editMode ? quotes.find(q => q.id === editId).createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                createdBy: JSON.parse(localStorage.getItem('dasol_session') || '{}').name || '관리자'
+            };
+
+            if (editMode) {
+                quotes = quotes.map(q => q.id === editId ? quote : q);
+            } else {
+                quotes.push(quote);
+            }
+
+            localStorage.setItem('dasol_quotes', JSON.stringify(quotes));
+            
+            if (status === 'sent') {
+                generateQuotePDF(quote);
+            }
+            
+            closeQuoteModal();
+            renderQuoteTable();
+            alert(status === 'draft' ? '임시저장되었습니다.' : '견적서가 생성되었습니다.');
+        }
+
+        function renderQuoteTable() {
+            const tbody = document.getElementById('quoteTableBody');
+            
+            let filtered = quotes;
+            if (currentFilter !== 'all') {
+                filtered = quotes.filter(q => q.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">등록된 견적서가 없습니다</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(quote => `
+                <tr>
+                    <td>${quote.quoteNumber}</td>
+                    <td>${quote.clientName}</td>
+                    <td>${formatDate(quote.quoteDate)}</td>
+                    <td style="font-weight: 700; color: #667eea;">${quote.grandTotal.toLocaleString()}원</td>
+                    <td><span class="status-badge status-${quote.status}">${quote.status === 'draft' ? '임시저장' : quote.status === 'sent' ? '발송완료' : '의뢰전환'}</span></td>
+                    <td>
+                        <button class="btn-small" style="background: #667eea; color: white;" onclick="viewQuotePDF('${quote.id}')">PDF</button>
+                        <button class="btn-small" style="background: #10b981; color: white;" onclick="convertToRequest('${quote.id}')">의뢰전환</button>
+                        <button class="btn-small" style="background: #ef4444; color: white;" onclick="deleteQuote('${quote.id}')">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterQuotes(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderQuoteTable();
+        }
+
+        function deleteQuote(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            quotes = quotes.filter(q => q.id !== id);
+            localStorage.setItem('dasol_quotes', JSON.stringify(quotes));
+            renderQuoteTable();
+        }
+
+        function convertToRequest(id) {
+            if (!confirm('이 견적서를 의뢰서로 전환하시겠습니까?')) return;
+            const quote = quotes.find(q => q.id === id);
+            quote.status = 'converted';
+            localStorage.setItem('dasol_quotes', JSON.stringify(quotes));
+            sessionStorage.setItem('convertedQuote', JSON.stringify(quote));
+            window.location.href = 'request-register.html?fromQuote=true';
+        }
+
+        function viewQuotePDF(id) {
+            const quote = quotes.find(q => q.id === id);
+            generateQuotePDF(quote);
+        }
+
+        // ▼ 여기가 제가 새로 짠 미니멀 하이엔드 디자인입니다! ▼
+        function generateQuotePDF(quote) {
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>견적서 - ${quote.quoteNumber}</title>
+                    <style>
+                        @page { size: A4; margin: 20mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Pretendard', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+                            padding: 40px;
+                            color: #111827;
+                            line-height: 1.6;
+                        }
+                        
+                        .header-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; border-bottom: 2px solid #111827; padding-bottom: 20px; }
+                        .title { font-size: 38px; font-weight: 800; letter-spacing: 15px; margin-left: 15px; }
+                        .meta-info { text-align: right; font-size: 13px; color: #4b5563; }
+                        .meta-info div { margin-bottom: 4px; }
+                        .meta-info strong { color: #111827; display: inline-block; width: 60px; text-align: left; }
+
+                        .info-section { display: flex; justify-content: space-between; gap: 60px; margin-bottom: 50px; }
+                        .info-box { flex: 1; }
+                        .info-box h3 { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 20px; font-weight: 600; }
+                        .info-row { display: flex; margin-bottom: 10px; font-size: 14px; align-items: center; }
+                        .info-label { width: 80px; color: #6b7280; font-size: 13px; }
+                        .info-value { flex: 1; font-weight: 500; }
+                        .amount-highlight { font-size: 16px; font-weight: 700; color: #111827; margin-top: 10px; }
+
+                        /* 마법의 도장 셋팅 */
+                        .ceo-name-wrap { position: relative; display: inline-block; }
+                        .stamp-image {
+                            position: absolute;
+                            top: 50%;
+                            left: 100%;
+                            transform: translate(-30%, -50%);
+                            width: 55px;
+                            height: 55px;
+                            mix-blend-mode: multiply;
+                            opacity: 0.9;
+                            z-index: -1;
+                        }
+
+                        .statement { text-align: left; font-size: 15px; font-weight: 700; margin-bottom: 15px; color: #111827; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border-top: 2px solid #111827; border-bottom: 2px solid #111827; }
+                        th, td { padding: 16px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+                        th { background: #f9fafb; color: #4b5563; font-weight: 600; font-size: 13px; text-align: center; }
+                        td { text-align: center; }
+                        td.align-left { text-align: left; padding-left: 20px; }
+                        td.align-right { text-align: right; font-weight: 500; }
+
+                        .total-section { width: 350px; margin-left: auto; border-top: 1px solid #111827; padding-top: 20px; }
+                        .total-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: #4b5563; }
+                        .total-row.grand { font-size: 20px; font-weight: 800; color: #111827; border-top: 2px solid #111827; padding-top: 15px; margin-top: 5px; }
+
+                        .notes-area { margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 8px; font-size: 13px; color: #4b5563; }
+                        .footer { margin-top: 80px; padding-top: 30px; display: flex; align-items: center; justify-content: center; gap: 24px; }
+                        .footer-logo { width: 120px; object-fit: contain; }
+                        .footer-details { font-size: 13px; color: #6b7280; line-height: 1.8; border-left: 1px solid #e5e7eb; padding-left: 24px; }
+                        .footer-details strong { color: #111827; font-size: 15px; display: block; margin-bottom: 4px; }
+
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header-top">
+                        <div class="title">견 적 서</div>
+                        <div class="meta-info">
+                            <div><strong>문서번호</strong> ${quote.quoteNumber}</div>
+                            <div><strong>견적일자</strong> ${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</div>
+                            <div><strong>유효기간</strong> 견적일로부터 30일</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-box">
+                            <h3>수 신 (To)</h3>
+                            <div class="info-row"><div class="info-label">상 호</div><div class="info-value">${quote.clientName} 귀중</div></div>
+                            <div class="info-row"><div class="info-label">담당자</div><div class="info-value">${quote.clientContact || '-'}</div></div>
+                            <div class="info-row"><div class="info-label">연락처</div><div class="info-value">${quote.clientPhone || '-'}</div></div>
+                            <div class="amount-highlight">
+                                합계금액: ₩ ${quote.grandTotal.toLocaleString()} <br>
+                                <span style="font-size: 13px; color: #6b7280; font-weight: 500;">(일금 ${convertNumberToKorean(quote.grandTotal)}원정)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <h3>발 신 (From)</h3>
+                            <div class="info-row"><div class="info-label">상 호</div><div class="info-value">(주)다솔물환경연구소</div></div>
+                            <div class="info-row">
+                                <div class="info-label">대표이사</div>
+                                <div class="info-value">
+                                    <div class="ceo-name-wrap">
+                                        심태보
+                                        <img src="../assets/다솔물환경연구소 4각도장.png" class="stamp-image" alt="직인">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-row"><div class="info-label">등록번호</div><div class="info-value">214-88-95667</div></div>
+                            <div class="info-row"><div class="info-label">주 소</div><div class="info-value" style="font-size: 13px;">경기도 하남시 초광산단로 126, 우일빌딩 3층</div></div>
+                            <div class="info-row"><div class="info-label">결제계좌</div><div class="info-value">국민은행 220401-04-219973</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="statement">아래와 같이 견적합니다.</div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th width="8%">No.</th>
+                                <th width="15%">구분</th>
+                                <th>품명</th>
+                                <th width="15%">단가(원)</th>
+                                <th width="10%">수량</th>
+                                <th width="18%">금액(원)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${quote.items.map((item, index) => `
+                                <tr>
+                                    <td>${(index + 1).toString().padStart(2, '0')}</td>
+                                    <td>수질검사</td>
+                                    <td class="align-left" style="font-weight: 600;">${item.name}</td>
+                                    <td class="align-right">${item.price.toLocaleString()}</td>
+                                    <td>${item.quantity}</td>
+                                    <td class="align-right" style="font-weight: 700;">${item.amount.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="total-section">
+                        <div class="total-row"><span>공급가액</span><span>${quote.subtotal.toLocaleString()} 원</span></div>
+                        <div class="total-row"><span>부가세 (VAT)</span><span>${quote.vat.toLocaleString()} 원</span></div>
+                        <div class="total-row grand"><span>총 청구금액</span><span>${quote.grandTotal.toLocaleString()} 원</span></div>
+                    </div>
+                    
+                    ${quote.notes ? `<div class="notes-area"><strong style="color: #111827; display: block; margin-bottom: 8px;">※ 특이사항 및 비고</strong>${quote.notes.replace(/\\n/g, '<br>')}</div>` : ''}
+                    
+                    <div class="footer">
+                        <img src="../assets/다솔물환경연구소 로고.png" alt="다솔물환경연구소 로고" class="footer-logo" />
+                        <div class="footer-details">
+                            <strong>주식회사 다솔물환경연구소</strong>
+                            Tel. 031-772-4530 &nbsp;|&nbsp; Fax. 070-8677-0553<br>
+                            E-mail. dasolwater@example.com
+                        </div>
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 50px; text-align: center; padding: 20px; background: #f3f4f6; border-radius: 8px;">
+                        <button onclick="window.print()" style="padding: 12px 32px; background: #111827; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; margin-right: 12px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">인쇄 및 PDF 저장</button>
+                        <button onclick="window.close()" style="padding: 12px 32px; background: white; color: #4b5563; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: 600;">창 닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=900,height=950');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        function convertNumberToKorean(num) {
+            const units = ['', '만', '억', '조'];
+            const nums = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+            const positions = ['', '십', '백', '천'];
+            if (num === 0) return '영';
+            let result = '';
+            let unitIndex = 0;
+            while (num > 0) {
+                const part = num % 10000;
+                if (part > 0) {
+                    let partStr = '';
+                    let tempPart = part;
+                    let posIndex = 0;
+                    while (tempPart > 0) {
+                        const digit = tempPart % 10;
+                        if (digit > 0) {
+                            partStr = nums[digit] + positions[posIndex] + partStr;
+                        }
+                        tempPart = Math.floor(tempPart / 10);
+                        posIndex++;
+                    }
+                    result = partStr + units[unitIndex] + result;
+                }
+                num = Math.floor(num / 10000);
+                unitIndex++;
+            }
+            return result;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        init();
+    </script>
+</body>
+</html>
