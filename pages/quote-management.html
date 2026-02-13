@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>견적서 관리 - 다솔물환경연구소</title>
     <style>
-        /* 기존 대시보드 UI 스타일 (원래 코드 그대로) */
+        /* 기존 대시보드 UI 스타일 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: #f3f4f6; padding: 20px; }
         .header { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
@@ -28,6 +28,8 @@
         .status-sent { background: #dbeafe; color: #1e40af; }
         .status-converted { background: #d1fae5; color: #065f46; }
         .btn-small { padding: 6px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px; }
+        
+        /* 모달 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; }
         .modal.show { display: flex; }
         .modal-content { background: white; border-radius: 12px; padding: 32px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; }
@@ -381,7 +383,9 @@
             generateQuotePDF(quote);
         }
 
-        // ▼ 여기가 제가 새로 짠 미니멀 하이엔드 디자인입니다! ▼
+        // ==========================================
+        // ▼ 완벽하게 수정된 하이엔드 PDF 생성 로직 ▼
+        // ==========================================
         function generateQuotePDF(quote) {
             const html = `
                 <!DOCTYPE html>
@@ -399,51 +403,191 @@
                             line-height: 1.6;
                         }
                         
-                        .header-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; border-bottom: 2px solid #111827; padding-bottom: 20px; }
-                        .title { font-size: 38px; font-weight: 800; letter-spacing: 15px; margin-left: 15px; }
-                        .meta-info { text-align: right; font-size: 13px; color: #4b5563; }
-                        .meta-info div { margin-bottom: 4px; }
-                        .meta-info strong { color: #111827; display: inline-block; width: 60px; text-align: left; }
+                        /* 헤더 영역 */
+                        .header-top {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-end;
+                            margin-bottom: 40px;
+                            border-bottom: 2px solid #111827;
+                            padding-bottom: 20px;
+                        }
+                        .title {
+                            font-size: 42px; /* 타이틀 폰트 확대 */
+                            font-weight: 800;
+                            letter-spacing: 15px;
+                            margin-left: 10px;
+                        }
+                        /* 문서번호 등 왼쪽 칼정렬 및 크기 확대 */
+                        .meta-info {
+                            display: flex;
+                            flex-direction: column;
+                            font-size: 15px; /* 가독성 업 */
+                            color: #374151;
+                        }
+                        .meta-info div { 
+                            display: flex; 
+                            margin-bottom: 6px; 
+                        }
+                        .meta-info strong { 
+                            color: #111827; 
+                            width: 75px; /* 라벨 너비 고정으로 깔끔한 왼쪽 정렬 */
+                            text-align: left; 
+                        }
 
-                        .info-section { display: flex; justify-content: space-between; gap: 60px; margin-bottom: 50px; }
+                        /* 수신/발신 정보 영역 */
+                        .info-section {
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 50px;
+                            margin-bottom: 40px;
+                        }
                         .info-box { flex: 1; }
-                        .info-box h3 { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 20px; font-weight: 600; }
-                        .info-row { display: flex; margin-bottom: 10px; font-size: 14px; align-items: center; }
-                        .info-label { width: 80px; color: #6b7280; font-size: 13px; }
-                        .info-value { flex: 1; font-weight: 500; }
-                        .amount-highlight { font-size: 16px; font-weight: 700; color: #111827; margin-top: 10px; }
+                        .info-box h3 {
+                            font-size: 15px; 
+                            color: #4b5563;
+                            text-transform: uppercase;
+                            letter-spacing: 2px;
+                            border-bottom: 2px solid #e5e7eb;
+                            padding-bottom: 10px;
+                            margin-bottom: 15px;
+                            font-weight: 700;
+                        }
+                        .info-row {
+                            display: flex;
+                            margin-bottom: 12px;
+                            font-size: 15px; 
+                            align-items: center;
+                        }
+                        .info-label {
+                            width: 85px;
+                            color: #4b5563;
+                            font-size: 14px;
+                            font-weight: 600;
+                        }
+                        .info-value {
+                            flex: 1;
+                            font-weight: 600; /* 더 또렷하게 */
+                            color: #111827;
+                        }
+                        .amount-highlight {
+                            font-size: 18px; 
+                            font-weight: 800;
+                            color: #111827;
+                            margin-top: 15px;
+                            padding: 15px;
+                            background: #f9fafb;
+                            border-radius: 8px;
+                        }
 
-                        /* 마법의 도장 셋팅 */
-                        .ceo-name-wrap { position: relative; display: inline-block; }
+                        /* 마법의 도장 위치 세팅 */
+                        .ceo-name-wrap {
+                            position: relative;
+                            display: inline-block;
+                            padding-right: 10px;
+                        }
                         .stamp-image {
                             position: absolute;
                             top: 50%;
-                            left: 100%;
-                            transform: translate(-30%, -50%);
-                            width: 55px;
-                            height: 55px;
-                            mix-blend-mode: multiply;
+                            left: 100%; 
+                            transform: translate(-20%, -50%); 
+                            width: 65px; 
+                            height: 65px;
+                            mix-blend-mode: multiply; 
                             opacity: 0.9;
-                            z-index: -1;
+                            z-index: -1; 
                         }
 
-                        .statement { text-align: left; font-size: 15px; font-weight: 700; margin-bottom: 15px; color: #111827; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border-top: 2px solid #111827; border-bottom: 2px solid #111827; }
-                        th, td { padding: 16px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
-                        th { background: #f9fafb; color: #4b5563; font-weight: 600; font-size: 13px; text-align: center; }
-                        td { text-align: center; }
+                        /* 견적 테이블 */
+                        .statement {
+                            text-align: left;
+                            font-size: 16px; 
+                            font-weight: 800;
+                            margin-bottom: 15px;
+                            color: #111827;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 30px;
+                            border-top: 2px solid #111827;
+                            border-bottom: 2px solid #111827;
+                        }
+                        th, td {
+                            padding: 18px 12px; 
+                            border-bottom: 1px solid #e5e7eb;
+                            font-size: 15px; 
+                        }
+                        th {
+                            background: #f9fafb;
+                            color: #374151;
+                            font-weight: 700;
+                            font-size: 14px; 
+                            text-align: center;
+                        }
+                        td { text-align: center; color: #111827; }
                         td.align-left { text-align: left; padding-left: 20px; }
-                        td.align-right { text-align: right; font-weight: 500; }
+                        td.align-right { text-align: right; font-weight: 600; } 
 
-                        .total-section { width: 350px; margin-left: auto; border-top: 1px solid #111827; padding-top: 20px; }
-                        .total-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: #4b5563; }
-                        .total-row.grand { font-size: 20px; font-weight: 800; color: #111827; border-top: 2px solid #111827; padding-top: 15px; margin-top: 5px; }
+                        /* 합계 영역 */
+                        .total-section {
+                            width: 400px; 
+                            margin-left: auto;
+                            border-top: 2px solid #111827;
+                            padding-top: 20px;
+                        }
+                        .total-row {
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 16px; 
+                            margin-bottom: 12px;
+                            color: #374151;
+                            font-weight: 600;
+                        }
+                        .total-row.grand {
+                            font-size: 22px; 
+                            font-weight: 800;
+                            color: #111827;
+                            border-top: 2px solid #111827;
+                            padding-top: 15px;
+                            margin-top: 5px;
+                        }
 
-                        .notes-area { margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 8px; font-size: 13px; color: #4b5563; }
-                        .footer { margin-top: 80px; padding-top: 30px; display: flex; align-items: center; justify-content: center; gap: 24px; }
-                        .footer-logo { width: 120px; object-fit: contain; }
-                        .footer-details { font-size: 13px; color: #6b7280; line-height: 1.8; border-left: 1px solid #e5e7eb; padding-left: 24px; }
-                        .footer-details strong { color: #111827; font-size: 15px; display: block; margin-bottom: 4px; }
+                        /* 비고 및 푸터 영역 */
+                        .notes-area {
+                            margin-top: 40px;
+                            padding: 20px;
+                            background: #f9fafb;
+                            border-radius: 8px;
+                            font-size: 14px; 
+                            color: #374151;
+                            line-height: 1.8;
+                        }
+                        .footer {
+                            margin-top: 60px;
+                            padding-top: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 30px; 
+                        }
+                        .footer-logo {
+                            width: 140px; 
+                            object-fit: contain;
+                        }
+                        .footer-details {
+                            font-size: 14px; 
+                            color: #4b5563;
+                            line-height: 1.8;
+                            border-left: 2px solid #e5e7eb;
+                            padding-left: 30px;
+                        }
+                        .footer-details strong {
+                            color: #111827;
+                            font-size: 16px; 
+                            display: block;
+                            margin-bottom: 6px;
+                        }
 
                         @media print {
                             .no-print { display: none; }
@@ -455,9 +599,9 @@
                     <div class="header-top">
                         <div class="title">견 적 서</div>
                         <div class="meta-info">
-                            <div><strong>문서번호</strong> ${quote.quoteNumber}</div>
-                            <div><strong>견적일자</strong> ${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</div>
-                            <div><strong>유효기간</strong> 견적일로부터 30일</div>
+                            <div><strong>문서번호</strong> <span>${quote.quoteNumber}</span></div>
+                            <div><strong>견적일자</strong> <span>${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</span></div>
+                            <div><strong>유효기간</strong> <span>견적일로부터 30일</span></div>
                         </div>
                     </div>
                     
@@ -469,7 +613,7 @@
                             <div class="info-row"><div class="info-label">연락처</div><div class="info-value">${quote.clientPhone || '-'}</div></div>
                             <div class="amount-highlight">
                                 합계금액: ₩ ${quote.grandTotal.toLocaleString()} <br>
-                                <span style="font-size: 13px; color: #6b7280; font-weight: 500;">(일금 ${convertNumberToKorean(quote.grandTotal)}원정)</span>
+                                <span style="font-size: 15px; color: #4b5563; font-weight: 600; margin-top: 4px; display: inline-block;">(일금 ${convertNumberToKorean(quote.grandTotal)}원정)</span>
                             </div>
                         </div>
                         
@@ -481,12 +625,12 @@
                                 <div class="info-value">
                                     <div class="ceo-name-wrap">
                                         심태보
-                                        <img src="../assets/다솔물환경연구소 4각도장.png" class="stamp-image" alt="직인">
+                                        <img src="../assets/stamp.png" class="stamp-image" alt="직인">
                                     </div>
                                 </div>
                             </div>
                             <div class="info-row"><div class="info-label">등록번호</div><div class="info-value">214-88-95667</div></div>
-                            <div class="info-row"><div class="info-label">주 소</div><div class="info-value" style="font-size: 13px;">경기도 하남시 초광산단로 126, 우일빌딩 3층</div></div>
+                            <div class="info-row"><div class="info-label">주 소</div><div class="info-value" style="font-size: 14px;">경기도 하남시 초광산단로 126, 우일빌딩 3층</div></div>
                             <div class="info-row"><div class="info-label">결제계좌</div><div class="info-value">국민은행 220401-04-219973</div></div>
                         </div>
                     </div>
@@ -509,10 +653,10 @@
                                 <tr>
                                     <td>${(index + 1).toString().padStart(2, '0')}</td>
                                     <td>수질검사</td>
-                                    <td class="align-left" style="font-weight: 600;">${item.name}</td>
+                                    <td class="align-left" style="font-weight: 700;">${item.name}</td>
                                     <td class="align-right">${item.price.toLocaleString()}</td>
                                     <td>${item.quantity}</td>
-                                    <td class="align-right" style="font-weight: 700;">${item.amount.toLocaleString()}</td>
+                                    <td class="align-right" style="font-weight: 800; color: #111827;">${item.amount.toLocaleString()}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -524,10 +668,10 @@
                         <div class="total-row grand"><span>총 청구금액</span><span>${quote.grandTotal.toLocaleString()} 원</span></div>
                     </div>
                     
-                    ${quote.notes ? `<div class="notes-area"><strong style="color: #111827; display: block; margin-bottom: 8px;">※ 특이사항 및 비고</strong>${quote.notes.replace(/\\n/g, '<br>')}</div>` : ''}
+                    ${quote.notes ? `<div class="notes-area"><strong style="color: #111827; display: block; margin-bottom: 8px; font-size: 15px;">※ 특이사항 및 비고</strong>${quote.notes.replace(/\\n/g, '<br>')}</div>` : ''}
                     
                     <div class="footer">
-                        <img src="../assets/다솔물환경연구소 로고.png" alt="다솔물환경연구소 로고" class="footer-logo" />
+                        <img src="../assets/logo.png" alt="다솔물환경연구소 로고" class="footer-logo" />
                         <div class="footer-details">
                             <strong>주식회사 다솔물환경연구소</strong>
                             Tel. 031-772-4530 &nbsp;|&nbsp; Fax. 070-8677-0553<br>
