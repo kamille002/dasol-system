@@ -1,322 +1,247 @@
-function generateQuotePDF(quote) {
-            const html = `
-                <!DOCTYPE html>
-                <html lang="ko">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>견적서 - ${quote.quoteNumber}</title>
-                    <style>
-                        @page { size: A4; margin: 20mm; }
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body {
-                            font-family: 'Pretendard', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
-                            padding: 40px;
-                            color: #111827;
-                            line-height: 1.6;
-                        }
-                        
-                        /* 헤더 영역 */
-                        .header-top {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: flex-end;
-                            margin-bottom: 50px;
-                            border-bottom: 2px solid #111827;
-                            padding-bottom: 20px;
-                        }
-                        .title {
-                            font-size: 38px;
-                            font-weight: 800;
-                            letter-spacing: 15px;
-                            margin-left: 15px;
-                        }
-                        .meta-info {
-                            text-align: right;
-                            font-size: 13px;
-                            color: #4b5563;
-                        }
-                        .meta-info div { margin-bottom: 4px; }
-                        .meta-info strong { color: #111827; display: inline-block; width: 60px; text-align: left; }
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>견적서 관리 - 다솔물환경연구소</title>
+    <style>
+        /* 기존 대시보드 UI 스타일 (원래 코드 그대로) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: #f3f4f6; padding: 20px; }
+        .header { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; color: #111827; }
+        .header-actions { display: flex; gap: 12px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .content { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; }
+        .filter-section { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .filter-btn.active { background: #667eea; color: white; border-color: #667eea; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; font-weight: 600; color: #374151; }
+        tr:hover { background: #f9fafb; }
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .status-draft { background: #e5e7eb; color: #6b7280; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-converted { background: #d1fae5; color: #065f46; }
+        .btn-small { padding: 6px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 32px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h2 { font-size: 20px; font-weight: 700; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; }
+        .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
+        .items-section { margin: 24px 0; border: 2px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .item-row input { padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; }
+        .remove-item { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .total-section { background: #f9fafb; padding: 16px; border-radius: 8px; margin-top: 16px; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .total-row.grand-total { font-size: 18px; font-weight: 700; color: #667eea; border-top: 2px solid #e5e7eb; padding-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📄 견적서 관리</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openQuoteModal()">+ 견적서 작성</button>
+            <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../dashboard-tabs.html'">🏠 대시보드</button>
+        </div>
+    </div>
 
-                        /* 수신/발신 정보 영역 (미니멀 그리드) */
-                        .info-section {
-                            display: flex;
-                            justify-content: space-between;
-                            gap: 60px;
-                            margin-bottom: 50px;
-                        }
-                        .info-box { flex: 1; }
-                        .info-box h3 {
-                            font-size: 13px;
-                            color: #6b7280;
-                            text-transform: uppercase;
-                            letter-spacing: 2px;
-                            border-bottom: 1px solid #e5e7eb;
-                            padding-bottom: 10px;
-                            margin-bottom: 20px;
-                            font-weight: 600;
-                        }
-                        .info-row {
-                            display: flex;
-                            margin-bottom: 10px;
-                            font-size: 14px;
-                            align-items: center;
-                        }
-                        .info-label {
-                            width: 80px;
-                            color: #6b7280;
-                            font-size: 13px;
-                        }
-                        .info-value {
-                            flex: 1;
-                            font-weight: 500;
-                        }
-                        .amount-highlight {
-                            font-size: 16px;
-                            font-weight: 700;
-                            color: #111827;
-                            margin-top: 10px;
-                        }
+    <div class="content">
+        <div class="filter-section">
+            <button class="filter-btn active" onclick="filterQuotes('all')">전체</button>
+            <button class="filter-btn" onclick="filterQuotes('draft')">임시저장</button>
+            <button class="filter-btn" onclick="filterQuotes('sent')">발송완료</button>
+            <button class="filter-btn" onclick="filterQuotes('converted')">의뢰전환</button>
+        </div>
 
-                        /* 마법의 도장 위치 세팅 */
-                        .ceo-name-wrap {
-                            position: relative;
-                            display: inline-block;
-                        }
-                        .stamp-image {
-                            position: absolute;
-                            top: 50%;
-                            left: 100%; /* 이름 바로 오른쪽에 위치 */
-                            transform: translate(-30%, -50%); /* 이름과 살짝 겹치도록 이동 */
-                            width: 55px;
-                            height: 55px;
-                            mix-blend-mode: multiply; /* 하얀 배경을 날리고 잉크처럼 스며들게 함 */
-                            opacity: 0.9;
-                            z-index: -1; /* 텍스트 아래로 */
-                        }
+        <table id="quoteTable">
+            <thead>
+                <tr>
+                    <th>견적번호</th>
+                    <th>수신처</th>
+                    <th>작성일</th>
+                    <th>금액</th>
+                    <th>상태</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody id="quoteTableBody">
+                </tbody>
+        </table>
+    </div>
 
-                        /* 견적 테이블 (선 최소화) */
-                        .statement {
-                            text-align: left;
-                            font-size: 15px;
-                            font-weight: 700;
-                            margin-bottom: 15px;
-                            color: #111827;
-                        }
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 30px;
-                            border-top: 2px solid #111827;
-                            border-bottom: 2px solid #111827;
-                        }
-                        th, td {
-                            padding: 16px 12px;
-                            border-bottom: 1px solid #e5e7eb;
-                            font-size: 14px;
-                        }
-                        th {
-                            background: #f9fafb;
-                            color: #4b5563;
-                            font-weight: 600;
-                            font-size: 13px;
-                            text-align: center;
-                        }
-                        td { text-align: center; }
-                        td.align-left { text-align: left; padding-left: 20px; }
-                        td.align-right { text-align: right; font-weight: 500; }
+    <div id="quoteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>견적서 작성</h2>
+                <button class="close-btn" onclick="closeQuoteModal()">×</button>
+            </div>
 
-                        /* 합계 영역 */
-                        .total-section {
-                            width: 350px;
-                            margin-left: auto;
-                            border-top: 1px solid #111827;
-                            padding-top: 20px;
-                        }
-                        .total-row {
-                            display: flex;
-                            justify-content: space-between;
-                            font-size: 14px;
-                            margin-bottom: 12px;
-                            color: #4b5563;
-                        }
-                        .total-row.grand {
-                            font-size: 20px;
-                            font-weight: 800;
-                            color: #111827;
-                            border-top: 2px solid #111827;
-                            padding-top: 15px;
-                            margin-top: 5px;
-                        }
+            <form id="quoteForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>견적번호 (자동생성)</label>
+                        <input type="text" id="quoteNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>작성일</label>
+                        <input type="date" id="quoteDate" required>
+                    </div>
+                </div>
 
-                        /* 비고 및 푸터 영역 */
-                        .notes-area {
-                            margin-top: 40px;
-                            padding: 20px;
-                            background: #f9fafb;
-                            border-radius: 8px;
-                            font-size: 13px;
-                            color: #4b5563;
-                        }
-                        .footer {
-                            margin-top: 80px;
-                            padding-top: 30px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 24px;
-                        }
-                        .footer-logo {
-                            width: 120px;
-                            object-fit: contain;
-                        }
-                        .footer-details {
-                            font-size: 13px;
-                            color: #6b7280;
-                            line-height: 1.8;
-                            border-left: 1px solid #e5e7eb;
-                            padding-left: 24px;
-                        }
-                        .footer-details strong {
-                            color: #111827;
-                            font-size: 15px;
-                            display: block;
-                            margin-bottom: 4px;
-                        }
+                <h3 style="margin: 24px 0 16px 0; font-size: 16px;">수신처 정보</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>수신처명 *</label>
+                        <input type="text" id="clientName" placeholder="(주)도서출판보리" required>
+                    </div>
+                    <div class="form-group">
+                        <label>담당자</label>
+                        <input type="text" id="clientContact" placeholder="홍길동">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>전화번호</label>
+                        <input type="text" id="clientPhone" placeholder="031-950-9511">
+                    </div>
+                    <div class="form-group">
+                        <label>이메일</label>
+                        <input type="email" id="clientEmail" placeholder="client@example.com">
+                    </div>
+                </div>
 
-                        @media print {
-                            .no-print { display: none; }
-                            body { padding: 0; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header-top">
-                        <div class="title">견 적 서</div>
-                        <div class="meta-info">
-                            <div><strong>문서번호</strong> ${quote.quoteNumber}</div>
-                            <div><strong>견적일자</strong> ${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</div>
-                            <div><strong>유효기간</strong> 견적일로부터 30일</div>
+                <h3 style="margin: 24px 0 16px 0; font-size: 16px;">견적 내역</h3>
+                <div class="items-section">
+                    <div id="itemsContainer">
+                        <div class="item-row">
+                            <input type="text" placeholder="품명 (예: 수질검사 생활용수20항목)" class="item-name" required>
+                            <input type="number" placeholder="단가" class="item-price" min="0" onchange="calculateTotal()" required>
+                            <input type="number" placeholder="수량" class="item-quantity" min="1" value="1" onchange="calculateTotal()" required>
+                            <input type="number" placeholder="금액" class="item-amount" readonly>
+                            <button type="button" class="remove-item" onclick="removeItem(this)" style="display: none;">삭제</button>
                         </div>
                     </div>
-                    
-                    <div class="info-section">
-                        <div class="info-box">
-                            <h3>수 신 (To)</h3>
-                            <div class="info-row">
-                                <div class="info-label">상 호</div>
-                                <div class="info-value">${quote.clientName} 귀중</div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">담당자</div>
-                                <div class="info-value">${quote.clientContact || '-'}</div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">연락처</div>
-                                <div class="info-value">${quote.clientPhone || '-'}</div>
-                            </div>
-                            <div class="amount-highlight">
-                                합계금액: ₩ ${quote.grandTotal.toLocaleString()} <br>
-                                <span style="font-size: 13px; color: #6b7280; font-weight: 500;">(일금 ${convertNumberToKorean(quote.grandTotal)}원정)</span>
-                            </div>
-                        </div>
-                        
-                        <div class="info-box">
-                            <h3>발 신 (From)</h3>
-                            <div class="info-row">
-                                <div class="info-label">상 호</div>
-                                <div class="info-value">(주)다솔물환경연구소</div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">대표이사</div>
-                                <div class="info-value">
-                                    <div class="ceo-name-wrap">
-                                        심태보
-                                        <img src="../assets/다솔물환경연구소 4각도장.png" class="stamp-image" alt="직인">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">등록번호</div>
-                                <div class="info-value">214-88-95667</div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">주 소</div>
-                                <div class="info-value" style="font-size: 13px;">경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">결제계좌</div>
-                                <div class="info-value">국민은행 220401-04-219973</div>
-                            </div>
-                        </div>
+                    <button type="button" class="btn btn-success" onclick="addItem()" style="margin-top: 8px;">+ 항목 추가</button>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-row">
+                        <span>금액:</span>
+                        <span id="subtotal">0원</span>
                     </div>
-                    
-                    <div class="statement">아래와 같이 견적합니다.</div>
-                    
-                    <table>
-                        <thead>
-                            <tr>
-                                <th width="8%">No.</th>
-                                <th width="15%">구분</th>
-                                <th>품명</th>
-                                <th width="15%">단가(원)</th>
-                                <th width="10%">수량</th>
-                                <th width="18%">금액(원)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${quote.items.map((item, index) => `
-                                <tr>
-                                    <td>${(index + 1).toString().padStart(2, '0')}</td>
-                                    <td>수질검사</td>
-                                    <td class="align-left" style="font-weight: 600;">${item.name}</td>
-                                    <td class="align-right">${item.price.toLocaleString()}</td>
-                                    <td>${item.quantity}</td>
-                                    <td class="align-right" style="font-weight: 700;">${item.amount.toLocaleString()}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    
-                    <div class="total-section">
-                        <div class="total-row">
-                            <span>공급가액</span>
-                            <span>${quote.subtotal.toLocaleString()} 원</span>
-                        </div>
-                        <div class="total-row">
-                            <span>부가세 (VAT)</span>
-                            <span>${quote.vat.toLocaleString()} 원</span>
-                        </div>
-                        <div class="total-row grand">
-                            <span>총 청구금액</span>
-                            <span>${quote.grandTotal.toLocaleString()} 원</span>
-                        </div>
+                    <div class="total-row">
+                        <span>부가세 (10%):</span>
+                        <span id="vat">0원</span>
                     </div>
-                    
-                    ${quote.notes ? `
-                    <div class="notes-area">
-                        <strong style="color: #111827; display: block; margin-bottom: 8px;">※ 특이사항 및 비고</strong>
-                        ${quote.notes.replace(/\\n/g, '<br>')}
-                    </div>` : ''}
-                    
-                    <div class="footer">
-                        <img src="../assets/다솔물환경연구소 로고.png" alt="다솔물환경연구소 로고" class="footer-logo" />
-                        <div class="footer-details">
-                            <strong>주식회사 다솔물환경연구소</strong>
-                            Tel. 031-772-4530 &nbsp;|&nbsp; Fax. 070-8677-0553<br>
-                            E-mail. dasolwater@example.com
-                        </div>
+                    <div class="total-row grand-total">
+                        <span>합계:</span>
+                        <span id="grandTotal">0원</span>
                     </div>
-                    
-                    <div class="no-print" style="margin-top: 50px; text-align: center; padding: 20px; background: #f3f4f6; border-radius: 8px;">
-                        <button onclick="window.print()" style="padding: 12px 32px; background: #111827; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; margin-right: 12px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">인쇄 및 PDF 저장</button>
-                        <button onclick="window.close()" style="padding: 12px 32px; background: white; color: #4b5563; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: 600;">창 닫기</button>
-                    </div>
-                </body>
-                </html>
-            `;
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>비고</label>
+                    <textarea id="notes" rows="3" placeholder="특이사항 입력"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="saveQuote('draft')" style="flex: 1;">임시저장</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">저장 & PDF 생성</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let quotes = [];
+        let currentFilter = 'all';
+        let editMode = false;
+        let editId = null;
+
+        function init() {
+            quotes = JSON.parse(localStorage.getItem('dasol_quotes') || '[]');
+            renderQuoteTable();
             
-            const printWindow = window.open('', '_blank', 'width=900,height=950');
-            printWindow.document.write(html);
-            printWindow.document.close();
+            document.getElementById('quoteDate').value = new Date().toISOString().split('T')[0];
+            generateQuoteNumber();
+
+            document.getElementById('quoteForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveQuote('sent');
+            });
         }
+
+        function generateQuoteNumber() {
+            const today = new Date();
+            const year = today.getFullYear().toString().slice(2);
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const existingQuotes = quotes.filter(q => q.quoteNumber && q.quoteNumber.startsWith(`견적${year}${month}`));
+            const sequence = String(existingQuotes.length + 1).padStart(4, '0');
+            document.getElementById('quoteNumber').value = `견적${year}${month}-${sequence}`;
+        }
+
+        function openQuoteModal() {
+            editMode = false;
+            editId = null;
+            document.getElementById('quoteModal').classList.add('show');
+            document.getElementById('quoteForm').reset();
+            generateQuoteNumber();
+            document.getElementById('quoteDate').value = new Date().toISOString().split('T')[0];
+            
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = `
+                <div class="item-row">
+                    <input type="text" placeholder="품명 (예: 수질검사 생활용수20항목)" class="item-name" required>
+                    <input type="number" placeholder="단가" class="item-price" min="0" onchange="calculateTotal()" required>
+                    <input type="number" placeholder="수량" class="item-quantity" min="1" value="1" onchange="calculateTotal()" required>
+                    <input type="number" placeholder="금액" class="item-amount" readonly>
+                    <button type="button" class="remove-item" onclick="removeItem(this)" style="display: none;">삭제</button>
+                </div>
+            `;
+            calculateTotal();
+        }
+
+        function closeQuoteModal() {
+            document.getElementById('quoteModal').classList.remove('show');
+        }
+
+        function addItem() {
+            const container = document.getElementById('itemsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="품명" class="item-name" required>
+                <input type="number" placeholder="단가" class="item-price" min="0" onchange="calculateTotal()" required>
+                <input type="number" placeholder="수량" class="item-quantity" min="1" value="1" onchange="calculateTotal()" required>
+                <input type="number" placeholder="금액" class="item-amount" readonly>
+                <button type="button" class="remove-item" onclick="removeItem(this)">삭제</button>
+            `;
+            container.appendChild(newRow);
+            updateRemoveButtons();
+        }
+
+        function removeItem(btn) {
+            btn.closest('.item-row').remove();
+            calculateTotal();
+            updateRemoveButtons();
+        }
+
+        function updateRemoveButtons() {
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach((row, index) => {
+                const removeBtn = row.querySelector('.remove-item');
+                if (rows.length === 1) {
+                    removeBtn.style.display = 'none';
+                } else {
