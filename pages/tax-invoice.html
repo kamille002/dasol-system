@@ -491,7 +491,7 @@
         };
 
         window.addEventListener('load', () => {
-            currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || 'null');
+            currentUser = JSON.parse(localStorage.getItem('dasol_session') || 'null');
             if (!currentUser) {
                 alert('⚠️ 로그인이 필요합니다!');
                 window.location.href = '../index.html';

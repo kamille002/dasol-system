@@ -1,5 +1,5 @@
 // 다솔물환경연구소 통합시스템 Service Worker
-const CACHE_NAME = 'dasol-system-v1.8.0'; // 2026-02-13: 게시판 확장 + 자동 업데이트 알림!
+const CACHE_NAME = 'dasol-system-v1.8.4'; // 2026-02-13: 메인 대시보드 출퇴근 + 로그인 안정화!
 const RUNTIME_CACHE = 'dasol-runtime';
 
 // 오프라인에서도 반드시 동작해야 하는 핵심 파일들

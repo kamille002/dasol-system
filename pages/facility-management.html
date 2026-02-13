@@ -480,7 +480,7 @@
 
         // 접근 권한 체크
         function checkAccess() {
-            currentUser = JSON.parse(localStorage.getItem('dasol_current_user') || 'null');
+            currentUser = JSON.parse(localStorage.getItem('dasol_session') || 'null');
             
             if (!currentUser) {
                 alert('⚠️ 로그인이 필요합니다!');

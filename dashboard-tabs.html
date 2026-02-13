@@ -400,6 +400,80 @@
             color: #1e40af;
         }
 
+        /* 출퇴근 섹션 */
+        .attendance-section {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .attendance-time {
+            flex: 1;
+        }
+
+        .attendance-time h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .current-time {
+            font-size: 32px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .attendance-status {
+            font-size: 14px;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        .attendance-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .check-btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        .check-in-btn {
+            background: white;
+            color: #10b981;
+        }
+
+        .check-in-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+        }
+
+        .check-out-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .check-out-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* 반응형 */
         @media (max-width: 768px) {
             .grid-4 {
@@ -417,6 +491,21 @@
             .tab-btn {
                 padding: 10px 16px;
                 font-size: 14px;
+            }
+
+            .attendance-section {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .attendance-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .check-btn {
+                flex: 1;
             }
         }
     </style>
@@ -437,6 +526,23 @@
         </div>
     </div>
 
+    <!-- 출퇴근 섹션 -->
+    <div class="attendance-section">
+        <div class="attendance-time">
+            <h2>📍 오늘의 근무</h2>
+            <div class="current-time" id="currentTime">00:00:00</div>
+            <div class="attendance-status" id="attendanceStatus">출근 전입니다</div>
+        </div>
+        <div class="attendance-buttons">
+            <button class="check-btn check-in-btn" id="checkInBtn" onclick="checkIn()">
+                🟢 출근하기
+            </button>
+            <button class="check-btn check-out-btn" id="checkOutBtn" onclick="checkOut()" disabled>
+                🔴 퇴근하기
+            </button>
+        </div>
+    </div>
+
     <!-- 컨테이너 -->
     <div class="container">
         <!-- 탭 네비게이션 -->
@@ -445,11 +551,6 @@
             <button class="tab-btn" onclick="switchTab('board')">📢 게시판</button>
             <button class="tab-btn" onclick="switchTab('work')">💼 내 업무</button>
             <button class="tab-btn" onclick="switchTab('stats')">📊 통계</button>
-            
-            <!-- 직원 근태관리 버튼 (우측 배치) -->
-            <button class="attendance-btn" onclick="window.location.href='pages/attendance-management.html'">
-                📋 직원 근태관리
-            </button>
         </div>
 
         <!-- 홈 탭 -->
@@ -553,24 +654,24 @@
                 <h2>🏢 부서별 바로가기</h2>
                 <div class="grid-4" style="margin-top: 15px; gap: 15px;">
                     <button onclick="window.location.href='pages/admin-team.html'" 
-                            style="padding: 40px 20px; font-size: 16px; font-weight: 700; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                        <div style="font-size: 48px;">💼</div>
-                        <div>총무행정 파트</div>
+                            style="padding: 20px 15px; font-size: 15px; font-weight: 700; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                        <div style="font-size: 36px;">💼</div>
+                        <div>총무행정</div>
                     </button>
                     <button onclick="window.location.href='pages/sales-team.html'"
-                            style="padding: 40px 20px; font-size: 16px; font-weight: 700; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
-                        <div style="font-size: 48px;">📊</div>
-                        <div>영업팀</div>
+                            style="padding: 20px 15px; font-size: 15px; font-weight: 700; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                        <div style="font-size: 36px;">📊</div>
+                        <div>영업</div>
                     </button>
                     <button onclick="window.location.href='pages/monitoring-team.html'"
-                            style="padding: 40px 20px; font-size: 16px; font-weight: 700; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
-                        <div style="font-size: 48px;">🏭</div>
-                        <div>수질자가측정 파트</div>
+                            style="padding: 20px 15px; font-size: 15px; font-weight: 700; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+                        <div style="font-size: 36px;">🏭</div>
+                        <div>수질자가측정</div>
                     </button>
                     <button onclick="window.location.href='pages/drinking-water-team.html'"
-                            style="padding: 40px 20px; font-size: 16px; font-weight: 700; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);">
-                        <div style="font-size: 48px;">💧</div>
-                        <div>먹는물 수질검사 파트</div>
+                            style="padding: 20px 15px; font-size: 15px; font-weight: 700; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);">
+                        <div style="font-size: 36px;">💧</div>
+                        <div>먹는물 수질검사</div>
                     </button>
                 </div>
             </div>
@@ -738,14 +839,28 @@
             
             if (!session) {
                 console.error('세션이 없습니다.');
-                alert('로그인이 필요합니다.');
-                window.location.href = 'index.html';
+                // 즉시 리다이렉트하지 않고 5초 대기 (캐시 로딩 시간 고려)
+                setTimeout(() => {
+                    const sessionRetry = localStorage.getItem('dasol_session');
+                    if (!sessionRetry) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = 'index.html';
+                    } else {
+                        // 재시도 성공
+                        checkSession();
+                    }
+                }, 1000);
                 return false;
             }
 
             try {
                 currentUser = JSON.parse(session);
                 console.log('파싱된 currentUser:', currentUser);
+                
+                // 필수 정보 확인
+                if (!currentUser.id || !currentUser.email) {
+                    throw new Error('필수 사용자 정보 누락');
+                }
             } catch (error) {
                 console.error('세션 파싱 에러:', error);
                 alert('세션 데이터가 손상되었습니다. 다시 로그인해주세요.');
@@ -754,7 +869,7 @@
                 return false;
             }
             
-            // 세션 유효성 검사 (24시간)
+            // 세션 유효성 검사 (24시간) - 선택적
             if (currentUser.loginAt) {
                 const sessionTime = new Date(currentUser.loginAt).getTime();
                 const now = new Date().getTime();
@@ -959,7 +1074,7 @@
                 }
                 
                 html += `
-                    <div style="padding: 10px; border-radius: 8px; background: ${bgColor}; text-align: center; min-height: 60px; display: flex; flex-direction: column; gap: 4px; ${vacationData ? 'cursor: pointer;' : ''}" ${vacationData ? `onclick="showVacationDetail('${dateStr}')"` : ''}>
+                    <div style="padding: 12px; border-radius: 8px; background: ${bgColor}; text-align: center; min-height: 80px; display: flex; flex-direction: column; gap: 4px; ${vacationData ? 'cursor: pointer;' : ''}" ${vacationData ? `onclick="showVacationDetail('${dateStr}')"` : ''}>
                         <div style="font-weight: 600; color: ${textColor};">${day}</div>
                         ${event ? `<div style="font-size: 10px; color: ${textColor}; font-weight: 600;">${event.text}</div>` : ''}
                         ${vacationData ? `<div style="font-size: 11px; color: ${textColor}; font-weight: 600;">🏖️ 휴가자 ${vacationData.employees.length}명</div>` : ''}
@@ -1101,6 +1216,192 @@
                 }, 2000);
             }
         });
+
+        // ==================== 출퇴근 관리 ====================
+        
+        // 실시간 시계
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // 오늘 출퇴근 기록 확인
+        function checkTodayAttendance() {
+            // localStorage에서 직접 세션 확인
+            const session = localStorage.getItem('dasol_session');
+            if (!session) {
+                return;
+            }
+            
+            let user;
+            try {
+                user = JSON.parse(session);
+            } catch (error) {
+                console.error('세션 파싱 에러:', error);
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            const attendances = JSON.parse(localStorage.getItem('dasol_attendance') || '[]');
+            const todayRecord = attendances.find(a => 
+                a.userId === user.id && a.date === today
+            );
+
+            const checkInBtn = document.getElementById('checkInBtn');
+            const checkOutBtn = document.getElementById('checkOutBtn');
+            const statusDiv = document.getElementById('attendanceStatus');
+
+            if (todayRecord) {
+                if (todayRecord.checkOut) {
+                    // 이미 퇴근함
+                    statusDiv.textContent = `✅ 퇴근 완료 (출근: ${todayRecord.checkIn}, 퇴근: ${todayRecord.checkOut})`;
+                    checkInBtn.disabled = true;
+                    checkOutBtn.disabled = true;
+                    checkInBtn.textContent = '✅ 출근 완료';
+                    checkOutBtn.textContent = '✅ 퇴근 완료';
+                } else {
+                    // 출근만 함
+                    statusDiv.textContent = `✅ 출근 완료 (${todayRecord.checkIn})`;
+                    checkInBtn.disabled = true;
+                    checkOutBtn.disabled = false;
+                    checkInBtn.textContent = '✅ 출근 완료';
+                }
+            }
+        }
+
+        // 출근하기
+        function checkIn() {
+            // localStorage에서 직접 세션 확인
+            const session = localStorage.getItem('dasol_session');
+            if (!session) {
+                alert('⚠️ 로그인이 필요합니다!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            let user;
+            try {
+                user = JSON.parse(session);
+            } catch (error) {
+                console.error('세션 파싱 에러:', error);
+                alert('⚠️ 세션 데이터가 손상되었습니다. 다시 로그인해주세요.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            // 지각 체크 (09:00 이후)
+            const isLate = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 0);
+            
+            const attendances = JSON.parse(localStorage.getItem('dasol_attendance') || '[]');
+            
+            const attendance = {
+                id: `ATT-${Date.now()}`,
+                userId: user.id,
+                userName: user.name,
+                userTeam: user.team,
+                date: today,
+                checkIn: time,
+                checkOut: null,
+                status: isLate ? 'late' : 'present',
+                createdAt: new Date().toISOString()
+            };
+            
+            attendances.push(attendance);
+            localStorage.setItem('dasol_attendance', JSON.stringify(attendances));
+            
+            // 달력 동기화
+            syncAttendanceCalendar();
+            
+            alert(`✅ 출근 완료!\n시간: ${time}${isLate ? '\n⚠️ 지각 처리되었습니다.' : ''}`);
+            checkTodayAttendance();
+        }
+
+        // 퇴근하기
+        function checkOut() {
+            // localStorage에서 직접 세션 확인
+            const session = localStorage.getItem('dasol_session');
+            if (!session) {
+                alert('⚠️ 로그인이 필요합니다!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            let user;
+            try {
+                user = JSON.parse(session);
+            } catch (error) {
+                console.error('세션 파싱 에러:', error);
+                alert('⚠️ 세션 데이터가 손상되었습니다. 다시 로그인해주세요.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const attendances = JSON.parse(localStorage.getItem('dasol_attendance') || '[]');
+            const todayRecord = attendances.find(a => 
+                a.userId === user.id && a.date === today && !a.checkOut
+            );
+            
+            if (todayRecord) {
+                todayRecord.checkOut = time;
+                localStorage.setItem('dasol_attendance', JSON.stringify(attendances));
+                
+                alert(`✅ 퇴근 완료!\n시간: ${time}\n수고하셨습니다!`);
+                checkTodayAttendance();
+            } else {
+                alert('⚠️ 출근 기록이 없습니다!');
+            }
+        }
+
+        // 달력 동기화 (휴가 등)
+        function syncAttendanceCalendar() {
+            const vacations = JSON.parse(localStorage.getItem('dasol_vacations') || '[]');
+            const approvedVacations = vacations.filter(v => v.status === 'approved');
+            
+            const calendarData = [];
+            
+            approvedVacations.forEach(vacation => {
+                const start = new Date(vacation.startDate);
+                const end = new Date(vacation.endDate);
+                
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const dateStr = d.toISOString().split('T')[0];
+                    
+                    let existing = calendarData.find(c => c.date === dateStr);
+                    if (!existing) {
+                        existing = { date: dateStr, type: 'vacation', employees: [] };
+                        calendarData.push(existing);
+                    }
+                    
+                    existing.employees.push({
+                        id: vacation.userId,
+                        name: vacation.userName,
+                        team: vacation.userTeam,
+                        vacationType: vacation.type,
+                        duration: vacation.type.includes('반차') ? '반차' : '전일',
+                        reason: vacation.reason,
+                        status: 'approved'
+                    });
+                }
+            });
+            
+            localStorage.setItem('dasol_attendance_calendar', JSON.stringify(calendarData));
+        }
+
+        // 페이지 로드 시 시계 시작 및 출퇴근 확인
+        updateClock();
+        setInterval(updateClock, 1000);
+        checkTodayAttendance();
     </script>
 </body>
 </html>
