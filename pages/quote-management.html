@@ -6,7 +6,7 @@
     <title>견적서 관리 - 다솔물환경연구소</title>
     <style>
         /* =========================================
-           1. 기존 관리자 페이지 UI (건드리지 않음)
+           1. 기존 관리자 페이지 UI
            ========================================= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: #f3f4f6; padding: 20px; }
@@ -32,7 +32,7 @@
         .status-converted { background: #d1fae5; color: #065f46; }
         .btn-small { padding: 6px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px; }
 
-        /* 모달 스타일 생략 (기존과 동일) */
+        /* 모달 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; }
         .modal.show { display: flex; }
         .modal-content { background: white; border-radius: 12px; padding: 32px; max-width: 900px; width: 90%; }
@@ -120,45 +120,49 @@
                         @page { size: A4; margin: 0; }
                         body { 
                             margin: 0; padding: 0; 
-                            width: 210mm; height: 297mm; /* A4 정사이즈 */
-                            background-image: url('../assets/background.png'); /* 배경 이미지 로드 */
-                            background-size: 100% 100%;
-                            background-repeat: no-repeat;
+                            width: 210mm; height: 297mm;
                             font-family: 'Pretendard', sans-serif;
-                            position: relative; /* 절대 위치 기준점 */
+                            position: relative;
                             color: #111827;
-                            -webkit-print-color-adjust: exact;
+                        }
+
+                        /* ✅ 배경 이미지를 CSS가 아닌 <img> 태그로 배치 (인쇄 오류 방지) */
+                        .bg-img {
+                            position: absolute;
+                            top: 0; left: 0;
+                            width: 100%; height: 100%;
+                            z-index: -1; /* 글자보다 뒤로 */
+                            object-fit: fill;
                         }
                         
-                        /* 1. 데이터 오버레이 (위치 잡기) */
-                        /* 배경 그림 위에 글자만 얹습니다. 라벨(제목)은 배경에 있으니 생략! */
+                        /* === 데이터 위치 잡기 === */
                         
-                        /* 우상단 헤더 정보 */
+                        /* 1. 우상단 헤더 정보 */
                         .header-data {
                             position: absolute;
-                            top: 60px; right: 75px; /* 배경 위치에 맞춰 조정 필요 */
+                            top: 60px; right: 75px; 
                             text-align: right;
                             font-size: 14px;
                             line-height: 1.8;
                         }
 
-                        /* 수신처 정보 (좌측 상단 박스) */
+                        /* 2. 수신처 정보 */
                         .client-data {
                             position: absolute;
-                            top: 220px; left: 160px; /* 라벨 옆으로 위치 이동 */
+                            top: 220px; left: 160px; 
                             font-size: 14px;
                             font-weight: 600;
-                            line-height: 2.15; /* 줄 간격 배경과 맞춤 */
+                            line-height: 2.15; 
                         }
 
-                        /* 합계 금액 (수신처 박스 하단) */
+                        /* 3. 합계 금액 */
                         .total-amount {
                             position: absolute;
-                            top: 365px; left: 100px; /* 위치 조정 */
+                            top: 365px; left: 100px; 
                             font-size: 18px; font-weight: 800; color: #111827;
                         }
 
-                        /* 품목 테이블 (투명 테이블) */
+                        /* 4. 품목 테이블 (투명 테이블) */
                         .table-container {
                             position: absolute;
                             top: 515px; left: 75px;
@@ -166,16 +170,16 @@
                         }
                         table { width: 100%; border-collapse: collapse; }
                         td { 
-                            height: 40px; /* 배경 줄 간격과 동일하게 설정 */
+                            height: 40px; 
                             text-align: center; 
                             font-size: 14px; 
-                            border: none; /* 선 없음 (배경에 이미 있음) */
+                            border: none; 
                             padding: 0 5px;
                         }
                         .col-name { text-align: left; padding-left: 10px; font-weight: 600; }
                         .col-money { text-align: right; padding-right: 10px; }
 
-                        /* 하단 합계 영역 */
+                        /* 5. 하단 소계/합계 데이터 */
                         .footer-total {
                             position: absolute;
                             top: 920px; right: 80px;
@@ -184,11 +188,10 @@
                             line-height: 1.8;
                         }
                         
-                        /* 2. 푸터 텍스트 (요청하신 부분!) */
-                        /* 로고 옆에 들어갈 텍스트를 여기서 직접 씁니다 */
+                        /* 6. 푸터 텍스트 (회사 정보) */
                         .footer-text {
                             position: absolute;
-                            bottom: 80px; /* 바닥에서 띄움 */
+                            bottom: 80px;
                             left: 0; width: 100%;
                             text-align: center;
                             font-size: 13px;
@@ -203,6 +206,8 @@
                     </style>
                 </head>
                 <body>
+                    <img src="../assets/background.png" class="bg-img" alt="배경서식">
+
                     <div class="header-data">
                         <div>${quote.quoteNumber}</div>
                         <div>${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</div>
@@ -258,7 +263,7 @@
             win.document.close();
         }
 
-        // --- (아래는 기존 로직과 동일합니다) ---
+        // --- (기존 로직 동일) ---
         let quotes = JSON.parse(localStorage.getItem('dasol_quotes') || '[]');
         
         function init() {
@@ -358,7 +363,7 @@
             document.getElementById('quoteNumber').value = `견적${y}${m}-${(quotes.length+1).toString().padStart(4,'0')}`;
         }
         
-        function filterQuotes(type) { renderTable(); } // 필터 기능은 생략됨 (전체조회)
+        function filterQuotes(type) { renderTable(); }
 
         init();
     </script>
