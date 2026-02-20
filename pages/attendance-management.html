@@ -458,6 +458,10 @@
                         <div class="stat-value" id="monthlyOvertime">0H</div>
                     </div>
                 </div>
+                
+                <button class="btn btn-primary" onclick="generateAttendanceReport()" style="margin-bottom: 20px; width: 100%;">
+                    📄 근태계 출력 (세무사 제출용)
+                </button>
 
                 <table>
                     <thead>
@@ -713,6 +717,48 @@
             // 지각 체크 (09:00 이후)
             const isLate = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 0);
             
+            // 영업팀이면 GPS 위치 수집
+            const isSalesTeam = currentUser.team && (currentUser.team.includes('영업') || currentUser.role === 'sales');
+            
+            if (isSalesTeam) {
+                // GPS 권한 요청
+                if (!navigator.geolocation) {
+                    alert('⚠️ 이 브라우저는 위치 서비스를 지원하지 않습니다.');
+                    return;
+                }
+                
+                const confirmGPS = confirm('📍 영업팀 출퇴근은 위치 정보를 기록합니다.\n위치 정보 수집에 동의하시겠습니까?');
+                if (!confirmGPS) {
+                    return;
+                }
+                
+                // 위치 정보 가져오기
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        processCheckIn(position.coords.latitude, position.coords.longitude, time, isLate);
+                    },
+                    (error) => {
+                        console.error('GPS 에러:', error);
+                        const retry = confirm('⚠️ 위치 정보를 가져올 수 없습니다.\n위치 없이 출근하시겠습니까?');
+                        if (retry) {
+                            processCheckIn(null, null, time, isLate);
+                        }
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                // 일반 직원은 위치 정보 없이 출근
+                processCheckIn(null, null, time, isLate);
+            }
+        }
+        
+        function processCheckIn(latitude, longitude, time, isLate) {
+            const today = new Date().toISOString().split('T')[0];
+            
             const attendance = {
                 id: `ATT-${Date.now()}`,
                 userId: currentUser.id,
@@ -725,11 +771,41 @@
                 createdAt: new Date().toISOString()
             };
             
+            // GPS 정보 추가 (영업팀만)
+            if (latitude && longitude) {
+                attendance.checkInLocation = {
+                    latitude: latitude,
+                    longitude: longitude,
+                    type: 'field',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 역지오코딩 시도 (비동기)
+                reverseGeocode(latitude, longitude).then(address => {
+                    attendance.checkInLocation.address = address;
+                    const index = attendances.findIndex(a => a.id === attendance.id);
+                    if (index !== -1) {
+                        attendances[index] = attendance;
+                        saveData();
+                    }
+                }).catch(err => {
+                    console.error('역지오코딩 실패:', err);
+                });
+            } else {
+                attendance.checkInLocation = {
+                    type: 'office'
+                };
+            }
+            
             attendances.push(attendance);
             saveData();
             checkTodayAttendance();
             
-            alert(`✅ 출근 완료!\n시간: ${time}${isLate ? '\n⚠️ 지각 처리되었습니다.' : ''}`);
+            const locationMsg = attendance.checkInLocation.type === 'field' 
+                ? '\n📍 외근 위치 기록됨' 
+                : '\n🏢 회사 출근';
+            
+            alert(`✅ 출근 완료!\n시간: ${time}${isLate ? '\n⚠️ 지각 처리되었습니다.' : ''}${locationMsg}`);
         }
 
         function checkOut() {
@@ -741,11 +817,112 @@
                 a.userId === currentUser.id && a.date === today && !a.checkOut
             );
             
-            if (todayRecord) {
-                todayRecord.checkOut = time;
-                saveData();
-                checkTodayAttendance();
-                alert(`✅ 퇴근 완료!\n시간: ${time}\n수고하셨습니다!`);
+            if (!todayRecord) {
+                alert('⚠️ 출근 기록이 없습니다!');
+                return;
+            }
+            
+            // 영업팀이면 GPS 위치 수집
+            const isSalesTeam = currentUser.team && (currentUser.team.includes('영업') || currentUser.role === 'sales');
+            
+            if (isSalesTeam) {
+                // GPS 권한 요청
+                if (!navigator.geolocation) {
+                    alert('⚠️ 이 브라우저는 위치 서비스를 지원하지 않습니다.');
+                    processCheckOut(todayRecord, null, null, time);
+                    return;
+                }
+                
+                // 위치 정보 가져오기
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        processCheckOut(todayRecord, position.coords.latitude, position.coords.longitude, time);
+                    },
+                    (error) => {
+                        console.error('GPS 에러:', error);
+                        processCheckOut(todayRecord, null, null, time);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                // 일반 직원은 위치 정보 없이 퇴근
+                processCheckOut(todayRecord, null, null, time);
+            }
+        }
+        
+        function processCheckOut(todayRecord, latitude, longitude, time) {
+            todayRecord.checkOut = time;
+            
+            // GPS 정보 추가 (영업팀만)
+            if (latitude && longitude) {
+                todayRecord.checkOutLocation = {
+                    latitude: latitude,
+                    longitude: longitude,
+                    type: 'field',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 역지오코딩 시도 (비동기)
+                reverseGeocode(latitude, longitude).then(address => {
+                    todayRecord.checkOutLocation.address = address;
+                    saveData();
+                }).catch(err => {
+                    console.error('역지오코딩 실패:', err);
+                });
+            } else if (!todayRecord.checkOutLocation) {
+                todayRecord.checkOutLocation = {
+                    type: 'office'
+                };
+            }
+            
+            saveData();
+            checkTodayAttendance();
+            
+            const locationMsg = todayRecord.checkOutLocation && todayRecord.checkOutLocation.type === 'field' 
+                ? '\n📍 외근 위치 기록됨' 
+                : '\n🏢 회사 퇴근';
+            
+            alert(`✅ 퇴근 완료!\n시간: ${time}\n수고하셨습니다!${locationMsg}`);
+        }
+        
+        // 역지오코딩 함수 (좌표 → 주소)
+        async function reverseGeocode(lat, lng) {
+            try {
+                // Nominatim API (OpenStreetMap) 사용 - 무료
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ko`,
+                    {
+                        headers: {
+                            'User-Agent': 'DasolWaterLab/1.0'
+                        }
+                    }
+                );
+                const data = await response.json();
+                
+                if (data && data.address) {
+                    const addr = data.address;
+                    let address = '';
+                    
+                    if (addr.city || addr.province) {
+                        address += (addr.city || addr.province) + ' ';
+                    }
+                    if (addr.suburb || addr.borough) {
+                        address += (addr.suburb || addr.borough) + ' ';
+                    }
+                    if (addr.neighbourhood || addr.quarter) {
+                        address += (addr.neighbourhood || addr.quarter);
+                    }
+                    
+                    return address.trim() || data.display_name;
+                }
+                return '위치 정보 없음';
+            } catch (error) {
+                console.error('역지오코딩 에러:', error);
+                return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
             }
         }
 
@@ -949,28 +1126,80 @@
             const present = myRecords.filter(a => a.checkIn).length;
             const late = myRecords.filter(a => a.status === 'late').length;
             
+            // 총 근무시간 계산
+            const totalHours = myRecords.reduce((sum, a) => {
+                if (a.checkIn && a.checkOut) {
+                    const hours = calculateWorkHours(a.checkIn, a.checkOut);
+                    return sum + hours;
+                }
+                return sum;
+            }, 0);
+            
             document.getElementById('monthlyPresent').textContent = present + '일';
             document.getElementById('monthlyLate').textContent = late + '회';
-            document.getElementById('monthlyHours').textContent = '0H'; // TODO: 계산
-            document.getElementById('monthlyOvertime').textContent = '0H'; // TODO: 계산
+            document.getElementById('monthlyHours').textContent = Math.round(totalHours) + 'H';
+            document.getElementById('monthlyOvertime').textContent = '0H'; // TODO: 초과근무 계산
             
             // 테이블
             const tbody = document.getElementById('monthlyRecordsTable');
             tbody.innerHTML = myRecords.sort((a, b) => 
                 new Date(b.date) - new Date(a.date)
-            ).map(a => `
+            ).map(a => {
+                const workHours = a.checkIn && a.checkOut ? calculateWorkHours(a.checkIn, a.checkOut) : 0;
+                const locationInfo = getLocationInfo(a);
+                
+                return `
                 <tr>
                     <td>${a.date}</td>
-                    <td>${a.checkIn || '-'}</td>
-                    <td>${a.checkOut || '-'}</td>
-                    <td>-</td>
+                    <td>${a.checkIn || '-'}${locationInfo.checkIn}</td>
+                    <td>${a.checkOut || '-'}${locationInfo.checkOut}</td>
+                    <td>${workHours > 0 ? workHours.toFixed(1) + 'H' : '-'}</td>
                     <td>
                         <span class="badge badge-${a.status === 'late' ? 'late' : 'present'}">
                             ${a.status === 'late' ? '지각' : '출근'}
                         </span>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
+        }
+        
+        // 근무시간 계산 함수
+        function calculateWorkHours(checkIn, checkOut) {
+            if (!checkIn || !checkOut) return 0;
+            
+            const [inHour, inMin] = checkIn.split(':').map(Number);
+            const [outHour, outMin] = checkOut.split(':').map(Number);
+            
+            const inMinutes = inHour * 60 + inMin;
+            const outMinutes = outHour * 60 + outMin;
+            
+            return (outMinutes - inMinutes) / 60;
+        }
+        
+        // 위치 정보 표시 함수
+        function getLocationInfo(attendance) {
+            let checkIn = '';
+            let checkOut = '';
+            
+            if (attendance.checkInLocation) {
+                if (attendance.checkInLocation.type === 'field') {
+                    const addr = attendance.checkInLocation.address || '외근';
+                    checkIn = `<br><small style="color: #3b82f6;">📍 ${addr}</small>`;
+                } else {
+                    checkIn = '<br><small style="color: #6b7280;">🏢 회사</small>';
+                }
+            }
+            
+            if (attendance.checkOutLocation) {
+                if (attendance.checkOutLocation.type === 'field') {
+                    const addr = attendance.checkOutLocation.address || '외근';
+                    checkOut = `<br><small style="color: #3b82f6;">📍 ${addr}</small>`;
+                } else {
+                    checkOut = '<br><small style="color: #6b7280;">🏢 회사</small>';
+                }
+            }
+            
+            return { checkIn, checkOut };
         }
 
         function renderPendingApprovals() {
@@ -1094,6 +1323,286 @@
             
             // 달력에 저장
             localStorage.setItem('dasol_attendance_calendar', JSON.stringify(calendarData));
+        }
+        
+        // 근태계 PDF 생성
+        function generateAttendanceReport() {
+            const month = document.getElementById('recordMonth').value;
+            if (!month) {
+                alert('⚠️ 월을 선택해주세요.');
+                return;
+            }
+            
+            const [year, monthNum] = month.split('-');
+            const monthName = `${year}년 ${parseInt(monthNum)}월`;
+            
+            // 해당 월의 근태 데이터 수집
+            const myRecords = attendances.filter(a => 
+                a.userId === currentUser.id && a.date.startsWith(month)
+            );
+            
+            // 휴가 데이터
+            const myVacations = vacations.filter(v => 
+                v.userId === currentUser.id && 
+                v.status === 'approved' &&
+                v.startDate.startsWith(month)
+            );
+            
+            // 통계 계산
+            const totalDays = myRecords.length;
+            const normalDays = myRecords.filter(a => a.status === 'present').length;
+            const lateDays = myRecords.filter(a => a.status === 'late').length;
+            const vacationDays = myVacations.reduce((sum, v) => sum + v.days, 0);
+            const totalHours = myRecords.reduce((sum, a) => {
+                if (a.checkIn && a.checkOut) {
+                    return sum + calculateWorkHours(a.checkIn, a.checkOut);
+                }
+                return sum;
+            }, 0);
+            
+            // 근태계 HTML 생성
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>근태계 - ${currentUser.name} (${monthName})</title>
+                    <style>
+                        @page { size: A4; margin: 20mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+                            padding: 30px;
+                            line-height: 1.6;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 32px;
+                            font-weight: 700;
+                            margin-bottom: 40px;
+                            padding-bottom: 15px;
+                            border-bottom: 4px double #000;
+                            letter-spacing: 8px;
+                        }
+                        .info-box {
+                            border: 2px solid #000;
+                            padding: 20px;
+                            margin-bottom: 30px;
+                        }
+                        .info-row {
+                            display: grid;
+                            grid-template-columns: 120px 1fr;
+                            margin-bottom: 12px;
+                            font-size: 14px;
+                        }
+                        .info-label {
+                            font-weight: 700;
+                            background: #f9f9f9;
+                            padding: 8px 12px;
+                            border-right: 2px solid #ddd;
+                        }
+                        .info-value {
+                            padding: 8px 12px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            border: 2px solid #000;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 10px;
+                            text-align: center;
+                            font-size: 13px;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .summary-box {
+                            border: 2px solid #000;
+                            padding: 20px;
+                            margin-top: 30px;
+                        }
+                        .summary-row {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 10px;
+                            font-size: 15px;
+                        }
+                        .summary-row.total {
+                            font-size: 18px;
+                            font-weight: 700;
+                            color: #667eea;
+                            border-top: 2px solid #000;
+                            padding-top: 15px;
+                            margin-top: 15px;
+                        }
+                        .footer {
+                            margin-top: 50px;
+                            text-align: center;
+                            padding-top: 30px;
+                            border-top: 2px solid #000;
+                        }
+                        .company-info {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 20px;
+                            margin-bottom: 15px;
+                        }
+                        .logo-container {
+                            width: 80px;
+                            height: 80px;
+                        }
+                        .logo-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .company-details {
+                            text-align: left;
+                            font-size: 13px;
+                            line-height: 1.8;
+                        }
+                        .company-name {
+                            font-size: 18px;
+                            font-weight: 700;
+                            margin-bottom: 5px;
+                        }
+                        .stamp-container {
+                            position: absolute;
+                            top: 50px;
+                            right: 50px;
+                            width: 100px;
+                            height: 100px;
+                        }
+                        .stamp-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="stamp-container">
+                        <img src="../assets/stamp.png" alt="사각도장" />
+                    </div>
+                    
+                    <div class="title">근 태 계</div>
+                    
+                    <div class="info-box">
+                        <div class="info-row">
+                            <div class="info-label">부 서</div>
+                            <div class="info-value">${currentUser.team || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">성 명</div>
+                            <div class="info-value">${currentUser.name}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">직 급</div>
+                            <div class="info-value">${currentUser.position || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">대상 기간</div>
+                            <div class="info-value">${monthName}</div>
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">날짜</th>
+                                <th style="width: 80px;">출근</th>
+                                <th style="width: 80px;">퇴근</th>
+                                <th style="width: 80px;">근무시간</th>
+                                <th style="width: 100px;">상태</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${myRecords.sort((a, b) => new Date(a.date) - new Date(b.date)).map(a => {
+                                const workHours = a.checkIn && a.checkOut ? calculateWorkHours(a.checkIn, a.checkOut) : 0;
+                                const vacation = myVacations.find(v => 
+                                    a.date >= v.startDate && a.date <= v.endDate
+                                );
+                                const locationInfo = getLocationInfo(a);
+                                
+                                return `
+                                <tr>
+                                    <td>${a.date}</td>
+                                    <td>${a.checkIn || '-'}</td>
+                                    <td>${a.checkOut || '-'}</td>
+                                    <td>${workHours > 0 ? workHours.toFixed(1) + 'H' : '-'}</td>
+                                    <td>${vacation ? '휴가' : (a.status === 'late' ? '지각' : '정상')}</td>
+                                    <td style="font-size: 11px;">${vacation ? vacation.type : (locationInfo.checkIn ? '외근' : '')}</td>
+                                </tr>
+                            `}).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="summary-box">
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">📊 월별 통계</h3>
+                        <div class="summary-row">
+                            <span>총 근무일</span>
+                            <strong>${totalDays}일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>정상 출근</span>
+                            <strong>${normalDays}일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>지각</span>
+                            <strong>${lateDays}일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>결근</span>
+                            <strong>0일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>연차 사용</span>
+                            <strong>${vacationDays}일</strong>
+                        </div>
+                        <div class="summary-row total">
+                            <span>총 근무시간</span>
+                            <strong>${Math.round(totalHours)}시간</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <div class="company-info">
+                            <div class="logo-container">
+                                <img src="../assets/logo.png" alt="다솔물환경연구소 로고" />
+                            </div>
+                            <div class="company-details">
+                                <div class="company-name">주식회사 다솔물환경연구소</div>
+                                <div>경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                <div>Tel. 031-772-4530 | Fax. 031-775-4539</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 13px; color: #6b7280;">
+                            작성일: ${new Date().toLocaleDateString('ko-KR')}
+                        </div>
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px; font-weight: 600;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // 새 창에서 열기
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
         }
     </script>
 </body>
