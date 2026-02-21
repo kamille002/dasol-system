@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직원 근태관리 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { font-size: 28px; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: white; color: #3b82f6; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+
+        .check-in-box {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .check-in-box h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            border: none;
+            color: white;
+        }
+
+        .time-display {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .check-in-btn {
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: 700;
+            background: white;
+            color: #10b981;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .check-in-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .check-in-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-present { background: #d1fae5; color: #065f46; }
+        .badge-absent { background: #fee2e2; color: #991b1b; }
+        .badge-late { background: #fef3c7; color: #92400e; }
+        .badge-vacation { background: #dbeafe; color: #1e40af; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: #e5e7eb;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .vacation-days {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .vacation-days-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 직원 근태관리</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
+                <button class="btn btn-primary" onclick="window.location.href='../dashboard-tabs.html'">🏠 대시보드</button>
+            </div>
+        </div>
+
+        <!-- 탭 메뉴 -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('checkin')">출퇴근</div>
+            <div class="tab" onclick="switchTab('vacation')">휴가 신청</div>
+            <div class="tab" onclick="switchTab('overtime')">초과근무</div>
+            <div class="tab" onclick="switchTab('records')">근무 기록</div>
+            <div class="tab" onclick="switchTab('approval')" id="approvalTab" style="display: none;">승인 관리</div>
+        </div>
+
+        <!-- 출퇴근 탭 -->
+        <div id="checkin-tab" class="tab-content active">
+            <div class="check-in-box">
+                <h2>📍 오늘의 근무</h2>
+                <div class="time-display" id="currentTime">00:00:00</div>
+                <div style="font-size: 18px; margin-bottom: 20px;" id="todayDate"></div>
+                
+                <div id="checkInStatus">
+                    <button class="check-in-btn" onclick="checkIn()">
+                        🟢 출근하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 오늘의 출근 현황 (관리자만) -->
+            <div class="card" id="todayAttendance" style="display: none;">
+                <h2>📊 오늘의 출근 현황</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">출근</div>
+                        <div class="stat-value" id="todayPresent">0명</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">미출근</div>
+                        <div class="stat-value" id="todayAbsent">0명</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">지각</div>
+                        <div class="stat-value" id="todayLate">0명</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">휴가</div>
+                        <div class="stat-value" id="todayVacation">0명</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>부서</th>
+                            <th>출근시간</th>
+                            <th>퇴근시간</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="todayAttendanceTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 휴가 신청 탭 -->
+        <div id="vacation-tab" class="tab-content">
+            <div class="card">
+                <h2>🏖️ 휴가 신청</h2>
+                
+                <div class="vacation-days">
+                    <h3 style="margin-bottom: 10px;">내 연차 현황</h3>
+                    <div class="vacation-days-row">
+                        <span>총 연차</span>
+                        <strong id="totalVacation">15일</strong>
+                    </div>
+                    <div class="vacation-days-row">
+                        <span>사용 연차</span>
+                        <strong id="usedVacation" style="color: #ef4444;">0일</strong>
+                    </div>
+                    <div class="vacation-days-row" style="font-size: 18px; font-weight: 700; color: #3b82f6; border-top: 2px solid #3b82f6; padding-top: 10px; margin-top: 10px;">
+                        <span>잔여 연차</span>
+                        <strong id="remainVacation">15일</strong>
+                    </div>
+                </div>
+
+                <button class="btn btn-success" onclick="openVacationModal()">+ 휴가 신청</button>
+            </div>
+
+            <div class="card">
+                <h2>📋 내 휴가 신청 내역</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>신청일</th>
+                            <th>휴가 종류</th>
+                            <th>기간</th>
+                            <th>일수</th>
+                            <th>사유</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myVacationsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 초과근무 탭 -->
+        <div id="overtime-tab" class="tab-content">
+            <div class="card">
+                <h2>⏰ 초과근무 신청</h2>
+                <button class="btn btn-success" onclick="openOvertimeModal()">+ 초과근무 신청</button>
+            </div>
+
+            <div class="card">
+                <h2>📋 내 초과근무 내역</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>신청일</th>
+                            <th>초과근무일</th>
+                            <th>시작시간</th>
+                            <th>종료시간</th>
+                            <th>총 시간</th>
+                            <th>사유</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myOvertimeTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 근무 기록 탭 -->
+        <div id="records-tab" class="tab-content">
+            <div class="card">
+                <h2>📅 월별 근무 기록</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <input type="month" id="recordMonth" onchange="loadMonthlyRecords()">
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-label">출근일수</div>
+                        <div class="stat-value" id="monthlyPresent">0일</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">지각</div>
+                        <div class="stat-value" id="monthlyLate">0회</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">총 근무시간</div>
+                        <div class="stat-value" id="monthlyHours">0H</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">초과근무</div>
+                        <div class="stat-value" id="monthlyOvertime">0H</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="generateAttendanceReport()" style="margin-bottom: 20px; width: 100%;">
+                    📄 근태계 출력 (세무사 제출용)
+                </button>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>출근시간</th>
+                            <th>퇴근시간</th>
+                            <th>근무시간</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyRecordsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 승인 관리 탭 (관리자 전용) -->
+        <div id="approval-tab" class="tab-content">
+            <div class="card">
+                <h2>📊 전체 직원 근태 관리</h2>
+                
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                    <input type="month" id="allEmployeeMonth" style="padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                    <button class="btn btn-primary" onclick="generateAllEmployeeReport()" style="padding: 12px 24px;">
+                        📄 전체 직원 근태표 출력 (세무사 제출용)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📝 승인 대기 목록</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>신청일</th>
+                            <th>구분</th>
+                            <th>신청자</th>
+                            <th>부서</th>
+                            <th>내용</th>
+                            <th>기간/시간</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingApprovalsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 휴가 신청 모달 -->
+    <div id="vacationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏖️ 휴가 신청</h2>
+                <button class="close-btn" onclick="closeVacationModal()">×</button>
+            </div>
+
+            <form id="vacationForm">
+                <div class="form-group">
+                    <label>휴가 종류 *</label>
+                    <select id="vacationType" required onchange="updateVacationDays()">
+                        <option value="">선택하세요</option>
+                        <option value="연차">연차</option>
+                        <option value="반차">반차 (오전)</option>
+                        <option value="반차오후">반차 (오후)</option>
+                        <option value="병가">병가</option>
+                        <option value="경조사">경조사</option>
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>시작일 *</label>
+                        <input type="date" id="vacationStart" required onchange="updateVacationDays()">
+                    </div>
+                    <div class="form-group">
+                        <label>종료일 *</label>
+                        <input type="date" id="vacationEnd" required onchange="updateVacationDays()">
+                    </div>
+                </div>
+
+                <div class="vacation-days" style="background: #fef3c7;">
+                    <div class="vacation-days-row">
+                        <span>신청 일수</span>
+                        <strong id="requestDays" style="color: #d97706;">0일</strong>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>사유 *</label>
+                    <textarea id="vacationReason" rows="3" required></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">신청</button>
+                    <button type="button" class="btn btn-primary" onclick="closeVacationModal()" style="flex: 1;">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 초과근무 신청 모달 -->
+    <div id="overtimeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⏰ 초과근무 신청</h2>
+                <button class="close-btn" onclick="closeOvertimeModal()">×</button>
+            </div>
+
+            <form id="overtimeForm">
+                <div class="form-group">
+                    <label>초과근무일 *</label>
+                    <input type="date" id="overtimeDate" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>시작시간 *</label>
+                        <input type="time" id="overtimeStart" required onchange="calculateOvertimeHours()">
+                    </div>
+                    <div class="form-group">
+                        <label>종료시간 *</label>
+                        <input type="time" id="overtimeEnd" required onchange="calculateOvertimeHours()">
+                    </div>
+                </div>
+
+                <div class="vacation-days" style="background: #fef3c7;">
+                    <div class="vacation-days-row">
+                        <span>초과근무 시간</span>
+                        <strong id="overtimeHours" style="color: #d97706;">0시간</strong>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>사유 *</label>
+                    <textarea id="overtimeReason" rows="3" required></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">신청</button>
+                    <button type="button" class="btn btn-primary" onclick="closeOvertimeModal()" style="flex: 1;">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let attendances = [];
+        let vacations = [];
+        let overtimes = [];
+
+        window.addEventListener('load', () => {
+            currentUser = JSON.parse(localStorage.getItem('dasol_session') || 'null');
+            if (!currentUser) {
+                alert('⚠️ 로그인이 필요합니다!');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            loadData();
+            initializePage();
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // 관리자면 승인 관리 탭 표시
+            if (currentUser.isAdmin) {
+                document.getElementById('approvalTab').style.display = 'block';
+                document.getElementById('todayAttendance').style.display = 'block';
+            }
+
+            // 오늘 날짜 설정
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('recordMonth').value = today.substring(0, 7);
+            
+            loadMonthlyRecords();
+            checkTodayAttendance();
+        });
+
+        function loadData() {
+            attendances = JSON.parse(localStorage.getItem('dasol_attendance') || '[]');
+            vacations = JSON.parse(localStorage.getItem('dasol_vacations') || '[]');
+            overtimes = JSON.parse(localStorage.getItem('dasol_overtimes') || '[]');
+        }
+
+        function saveData() {
+            localStorage.setItem('dasol_attendance', JSON.stringify(attendances));
+            localStorage.setItem('dasol_vacations', JSON.stringify(vacations));
+            localStorage.setItem('dasol_overtimes', JSON.stringify(overtimes));
+            
+            // 휴가가 승인되면 달력에도 저장
+            syncCalendar();
+        }
+
+        function initializePage() {
+            const today = new Date();
+            document.getElementById('todayDate').textContent = 
+                `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 ${['일','월','화','수','목','금','토'][today.getDay()]}요일`;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+
+            if (tab === 'vacation') {
+                updateVacationInfo();
+                renderMyVacations();
+            } else if (tab === 'overtime') {
+                renderMyOvertime();
+            } else if (tab === 'approval') {
+                renderPendingApprovals();
+            }
+        }
+
+        function checkTodayAttendance() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecord = attendances.find(a => 
+                a.userId === currentUser.id && a.date === today
+            );
+
+            if (todayRecord) {
+                if (todayRecord.checkOut) {
+                    document.getElementById('checkInStatus').innerHTML = `
+                        <div style="background: white; color: #3b82f6; padding: 20px; border-radius: 8px;">
+                            <h3>✅ 퇴근 완료</h3>
+                            <p style="margin-top: 10px;">출근: ${todayRecord.checkIn}</p>
+                            <p>퇴근: ${todayRecord.checkOut}</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('checkInStatus').innerHTML = `
+                        <div style="margin-bottom: 20px; background: white; color: #10b981; padding: 15px; border-radius: 8px;">
+                            <p>✅ 출근: ${todayRecord.checkIn}</p>
+                        </div>
+                        <button class="check-in-btn" onclick="checkOut()" style="background: #ef4444; color: white;">
+                            🔴 퇴근하기
+                        </button>
+                    `;
+                }
+            }
+
+            // 관리자용 오늘 출근 현황
+            if (currentUser.isAdmin) {
+                updateTodayStats();
+            }
+        }
+
+        function checkIn() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            // 지각 체크 (09:00 이후)
+            const isLate = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 0);
+            
+            // 영업팀이면 GPS 위치 수집
+            const isSalesTeam = currentUser.team && (currentUser.team.includes('영업') || currentUser.role === 'sales');
+            
+            if (isSalesTeam) {
+                // GPS 권한 요청
+                if (!navigator.geolocation) {
+                    alert('⚠️ 이 브라우저는 위치 서비스를 지원하지 않습니다.');
+                    return;
+                }
+                
+                const confirmGPS = confirm('📍 영업팀 출퇴근은 위치 정보를 기록합니다.\n위치 정보 수집에 동의하시겠습니까?');
+                if (!confirmGPS) {
+                    return;
+                }
+                
+                // 위치 정보 가져오기
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        processCheckIn(position.coords.latitude, position.coords.longitude, time, isLate);
+                    },
+                    (error) => {
+                        console.error('GPS 에러:', error);
+                        const retry = confirm('⚠️ 위치 정보를 가져올 수 없습니다.\n위치 없이 출근하시겠습니까?');
+                        if (retry) {
+                            processCheckIn(null, null, time, isLate);
+                        }
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                // 일반 직원은 위치 정보 없이 출근
+                processCheckIn(null, null, time, isLate);
+            }
+        }
+        
+        function processCheckIn(latitude, longitude, time, isLate) {
+            const today = new Date().toISOString().split('T')[0];
+            
+            const attendance = {
+                id: `ATT-${Date.now()}`,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userTeam: currentUser.team,
+                date: today,
+                checkIn: time,
+                checkOut: null,
+                status: isLate ? 'late' : 'present',
+                createdAt: new Date().toISOString()
+            };
+            
+            // GPS 정보 추가 (영업팀만)
+            if (latitude && longitude) {
+                attendance.checkInLocation = {
+                    latitude: latitude,
+                    longitude: longitude,
+                    type: 'field',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 역지오코딩 시도 (비동기)
+                reverseGeocode(latitude, longitude).then(address => {
+                    attendance.checkInLocation.address = address;
+                    const index = attendances.findIndex(a => a.id === attendance.id);
+                    if (index !== -1) {
+                        attendances[index] = attendance;
+                        saveData();
+                    }
+                }).catch(err => {
+                    console.error('역지오코딩 실패:', err);
+                });
+            } else {
+                attendance.checkInLocation = {
+                    type: 'office'
+                };
+            }
+            
+            attendances.push(attendance);
+            saveData();
+            checkTodayAttendance();
+            
+            const locationMsg = attendance.checkInLocation.type === 'field' 
+                ? '\n📍 외근 위치 기록됨' 
+                : '\n🏢 회사 출근';
+            
+            alert(`✅ 출근 완료!\n시간: ${time}${isLate ? '\n⚠️ 지각 처리되었습니다.' : ''}${locationMsg}`);
+        }
+
+        function checkOut() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const todayRecord = attendances.find(a => 
+                a.userId === currentUser.id && a.date === today && !a.checkOut
+            );
+            
+            if (!todayRecord) {
+                alert('⚠️ 출근 기록이 없습니다!');
+                return;
+            }
+            
+            // 영업팀이면 GPS 위치 수집
+            const isSalesTeam = currentUser.team && (currentUser.team.includes('영업') || currentUser.role === 'sales');
+            
+            if (isSalesTeam) {
+                // GPS 권한 요청
+                if (!navigator.geolocation) {
+                    alert('⚠️ 이 브라우저는 위치 서비스를 지원하지 않습니다.');
+                    processCheckOut(todayRecord, null, null, time);
+                    return;
+                }
+                
+                // 위치 정보 가져오기
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        processCheckOut(todayRecord, position.coords.latitude, position.coords.longitude, time);
+                    },
+                    (error) => {
+                        console.error('GPS 에러:', error);
+                        processCheckOut(todayRecord, null, null, time);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                // 일반 직원은 위치 정보 없이 퇴근
+                processCheckOut(todayRecord, null, null, time);
+            }
+        }
+        
+        function processCheckOut(todayRecord, latitude, longitude, time) {
+            todayRecord.checkOut = time;
+            
+            // GPS 정보 추가 (영업팀만)
+            if (latitude && longitude) {
+                todayRecord.checkOutLocation = {
+                    latitude: latitude,
+                    longitude: longitude,
+                    type: 'field',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 역지오코딩 시도 (비동기)
+                reverseGeocode(latitude, longitude).then(address => {
+                    todayRecord.checkOutLocation.address = address;
+                    saveData();
+                }).catch(err => {
+                    console.error('역지오코딩 실패:', err);
+                });
+            } else if (!todayRecord.checkOutLocation) {
+                todayRecord.checkOutLocation = {
+                    type: 'office'
+                };
+            }
+            
+            saveData();
+            checkTodayAttendance();
+            
+            const locationMsg = todayRecord.checkOutLocation && todayRecord.checkOutLocation.type === 'field' 
+                ? '\n📍 외근 위치 기록됨' 
+                : '\n🏢 회사 퇴근';
+            
+            alert(`✅ 퇴근 완료!\n시간: ${time}\n수고하셨습니다!${locationMsg}`);
+        }
+        
+        // 역지오코딩 함수 (좌표 → 주소)
+        async function reverseGeocode(lat, lng) {
+            try {
+                // Nominatim API (OpenStreetMap) 사용 - 무료
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ko`,
+                    {
+                        headers: {
+                            'User-Agent': 'DasolWaterLab/1.0'
+                        }
+                    }
+                );
+                const data = await response.json();
+                
+                if (data && data.address) {
+                    const addr = data.address;
+                    let address = '';
+                    
+                    if (addr.city || addr.province) {
+                        address += (addr.city || addr.province) + ' ';
+                    }
+                    if (addr.suburb || addr.borough) {
+                        address += (addr.suburb || addr.borough) + ' ';
+                    }
+                    if (addr.neighbourhood || addr.quarter) {
+                        address += (addr.neighbourhood || addr.quarter);
+                    }
+                    
+                    return address.trim() || data.display_name;
+                }
+                return '위치 정보 없음';
+            } catch (error) {
+                console.error('역지오코딩 에러:', error);
+                return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            }
+        }
+
+        function updateTodayStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayAttendances = attendances.filter(a => a.date === today);
+            
+            const present = todayAttendances.filter(a => a.checkIn).length;
+            const late = todayAttendances.filter(a => a.status === 'late').length;
+            const todayVacations = vacations.filter(v => 
+                v.status === 'approved' && v.startDate <= today && v.endDate >= today
+            ).length;
+            
+            document.getElementById('todayPresent').textContent = present + '명';
+            document.getElementById('todayAbsent').textContent = '0명';
+            document.getElementById('todayLate').textContent = late + '명';
+            document.getElementById('todayVacation').textContent = todayVacations + '명';
+            
+            // 테이블 렌더링
+            const tbody = document.getElementById('todayAttendanceTable');
+            tbody.innerHTML = todayAttendances.map(a => `
+                <tr>
+                    <td>${a.userName}</td>
+                    <td>${a.userTeam}</td>
+                    <td>${a.checkIn || '-'}</td>
+                    <td>${a.checkOut || '-'}</td>
+                    <td>
+                        <span class="badge badge-${a.status === 'late' ? 'late' : 'present'}">
+                            ${a.status === 'late' ? '지각' : '출근'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openVacationModal() {
+            document.getElementById('vacationModal').classList.add('show');
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('vacationStart').value = today;
+            document.getElementById('vacationEnd').value = today;
+            updateVacationDays();
+        }
+
+        function closeVacationModal() {
+            document.getElementById('vacationModal').classList.remove('show');
+            document.getElementById('vacationForm').reset();
+        }
+
+        function updateVacationDays() {
+            const type = document.getElementById('vacationType').value;
+            const start = new Date(document.getElementById('vacationStart').value);
+            const end = new Date(document.getElementById('vacationEnd').value);
+            
+            if (!type || !start || !end) return;
+            
+            let days = 0;
+            if (type === '반차' || type === '반차오후') {
+                days = 0.5;
+            } else {
+                days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            }
+            
+            document.getElementById('requestDays').textContent = days + '일';
+        }
+
+        document.getElementById('vacationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const vacation = {
+                id: `VAC-${Date.now()}`,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userTeam: currentUser.team,
+                type: document.getElementById('vacationType').value,
+                startDate: document.getElementById('vacationStart').value,
+                endDate: document.getElementById('vacationEnd').value,
+                days: parseFloat(document.getElementById('requestDays').textContent),
+                reason: document.getElementById('vacationReason').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            vacations.push(vacation);
+            saveData();
+            closeVacationModal();
+            alert('✅ 휴가 신청이 완료되었습니다!');
+            renderMyVacations();
+        });
+
+        function updateVacationInfo() {
+            const myVacations = vacations.filter(v => 
+                v.userId === currentUser.id && v.status === 'approved'
+            );
+            const used = myVacations.reduce((sum, v) => sum + v.days, 0);
+            const total = 15; // 기본 연차
+            
+            document.getElementById('totalVacation').textContent = total + '일';
+            document.getElementById('usedVacation').textContent = used + '일';
+            document.getElementById('remainVacation').textContent = (total - used) + '일';
+        }
+
+        function renderMyVacations() {
+            const myVacations = vacations.filter(v => v.userId === currentUser.id);
+            const tbody = document.getElementById('myVacationsTable');
+            
+            tbody.innerHTML = myVacations.sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            ).map(v => `
+                <tr>
+                    <td>${v.createdAt.split('T')[0]}</td>
+                    <td>${v.type}</td>
+                    <td>${v.startDate} ~ ${v.endDate}</td>
+                    <td>${v.days}일</td>
+                    <td>${v.reason}</td>
+                    <td>
+                        <span class="badge badge-${v.status}">
+                            ${v.status === 'pending' ? '대기' : v.status === 'approved' ? '승인' : '반려'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openOvertimeModal() {
+            document.getElementById('overtimeModal').classList.add('show');
+            document.getElementById('overtimeDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function closeOvertimeModal() {
+            document.getElementById('overtimeModal').classList.remove('show');
+            document.getElementById('overtimeForm').reset();
+        }
+
+        function calculateOvertimeHours() {
+            const start = document.getElementById('overtimeStart').value;
+            const end = document.getElementById('overtimeEnd').value;
+            
+            if (!start || !end) return;
+            
+            const startTime = new Date(`2000-01-01 ${start}`);
+            const endTime = new Date(`2000-01-01 ${end}`);
+            const hours = (endTime - startTime) / (1000 * 60 * 60);
+            
+            document.getElementById('overtimeHours').textContent = hours + '시간';
+        }
+
+        document.getElementById('overtimeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const overtime = {
+                id: `OT-${Date.now()}`,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userTeam: currentUser.team,
+                date: document.getElementById('overtimeDate').value,
+                startTime: document.getElementById('overtimeStart').value,
+                endTime: document.getElementById('overtimeEnd').value,
+                hours: parseFloat(document.getElementById('overtimeHours').textContent),
+                reason: document.getElementById('overtimeReason').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            overtimes.push(overtime);
+            saveData();
+            closeOvertimeModal();
+            alert('✅ 초과근무 신청이 완료되었습니다!');
+            renderMyOvertime();
+        });
+
+        function renderMyOvertime() {
+            const myOvertime = overtimes.filter(o => o.userId === currentUser.id);
+            const tbody = document.getElementById('myOvertimeTable');
+            
+            tbody.innerHTML = myOvertime.sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            ).map(o => `
+                <tr>
+                    <td>${o.createdAt.split('T')[0]}</td>
+                    <td>${o.date}</td>
+                    <td>${o.startTime}</td>
+                    <td>${o.endTime}</td>
+                    <td><strong>${o.hours}H</strong></td>
+                    <td>${o.reason}</td>
+                    <td>
+                        <span class="badge badge-${o.status}">
+                            ${o.status === 'pending' ? '대기' : o.status === 'approved' ? '승인' : '반려'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadMonthlyRecords() {
+            const month = document.getElementById('recordMonth').value;
+            const myRecords = attendances.filter(a => 
+                a.userId === currentUser.id && a.date.startsWith(month)
+            );
+            
+            // 통계
+            const present = myRecords.filter(a => a.checkIn).length;
+            const late = myRecords.filter(a => a.status === 'late').length;
+            
+            // 총 근무시간 계산
+            const totalHours = myRecords.reduce((sum, a) => {
+                if (a.checkIn && a.checkOut) {
+                    const hours = calculateWorkHours(a.checkIn, a.checkOut);
+                    return sum + hours;
+                }
+                return sum;
+            }, 0);
+            
+            document.getElementById('monthlyPresent').textContent = present + '일';
+            document.getElementById('monthlyLate').textContent = late + '회';
+            document.getElementById('monthlyHours').textContent = Math.round(totalHours) + 'H';
+            document.getElementById('monthlyOvertime').textContent = '0H'; // TODO: 초과근무 계산
+            
+            // 테이블
+            const tbody = document.getElementById('monthlyRecordsTable');
+            tbody.innerHTML = myRecords.sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            ).map(a => {
+                const workHours = a.checkIn && a.checkOut ? calculateWorkHours(a.checkIn, a.checkOut) : 0;
+                const locationInfo = getLocationInfo(a);
+                
+                return `
+                <tr>
+                    <td>${a.date}</td>
+                    <td>${a.checkIn || '-'}${locationInfo.checkIn}</td>
+                    <td>${a.checkOut || '-'}${locationInfo.checkOut}</td>
+                    <td>${workHours > 0 ? workHours.toFixed(1) + 'H' : '-'}</td>
+                    <td>
+                        <span class="badge badge-${a.status === 'late' ? 'late' : 'present'}">
+                            ${a.status === 'late' ? '지각' : '출근'}
+                        </span>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+        
+        // 근무시간 계산 함수
+        function calculateWorkHours(checkIn, checkOut) {
+            if (!checkIn || !checkOut) return 0;
+            
+            const [inHour, inMin] = checkIn.split(':').map(Number);
+            const [outHour, outMin] = checkOut.split(':').map(Number);
+            
+            const inMinutes = inHour * 60 + inMin;
+            const outMinutes = outHour * 60 + outMin;
+            
+            return (outMinutes - inMinutes) / 60;
+        }
+        
+        // 위치 정보 표시 함수
+        function getLocationInfo(attendance) {
+            let checkIn = '';
+            let checkOut = '';
+            
+            if (attendance.checkInLocation) {
+                if (attendance.checkInLocation.type === 'field') {
+                    const addr = attendance.checkInLocation.address || '외근';
+                    checkIn = `<br><small style="color: #3b82f6;">📍 ${addr}</small>`;
+                } else {
+                    checkIn = '<br><small style="color: #6b7280;">🏢 회사</small>';
+                }
+            }
+            
+            if (attendance.checkOutLocation) {
+                if (attendance.checkOutLocation.type === 'field') {
+                    const addr = attendance.checkOutLocation.address || '외근';
+                    checkOut = `<br><small style="color: #3b82f6;">📍 ${addr}</small>`;
+                } else {
+                    checkOut = '<br><small style="color: #6b7280;">🏢 회사</small>';
+                }
+            }
+            
+            return { checkIn, checkOut };
+        }
+
+        function renderPendingApprovals() {
+            if (!currentUser.isAdmin) return;
+            
+            const pendingVacations = vacations.filter(v => v.status === 'pending');
+            const pendingOvertimes = overtimes.filter(o => o.status === 'pending');
+            
+            const tbody = document.getElementById('pendingApprovalsTable');
+            const items = [
+                ...pendingVacations.map(v => ({ ...v, type: 'vacation' })),
+                ...pendingOvertimes.map(o => ({ ...o, type: 'overtime' }))
+            ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            tbody.innerHTML = items.map(item => `
+                <tr>
+                    <td>${item.createdAt.split('T')[0]}</td>
+                    <td>${item.type === 'vacation' ? '휴가' : '초과근무'}</td>
+                    <td>${item.userName}</td>
+                    <td>${item.userTeam}</td>
+                    <td>${item.type === 'vacation' ? item.type : item.reason}</td>
+                    <td>${item.type === 'vacation' ? 
+                        `${item.startDate} ~ ${item.endDate} (${item.days}일)` :
+                        `${item.startTime} ~ ${item.endTime} (${item.hours}H)`
+                    }</td>
+                    <td>
+                        <button class="btn btn-success" onclick="approveItem('${item.type}', '${item.id}')" style="padding: 6px 12px; font-size: 12px;">승인</button>
+                        <button class="btn btn-danger" onclick="rejectItem('${item.type}', '${item.id}')" style="padding: 6px 12px; font-size: 12px;">반려</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function approveItem(type, id) {
+            if (!confirm('승인하시겠습니까?')) return;
+            
+            if (type === 'vacation') {
+                const vacation = vacations.find(v => v.id === id);
+                if (vacation) {
+                    vacation.status = 'approved';
+                    vacation.approvedBy = currentUser.name;
+                    vacation.approvedAt = new Date().toISOString();
+                }
+            } else {
+                const overtime = overtimes.find(o => o.id === id);
+                if (overtime) {
+                    overtime.status = 'approved';
+                    overtime.approvedBy = currentUser.name;
+                    overtime.approvedAt = new Date().toISOString();
+                }
+            }
+            
+            saveData();
+            renderPendingApprovals();
+            alert('✅ 승인되었습니다!');
+        }
+
+        function rejectItem(type, id) {
+            const reason = prompt('반려 사유를 입력하세요:');
+            if (!reason) return;
+            
+            if (type === 'vacation') {
+                const vacation = vacations.find(v => v.id === id);
+                if (vacation) {
+                    vacation.status = 'rejected';
+                    vacation.rejectedBy = currentUser.name;
+                    vacation.rejectedAt = new Date().toISOString();
+                    vacation.rejectReason = reason;
+                }
+            } else {
+                const overtime = overtimes.find(o => o.id === id);
+                if (overtime) {
+                    overtime.status = 'rejected';
+                    overtime.rejectedBy = currentUser.name;
+                    overtime.rejectedAt = new Date().toISOString();
+                    overtime.rejectReason = reason;
+                }
+            }
+            
+            saveData();
+            renderPendingApprovals();
+            alert('✅ 반려되었습니다.');
+        }
+
+        // 달력 연동 함수
+        function syncCalendar() {
+            const approvedVacations = vacations.filter(v => v.status === 'approved');
+            
+            // 달력 데이터 구조 생성
+            const calendarData = [];
+            
+            approvedVacations.forEach(vacation => {
+                const start = new Date(vacation.startDate);
+                const end = new Date(vacation.endDate);
+                
+                // 날짜 범위 내 모든 날짜 생성
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const dateStr = d.toISOString().split('T')[0];
+                    
+                    let existing = calendarData.find(c => c.date === dateStr);
+                    if (!existing) {
+                        existing = {
+                            date: dateStr,
+                            type: 'vacation',
+                            employees: []
+                        };
+                        calendarData.push(existing);
+                    }
+                    
+                    existing.employees.push({
+                        id: vacation.userId,
+                        name: vacation.userName,
+                        team: vacation.userTeam,
+                        vacationType: vacation.type,
+                        duration: vacation.type.includes('반차') ? '반차' : '전일',
+                        reason: vacation.reason,
+                        status: 'approved'
+                    });
+                }
+            });
+            
+            // 달력에 저장
+            localStorage.setItem('dasol_attendance_calendar', JSON.stringify(calendarData));
+        }
+        
+        // 전체 직원 근태표 생성 (관리자 전용)
+        function generateAllEmployeeReport() {
+            if (!currentUser.isAdmin) {
+                alert('⚠️ 관리자만 접근 가능합니다.');
+                return;
+            }
+            
+            const monthInput = document.getElementById('allEmployeeMonth');
+            const month = monthInput ? monthInput.value : document.getElementById('recordMonth').value;
+            
+            if (!month) {
+                alert('⚠️ 월을 선택해주세요.');
+                return;
+            }
+            
+            const [year, monthNum] = month.split('-');
+            const monthName = `${year}년 ${parseInt(monthNum)}월`;
+            
+            // 해당 월의 모든 직원 근태 데이터 수집
+            const allRecords = attendances.filter(a => a.date.startsWith(month));
+            
+            // 직원별로 데이터 그룹화
+            const employeeGroups = {};
+            allRecords.forEach(record => {
+                if (!employeeGroups[record.userId]) {
+                    employeeGroups[record.userId] = {
+                        userId: record.userId,
+                        userName: record.userName,
+                        userTeam: record.userTeam,
+                        records: []
+                    };
+                }
+                employeeGroups[record.userId].records.push(record);
+            });
+            
+            // 직원 목록 생성
+            const employees = Object.values(employeeGroups);
+            
+            if (employees.length === 0) {
+                alert('⚠️ 해당 월에 출퇴근 기록이 없습니다.');
+                return;
+            }
+            
+            // 부서별로 정렬
+            employees.sort((a, b) => {
+                if (a.userTeam === b.userTeam) {
+                    return a.userName.localeCompare(b.userName);
+                }
+                return a.userTeam.localeCompare(b.userTeam);
+            });
+            
+            // 전체 직원 근태표 HTML 생성
+            const employeeSections = employees.map(emp => {
+                const records = emp.records.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                // 통계 계산
+                const totalDays = records.length;
+                const normalDays = records.filter(r => r.status === 'present').length;
+                const lateDays = records.filter(r => r.status === 'late').length;
+                const totalHours = records.reduce((sum, r) => {
+                    if (r.checkIn && r.checkOut) {
+                        return sum + calculateWorkHours(r.checkIn, r.checkOut);
+                    }
+                    return sum;
+                }, 0);
+                
+                // 휴가 데이터
+                const empVacations = vacations.filter(v => 
+                    v.userId === emp.userId && 
+                    v.status === 'approved' &&
+                    v.startDate.startsWith(month)
+                );
+                const vacationDays = empVacations.reduce((sum, v) => sum + v.days, 0);
+                
+                return `
+                    <div class="employee-section">
+                        <div class="employee-header">
+                            <span class="employee-name">${emp.userName}</span>
+                            <span class="employee-team">${emp.userTeam}</span>
+                        </div>
+                        
+                        <div class="employee-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">출근일수</span>
+                                <span class="stat-value">${totalDays}일</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">정상</span>
+                                <span class="stat-value">${normalDays}일</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">지각</span>
+                                <span class="stat-value">${lateDays}일</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">휴가</span>
+                                <span class="stat-value">${vacationDays}일</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">총 근무시간</span>
+                                <span class="stat-value">${Math.round(totalHours)}시간</span>
+                            </div>
+                        </div>
+                        
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">날짜</th>
+                                    <th style="width: 60px;">출근</th>
+                                    <th style="width: 60px;">퇴근</th>
+                                    <th style="width: 60px;">근무</th>
+                                    <th style="width: 60px;">상태</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${records.map(r => {
+                                    const workHours = r.checkIn && r.checkOut ? calculateWorkHours(r.checkIn, r.checkOut) : 0;
+                                    const vacation = empVacations.find(v => 
+                                        r.date >= v.startDate && r.date <= v.endDate
+                                    );
+                                    const locationInfo = getLocationInfo(r);
+                                    
+                                    return `
+                                    <tr>
+                                        <td>${r.date.substring(5)}</td>
+                                        <td>${r.checkIn || '-'}</td>
+                                        <td>${r.checkOut || '-'}</td>
+                                        <td>${workHours > 0 ? workHours.toFixed(1) + 'H' : '-'}</td>
+                                        <td><span class="status-badge ${vacation ? 'vacation' : r.status}">${vacation ? '휴가' : (r.status === 'late' ? '지각' : '정상')}</span></td>
+                                        <td style="font-size: 11px;">${vacation ? vacation.type : (locationInfo.checkIn ? '외근' : '')}</td>
+                                    </tr>
+                                `}).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }).join('');
+            
+            // 전체 통계 계산
+            const totalEmployees = employees.length;
+            const totalWorkDays = employees.reduce((sum, emp) => sum + emp.records.length, 0);
+            const totalWorkHours = employees.reduce((sum, emp) => {
+                return sum + emp.records.reduce((s, r) => {
+                    if (r.checkIn && r.checkOut) {
+                        return s + calculateWorkHours(r.checkIn, r.checkOut);
+                    }
+                    return s;
+                }, 0);
+            }, 0);
+            const totalLate = allRecords.filter(r => r.status === 'late').length;
+            const avgAttendance = totalEmployees > 0 ? ((totalWorkDays / totalEmployees) / getDaysInMonth(year, monthNum) * 100).toFixed(1) : 0;
+            
+            // HTML 생성
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>전체 직원 근태표 - ${monthName}</title>
+                    <style>
+                        @page { size: A4; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+                            padding: 20px;
+                            line-height: 1.4;
+                            font-size: 12px;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 28px;
+                            font-weight: 700;
+                            margin-bottom: 30px;
+                            padding-bottom: 12px;
+                            border-bottom: 3px double #000;
+                            letter-spacing: 6px;
+                        }
+                        .summary-box {
+                            border: 2px solid #000;
+                            padding: 15px;
+                            margin-bottom: 25px;
+                            background: #f9f9f9;
+                        }
+                        .summary-grid {
+                            display: grid;
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 15px;
+                        }
+                        .summary-item {
+                            text-align: center;
+                        }
+                        .summary-label {
+                            font-size: 11px;
+                            color: #666;
+                            margin-bottom: 5px;
+                        }
+                        .summary-value {
+                            font-size: 20px;
+                            font-weight: 700;
+                            color: #667eea;
+                        }
+                        .employee-section {
+                            page-break-inside: avoid;
+                            margin-bottom: 25px;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }
+                        .employee-header {
+                            background: #667eea;
+                            color: white;
+                            padding: 12px 15px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        .employee-name {
+                            font-size: 16px;
+                            font-weight: 700;
+                        }
+                        .employee-team {
+                            font-size: 13px;
+                            opacity: 0.9;
+                        }
+                        .employee-stats {
+                            display: grid;
+                            grid-template-columns: repeat(5, 1fr);
+                            background: #f5f5f5;
+                            padding: 10px;
+                            gap: 10px;
+                        }
+                        .stat-item {
+                            text-align: center;
+                        }
+                        .stat-label {
+                            font-size: 10px;
+                            color: #666;
+                            display: block;
+                            margin-bottom: 3px;
+                        }
+                        .stat-value {
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: #333;
+                        }
+                        .detail-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        .detail-table th {
+                            background: #f9f9f9;
+                            padding: 8px 5px;
+                            text-align: center;
+                            font-size: 11px;
+                            border: 1px solid #ddd;
+                        }
+                        .detail-table td {
+                            padding: 6px 5px;
+                            text-align: center;
+                            font-size: 10px;
+                            border: 1px solid #ddd;
+                        }
+                        .status-badge {
+                            display: inline-block;
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            font-size: 10px;
+                            font-weight: 600;
+                        }
+                        .status-badge.present {
+                            background: #d1fae5;
+                            color: #065f46;
+                        }
+                        .status-badge.late {
+                            background: #fef3c7;
+                            color: #92400e;
+                        }
+                        .status-badge.vacation {
+                            background: #dbeafe;
+                            color: #1e40af;
+                        }
+                        .footer {
+                            margin-top: 30px;
+                            text-align: center;
+                            padding-top: 20px;
+                            border-top: 2px solid #000;
+                        }
+                        .company-info {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 15px;
+                            margin-bottom: 10px;
+                        }
+                        .logo-container {
+                            width: 60px;
+                            height: 60px;
+                        }
+                        .logo-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .company-details {
+                            text-align: left;
+                            font-size: 11px;
+                            line-height: 1.6;
+                        }
+                        .company-name {
+                            font-size: 14px;
+                            font-weight: 700;
+                            margin-bottom: 3px;
+                        }
+                        .stamp-container {
+                            position: absolute;
+                            top: 30px;
+                            right: 30px;
+                            width: 80px;
+                            height: 80px;
+                        }
+                        .stamp-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="stamp-container">
+                        <img src="../assets/stamp.png" alt="사각도장" />
+                    </div>
+                    
+                    <div class="title">전체 직원 근태표</div>
+                    <div style="text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 25px; color: #667eea;">${monthName}</div>
+                    
+                    <div class="summary-box">
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">전체 직원</div>
+                                <div class="summary-value">${totalEmployees}명</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">총 근무일</div>
+                                <div class="summary-value">${totalWorkDays}일</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">총 근무시간</div>
+                                <div class="summary-value">${Math.round(totalWorkHours)}H</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">평균 출근율</div>
+                                <div class="summary-value">${avgAttendance}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${employeeSections}
+                    
+                    <div class="footer">
+                        <div class="company-info">
+                            <div class="logo-container">
+                                <img src="../assets/logo.png" alt="다솔물환경연구소 로고" />
+                            </div>
+                            <div class="company-details">
+                                <div class="company-name">주식회사 다솔물환경연구소</div>
+                                <div>경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                <div>Tel. 031-772-4530 | Fax. 031-775-4539</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; font-size: 11px; color: #6b7280;">
+                            작성일: ${new Date().toLocaleDateString('ko-KR')}
+                        </div>
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 25px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px; font-weight: 600;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // 새 창에서 열기
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+        
+        // 해당 월의 일수 계산
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+        
+        // 근태계 PDF 생성
+        function generateAttendanceReport() {
+            const month = document.getElementById('recordMonth').value;
+            if (!month) {
+                alert('⚠️ 월을 선택해주세요.');
+                return;
+            }
+            
+            const [year, monthNum] = month.split('-');
+            const monthName = `${year}년 ${parseInt(monthNum)}월`;
+            
+            // 해당 월의 근태 데이터 수집
+            const myRecords = attendances.filter(a => 
+                a.userId === currentUser.id && a.date.startsWith(month)
+            );
+            
+            // 휴가 데이터
+            const myVacations = vacations.filter(v => 
+                v.userId === currentUser.id && 
+                v.status === 'approved' &&
+                v.startDate.startsWith(month)
+            );
+            
+            // 통계 계산
+            const totalDays = myRecords.length;
+            const normalDays = myRecords.filter(a => a.status === 'present').length;
+            const lateDays = myRecords.filter(a => a.status === 'late').length;
+            const vacationDays = myVacations.reduce((sum, v) => sum + v.days, 0);
+            const totalHours = myRecords.reduce((sum, a) => {
+                if (a.checkIn && a.checkOut) {
+                    return sum + calculateWorkHours(a.checkIn, a.checkOut);
+                }
+                return sum;
+            }, 0);
+            
+            // 근태계 HTML 생성
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>근태계 - ${currentUser.name} (${monthName})</title>
+                    <style>
+                        @page { size: A4; margin: 20mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+                            padding: 30px;
+                            line-height: 1.6;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 32px;
+                            font-weight: 700;
+                            margin-bottom: 40px;
+                            padding-bottom: 15px;
+                            border-bottom: 4px double #000;
+                            letter-spacing: 8px;
+                        }
+                        .info-box {
+                            border: 2px solid #000;
+                            padding: 20px;
+                            margin-bottom: 30px;
+                        }
+                        .info-row {
+                            display: grid;
+                            grid-template-columns: 120px 1fr;
+                            margin-bottom: 12px;
+                            font-size: 14px;
+                        }
+                        .info-label {
+                            font-weight: 700;
+                            background: #f9f9f9;
+                            padding: 8px 12px;
+                            border-right: 2px solid #ddd;
+                        }
+                        .info-value {
+                            padding: 8px 12px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            border: 2px solid #000;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 10px;
+                            text-align: center;
+                            font-size: 13px;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .summary-box {
+                            border: 2px solid #000;
+                            padding: 20px;
+                            margin-top: 30px;
+                        }
+                        .summary-row {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 10px;
+                            font-size: 15px;
+                        }
+                        .summary-row.total {
+                            font-size: 18px;
+                            font-weight: 700;
+                            color: #667eea;
+                            border-top: 2px solid #000;
+                            padding-top: 15px;
+                            margin-top: 15px;
+                        }
+                        .footer {
+                            margin-top: 50px;
+                            text-align: center;
+                            padding-top: 30px;
+                            border-top: 2px solid #000;
+                        }
+                        .company-info {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 20px;
+                            margin-bottom: 15px;
+                        }
+                        .logo-container {
+                            width: 80px;
+                            height: 80px;
+                        }
+                        .logo-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .company-details {
+                            text-align: left;
+                            font-size: 13px;
+                            line-height: 1.8;
+                        }
+                        .company-name {
+                            font-size: 18px;
+                            font-weight: 700;
+                            margin-bottom: 5px;
+                        }
+                        .stamp-container {
+                            position: absolute;
+                            top: 50px;
+                            right: 50px;
+                            width: 100px;
+                            height: 100px;
+                        }
+                        .stamp-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="stamp-container">
+                        <img src="../assets/stamp.png" alt="사각도장" />
+                    </div>
+                    
+                    <div class="title">근 태 계</div>
+                    
+                    <div class="info-box">
+                        <div class="info-row">
+                            <div class="info-label">부 서</div>
+                            <div class="info-value">${currentUser.team || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">성 명</div>
+                            <div class="info-value">${currentUser.name}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">직 급</div>
+                            <div class="info-value">${currentUser.position || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">대상 기간</div>
+                            <div class="info-value">${monthName}</div>
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">날짜</th>
+                                <th style="width: 80px;">출근</th>
+                                <th style="width: 80px;">퇴근</th>
+                                <th style="width: 80px;">근무시간</th>
+                                <th style="width: 100px;">상태</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${myRecords.sort((a, b) => new Date(a.date) - new Date(b.date)).map(a => {
+                                const workHours = a.checkIn && a.checkOut ? calculateWorkHours(a.checkIn, a.checkOut) : 0;
+                                const vacation = myVacations.find(v => 
+                                    a.date >= v.startDate && a.date <= v.endDate
+                                );
+                                const locationInfo = getLocationInfo(a);
+                                
+                                return `
+                                <tr>
+                                    <td>${a.date}</td>
+                                    <td>${a.checkIn || '-'}</td>
+                                    <td>${a.checkOut || '-'}</td>
+                                    <td>${workHours > 0 ? workHours.toFixed(1) + 'H' : '-'}</td>
+                                    <td>${vacation ? '휴가' : (a.status === 'late' ? '지각' : '정상')}</td>
+                                    <td style="font-size: 11px;">${vacation ? vacation.type : (locationInfo.checkIn ? '외근' : '')}</td>
+                                </tr>
+                            `}).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="summary-box">
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">📊 월별 통계</h3>
+                        <div class="summary-row">
+                            <span>총 근무일</span>
+                            <strong>${totalDays}일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>정상 출근</span>
+                            <strong>${normalDays}일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>지각</span>
+                            <strong>${lateDays}일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>결근</span>
+                            <strong>0일</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>연차 사용</span>
+                            <strong>${vacationDays}일</strong>
+                        </div>
+                        <div class="summary-row total">
+                            <span>총 근무시간</span>
+                            <strong>${Math.round(totalHours)}시간</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <div class="company-info">
+                            <div class="logo-container">
+                                <img src="../assets/logo.png" alt="다솔물환경연구소 로고" />
+                            </div>
+                            <div class="company-details">
+                                <div class="company-name">주식회사 다솔물환경연구소</div>
+                                <div>경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                <div>Tel. 031-772-4530 | Fax. 031-775-4539</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 13px; color: #6b7280;">
+                            작성일: ${new Date().toLocaleDateString('ko-KR')}
+                        </div>
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px; font-weight: 600;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // 새 창에서 열기
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+    </script>
+</body>
+</html>
