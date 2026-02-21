@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>거래명세서 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📝 거래명세서</h1>
+        <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
+            <button class="btn btn-secondary" onclick="window.location.href=\'../dashboard-tabs.html\'">🏠 대시보드</button>
+    </div>
+
+    <div class="content">
+        <h2 style="margin-bottom: 24px;">거래명세서 생성</h2>
+        
+        <div class="form-group">
+            <label>견적서 선택</label>
+            <select id="quoteSelect" onchange="loadQuoteData()">
+                <option value="">견적서를 선택하세요</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="generateStatement()" style="width: 100%; margin-top: 24px;">거래명세서 생성</button>
+    </div>
+
+    <script>
+        let quotes = [];
+
+        function init() {
+            quotes = JSON.parse(localStorage.getItem('dasol_quotes') || '[]');
+            
+            const select = document.getElementById('quoteSelect');
+            select.innerHTML = '<option value="">견적서를 선택하세요</option>' +
+                quotes.filter(q => q.status === 'sent' || q.status === 'converted')
+                    .map(q => `<option value="${q.id}">${q.quoteNumber} - ${q.clientName}</option>`)
+                    .join('');
+        }
+
+        function loadQuoteData() {
+            // 견적서 데이터 로드
+        }
+
+        function generateStatement() {
+            const quoteId = document.getElementById('quoteSelect').value;
+            if (!quoteId) {
+                alert('견적서를 선택해주세요.');
+                return;
+            }
+
+            const quote = quotes.find(q => q.id === quoteId);
+            
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>거래명세서 - ${quote.quoteNumber}</title>
+                    <style>
+                        @page { size: A4; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+                            padding: 30px;
+                            line-height: 1.5;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 32px;
+                            font-weight: 700;
+                            margin-bottom: 40px;
+                            padding-bottom: 15px;
+                            border-bottom: 4px double #000;
+                            letter-spacing: 8px;
+                        }
+                        .info-section {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 25px;
+                            margin-bottom: 40px;
+                        }
+                        .info-box {
+                            border: 2px solid #000;
+                            position: relative;
+                        }
+                        .info-box h3 {
+                            text-align: center;
+                            margin: 0;
+                            padding: 12px;
+                            border-bottom: 2px solid #000;
+                            background: #f5f5f5;
+                            font-size: 16px;
+                            font-weight: 700;
+                        }
+                        .info-content {
+                            padding: 20px;
+                        }
+                        .info-row {
+                            display: grid;
+                            grid-template-columns: 110px 1fr;
+                            margin-bottom: 10px;
+                            font-size: 14px;
+                            line-height: 1.6;
+                        }
+                        .info-label {
+                            font-weight: 600;
+                            background: #f9f9f9;
+                            padding: 6px 10px;
+                            border-right: 1px solid #ddd;
+                        }
+                        .info-value {
+                            padding: 6px 10px;
+                        }
+                        .stamp-container {
+                            position: absolute;
+                            top: 15px;
+                            right: 15px;
+                            width: 80px;
+                            height: 80px;
+                            z-index: 10;
+                        }
+                        .stamp-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .meta-info {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 20px;
+                            padding: 15px;
+                            background: #f9f9f9;
+                            border: 1px solid #ddd;
+                            font-size: 13px;
+                        }
+                        .statement {
+                            text-align: center;
+                            margin: 30px 0 20px 0;
+                            font-size: 15px;
+                            font-weight: 600;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            border: 2px solid #000;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 12px 8px;
+                            text-align: center;
+                            font-size: 13px;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .total-section {
+                            margin-top: 30px;
+                            border: 2px solid #000;
+                            padding: 20px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                        }
+                        .total-row {
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 14px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        .total-row:last-child {
+                            border-bottom: none;
+                        }
+                        .total-row.grand {
+                            font-size: 18px;
+                            font-weight: 700;
+                            border-top: 2px solid #000;
+                            padding-top: 15px;
+                            margin-top: 10px;
+                            color: #667eea;
+                        }
+                        .footer {
+                            margin-top: 50px;
+                            text-align: center;
+                            padding-top: 30px;
+                            border-top: 2px solid #000;
+                        }
+                        .company-info {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 20px;
+                            margin-bottom: 15px;
+                        }
+                        .logo-container {
+                            width: 80px;
+                            height: 80px;
+                        }
+                        .logo-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .company-details {
+                            text-align: left;
+                            font-size: 13px;
+                            line-height: 1.8;
+                        }
+                        .company-name {
+                            font-size: 18px;
+                            font-weight: 700;
+                            margin-bottom: 5px;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">거 래 명 세 서</div>
+                    
+                    <div class="meta-info">
+                        <div>문서번호: ${quote.quoteNumber}</div>
+                        <div>거래일자: ${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-box">
+                            <h3>수 신</h3>
+                            <div class="info-content">
+                                <div class="info-row">
+                                    <div class="info-label">상 호</div>
+                                    <div class="info-value">${quote.clientName} 귀하</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">담당자</div>
+                                    <div class="info-value">${quote.clientContact || '-'}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">전 화</div>
+                                    <div class="info-value">${quote.clientPhone || '-'}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">금 액</div>
+                                    <div class="info-value" style="font-weight: 700; color: #667eea;">일금${convertNumberToKorean(quote.grandTotal)}원정<br>(₩ ${quote.grandTotal.toLocaleString()})</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <h3>발 신</h3>
+                            <div class="stamp-container">
+                                <img src="../assets/stamp-transparent.png" alt="사각도장" />
+                            </div>
+                            <div class="info-content">
+                                <div class="info-row">
+                                    <div class="info-label">상 호</div>
+                                    <div class="info-value">(주)다솔물환경연구소</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">대표이사</div>
+                                    <div class="info-value">심태보</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">주 소</div>
+                                    <div class="info-value">경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">전 화</div>
+                                    <div class="info-value">031-772-4530</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">팩 스</div>
+                                    <div class="info-value">031-775-4539</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">작성자</div>
+                                    <div class="info-value">${quote.createdBy}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="statement">하기와 같이 거래명세서를 제출합니다.</div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">번호</th>
+                                <th style="width: 100px;">구분</th>
+                                <th>품명</th>
+                                <th style="width: 100px;">단가(원)</th>
+                                <th style="width: 70px;">수량</th>
+                                <th style="width: 120px;">금액(원)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${quote.items.map((item, index) => `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>수질검사</td>
+                                    <td style="text-align: left; padding-left: 15px;">${item.name}</td>
+                                    <td style="text-align: right; padding-right: 10px;">${item.price.toLocaleString()}</td>
+                                    <td>${item.quantity}</td>
+                                    <td style="text-align: right; font-weight: 700; padding-right: 10px;">${item.amount.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                            ${Array(Math.max(0, 8 - quote.items.length)).fill(0).map(() => `
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="total-section">
+                        <div class="total-row">
+                            <span>금 액</span>
+                            <span>${quote.subtotal.toLocaleString()} 원</span>
+                        </div>
+                        <div class="total-row">
+                            <span>부가세</span>
+                            <span>${quote.vat.toLocaleString()} 원</span>
+                        </div>
+                        <div class="total-row grand">
+                            <span>합 계</span>
+                            <span>${quote.grandTotal.toLocaleString()} 원</span>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <div class="company-info">
+                            <div class="logo-container">
+                                <img src="../assets/logo.png" alt="다솔물환경연구소 로고" />
+                            </div>
+                            <div class="company-details">
+                                <div class="company-name">주식회사 다솔물환경연구소</div>
+                                <div>경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                <div>Tel. 031-772-4530 | Fax. 031-775-4539</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px; font-weight: 600;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=900,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        function convertNumberToKorean(num) {
+            const units = ['', '만', '억', '조'];
+            const nums = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+            const positions = ['', '십', '백', '천'];
+            
+            if (num === 0) return '영';
+            
+            let result = '';
+            let unitIndex = 0;
+            
+            while (num > 0) {
+                const part = num % 10000;
+                if (part > 0) {
+                    let partStr = '';
+                    let tempPart = part;
+                    let posIndex = 0;
+                    
+                    while (tempPart > 0) {
+                        const digit = tempPart % 10;
+                        if (digit > 0) {
+                            partStr = nums[digit] + positions[posIndex] + partStr;
+                        }
+                        tempPart = Math.floor(tempPart / 10);
+                        posIndex++;
+                    }
+                    
+                    result = partStr + units[unitIndex] + result;
+                }
+                num = Math.floor(num / 10000);
+                unitIndex++;
+            }
+            
+            return result;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>견적서 관리 - 다솔물환경연구소</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #111827;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .filter-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-draft {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        .status-sent {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-converted {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .items-section {
+            margin: 24px 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .item-row input {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+        }
+        .remove-item {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .total-section {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .total-row.grand-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            border-top: 2px solid #e5e7eb;
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📄 견적서 관리</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openQuoteModal()">+ 견적서 작성</button>
+            <button class="btn btn-primary" onclick="history.back()">← 뒤로</button>
+            <button class="btn btn-secondary" onclick="window.location.href=\'../dashboard-tabs.html\'">🏠 대시보드</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="filter-section">
+            <button class="filter-btn active" onclick="filterQuotes('all')">전체</button>
+            <button class="filter-btn" onclick="filterQuotes('draft')">임시저장</button>
+            <button class="filter-btn" onclick="filterQuotes('sent')">발송완료</button>
+            <button class="filter-btn" onclick="filterQuotes('converted')">의뢰전환</button>
+        </div>
+
+        <table id="quoteTable">
+            <thead>
+                <tr>
+                    <th>견적번호</th>
+                    <th>수신처</th>
+                    <th>작성일</th>
+                    <th>금액</th>
+                    <th>상태</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody id="quoteTableBody">
+                <!-- JavaScript로 동적 생성 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 견적서 작성 모달 -->
+    <div id="quoteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>견적서 작성</h2>
+                <button class="close-btn" onclick="closeQuoteModal()">×</button>
+            </div>
+
+            <form id="quoteForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>견적번호 (자동생성)</label>
+                        <input type="text" id="quoteNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>작성일</label>
+                        <input type="date" id="quoteDate" required>
+                    </div>
+                </div>
+
+                <h3 style="margin: 24px 0 16px 0; font-size: 16px;">수신처 정보</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>수신처명 *</label>
+                        <input type="text" id="clientName" placeholder="(주)도서출판보리" required>
+                    </div>
+                    <div class="form-group">
+                        <label>담당자</label>
+                        <input type="text" id="clientContact" placeholder="홍길동">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>전화번호</label>
+                        <input type="text" id="clientPhone" placeholder="031-950-9511">
+                    </div>
+                    <div class="form-group">
+                        <label>이메일</label>
+                        <input type="email" id="clientEmail" placeholder="client@example.com">
+                    </div>
+                </div>
+
+                <h3 style="margin: 24px 0 16px 0; font-size: 16px;">견적 내역</h3>
+                <div class="items-section">
+                    <div id="itemsContainer">
+                        <div class="item-row">
+                            <input type="text" placeholder="품명 (예: 수질검사 생활용수20항목)" class="item-name" required>
+                            <input type="number" placeholder="단가" class="item-price" min="0" onchange="calculateTotal()" required>
+                            <input type="number" placeholder="수량" class="item-quantity" min="1" value="1" onchange="calculateTotal()" required>
+                            <input type="number" placeholder="금액" class="item-amount" readonly>
+                            <button type="button" class="remove-item" onclick="removeItem(this)" style="display: none;">삭제</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="addItem()" style="margin-top: 8px;">+ 항목 추가</button>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-row">
+                        <span>금액:</span>
+                        <span id="subtotal">0원</span>
+                    </div>
+                    <div class="total-row">
+                        <span>부가세 (10%):</span>
+                        <span id="vat">0원</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>합계:</span>
+                        <span id="grandTotal">0원</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>비고</label>
+                    <textarea id="notes" rows="3" placeholder="특이사항 입력"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="saveQuote('draft')" style="flex: 1;">임시저장</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">저장 & PDF 생성</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let quotes = [];
+        let currentFilter = 'all';
+        let editMode = false;
+        let editId = null;
+
+        function init() {
+            quotes = JSON.parse(localStorage.getItem('dasol_quotes') || '[]');
+            renderQuoteTable();
+            
+            // 견적번호 자동 생성
+            document.getElementById('quoteDate').value = new Date().toISOString().split('T')[0];
+            generateQuoteNumber();
+
+            // 폼 제출 이벤트
+            document.getElementById('quoteForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveQuote('sent');
+            });
+        }
+
+        function generateQuoteNumber() {
+            const today = new Date();
+            const year = today.getFullYear().toString().slice(2);
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const existingQuotes = quotes.filter(q => 
+                q.quoteNumber && q.quoteNumber.startsWith(`견적${year}${month}`)
+            );
+            const sequence = String(existingQuotes.length + 1).padStart(4, '0');
+            document.getElementById('quoteNumber').value = `견적${year}${month}-${sequence}`;
+        }
+
+        function openQuoteModal() {
+            editMode = false;
+            editId = null;
+            document.getElementById('quoteModal').classList.add('show');
+            document.getElementById('quoteForm').reset();
+            generateQuoteNumber();
+            document.getElementById('quoteDate').value = new Date().toISOString().split('T')[0];
+            
+            // 첫 항목 초기화
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = `
+                <div class="item-row">
+                    <input type="text" placeholder="품명 (예: 수질검사 생활용수20항목)" class="item-name" required>
+                    <input type="number" placeholder="단가" class="item-price" min="0" onchange="calculateTotal()" required>
+                    <input type="number" placeholder="수량" class="item-quantity" min="1" value="1" onchange="calculateTotal()" required>
+                    <input type="number" placeholder="금액" class="item-amount" readonly>
+                    <button type="button" class="remove-item" onclick="removeItem(this)" style="display: none;">삭제</button>
+                </div>
+            `;
+            calculateTotal();
+        }
+
+        function closeQuoteModal() {
+            document.getElementById('quoteModal').classList.remove('show');
+        }
+
+        function addItem() {
+            const container = document.getElementById('itemsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="품명" class="item-name" required>
+                <input type="number" placeholder="단가" class="item-price" min="0" onchange="calculateTotal()" required>
+                <input type="number" placeholder="수량" class="item-quantity" min="1" value="1" onchange="calculateTotal()" required>
+                <input type="number" placeholder="금액" class="item-amount" readonly>
+                <button type="button" class="remove-item" onclick="removeItem(this)">삭제</button>
+            `;
+            container.appendChild(newRow);
+            updateRemoveButtons();
+        }
+
+        function removeItem(btn) {
+            btn.closest('.item-row').remove();
+            calculateTotal();
+            updateRemoveButtons();
+        }
+
+        function updateRemoveButtons() {
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach((row, index) => {
+                const removeBtn = row.querySelector('.remove-item');
+                if (rows.length === 1) {
+                    removeBtn.style.display = 'none';
+                } else {
+                    removeBtn.style.display = 'block';
+                }
+            });
+        }
+
+        function calculateTotal() {
+            const rows = document.querySelectorAll('.item-row');
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const amount = price * quantity;
+                row.querySelector('.item-amount').value = amount;
+                subtotal += amount;
+            });
+
+            const vat = Math.round(subtotal * 0.1);
+            const grandTotal = subtotal + vat;
+
+            document.getElementById('subtotal').textContent = subtotal.toLocaleString() + '원';
+            document.getElementById('vat').textContent = vat.toLocaleString() + '원';
+            document.getElementById('grandTotal').textContent = grandTotal.toLocaleString() + '원';
+        }
+
+        function saveQuote(status) {
+            const rows = document.querySelectorAll('.item-row');
+            const items = [];
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.item-name').value;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const amount = price * quantity;
+                
+                items.push({ name, price, quantity, amount });
+                subtotal += amount;
+            });
+
+            const vat = Math.round(subtotal * 0.1);
+            const grandTotal = subtotal + vat;
+
+            const quote = {
+                id: editMode ? editId : 'Q' + Date.now(),
+                quoteNumber: document.getElementById('quoteNumber').value,
+                quoteDate: document.getElementById('quoteDate').value,
+                clientName: document.getElementById('clientName').value,
+                clientContact: document.getElementById('clientContact').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                clientEmail: document.getElementById('clientEmail').value,
+                items: items,
+                subtotal: subtotal,
+                vat: vat,
+                grandTotal: grandTotal,
+                notes: document.getElementById('notes').value,
+                status: status,
+                createdAt: editMode ? quotes.find(q => q.id === editId).createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                createdBy: JSON.parse(localStorage.getItem('dasol_session') || '{}').name || '관리자'
+            };
+
+            if (editMode) {
+                quotes = quotes.map(q => q.id === editId ? quote : q);
+            } else {
+                quotes.push(quote);
+            }
+
+            localStorage.setItem('dasol_quotes', JSON.stringify(quotes));
+            
+            if (status === 'sent') {
+                generateQuotePDF(quote);
+            }
+            
+            closeQuoteModal();
+            renderQuoteTable();
+            alert(status === 'draft' ? '임시저장되었습니다.' : '견적서가 생성되었습니다.');
+        }
+
+        function renderQuoteTable() {
+            const tbody = document.getElementById('quoteTableBody');
+            
+            let filtered = quotes;
+            if (currentFilter !== 'all') {
+                filtered = quotes.filter(q => q.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                            등록된 견적서가 없습니다
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(quote => `
+                <tr>
+                    <td>${quote.quoteNumber}</td>
+                    <td>${quote.clientName}</td>
+                    <td>${formatDate(quote.quoteDate)}</td>
+                    <td style="font-weight: 700; color: #667eea;">${quote.grandTotal.toLocaleString()}원</td>
+                    <td>
+                        <span class="status-badge status-${quote.status}">
+                            ${quote.status === 'draft' ? '임시저장' : quote.status === 'sent' ? '발송완료' : '의뢰전환'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-small" style="background: #667eea; color: white;" onclick="viewQuotePDF('${quote.id}')">PDF</button>
+                        <button class="btn-small" style="background: #10b981; color: white;" onclick="convertToRequest('${quote.id}')">의뢰전환</button>
+                        <button class="btn-small" style="background: #ef4444; color: white;" onclick="deleteQuote('${quote.id}')">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterQuotes(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderQuoteTable();
+        }
+
+        function deleteQuote(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            quotes = quotes.filter(q => q.id !== id);
+            localStorage.setItem('dasol_quotes', JSON.stringify(quotes));
+            renderQuoteTable();
+        }
+
+        function convertToRequest(id) {
+            if (!confirm('이 견적서를 의뢰서로 전환하시겠습니까?')) return;
+            
+            const quote = quotes.find(q => q.id === id);
+            quote.status = 'converted';
+            localStorage.setItem('dasol_quotes', JSON.stringify(quotes));
+            
+            // 의뢰서 페이지로 이동하면서 데이터 전달
+            sessionStorage.setItem('convertedQuote', JSON.stringify(quote));
+            window.location.href = 'request-register.html?fromQuote=true';
+        }
+
+        function viewQuotePDF(id) {
+            const quote = quotes.find(q => q.id === id);
+            generateQuotePDF(quote);
+        }
+
+        function generateQuotePDF(quote) {
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>견적서 - ${quote.quoteNumber}</title>
+                    <style>
+                        @page { size: A4; margin: 15mm; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+                            padding: 30px;
+                            line-height: 1.5;
+                        }
+                        .title {
+                            text-align: center;
+                            font-size: 32px;
+                            font-weight: 700;
+                            margin-bottom: 40px;
+                            padding-bottom: 15px;
+                            border-bottom: 4px double #000;
+                            letter-spacing: 8px;
+                        }
+                        .info-section {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 25px;
+                            margin-bottom: 40px;
+                        }
+                        .info-box {
+                            border: 2px solid #000;
+                            position: relative;
+                        }
+                        .info-box h3 {
+                            text-align: center;
+                            margin: 0;
+                            padding: 12px;
+                            border-bottom: 2px solid #000;
+                            background: #f5f5f5;
+                            font-size: 16px;
+                            font-weight: 700;
+                        }
+                        .info-content {
+                            padding: 20px;
+                        }
+                        .info-row {
+                            display: grid;
+                            grid-template-columns: 110px 1fr;
+                            margin-bottom: 10px;
+                            font-size: 14px;
+                            line-height: 1.6;
+                        }
+                        .info-label {
+                            font-weight: 600;
+                            background: #f9f9f9;
+                            padding: 6px 10px;
+                            border-right: 1px solid #ddd;
+                        }
+                        .info-value {
+                            padding: 6px 10px;
+                        }
+                        .stamp-container {
+                            position: absolute;
+                            top: 15px;
+                            right: 15px;
+                            width: 80px;
+                            height: 80px;
+                            z-index: 10;
+                        }
+                        .stamp-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .meta-info {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 20px;
+                            padding: 15px;
+                            background: #f9f9f9;
+                            border: 1px solid #ddd;
+                            font-size: 13px;
+                        }
+                        .meta-info-item {
+                            display: flex;
+                            gap: 8px;
+                        }
+                        .meta-label {
+                            font-weight: 600;
+                        }
+                        .statement {
+                            text-align: center;
+                            margin: 30px 0 20px 0;
+                            font-size: 15px;
+                            font-weight: 600;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            border: 2px solid #000;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 12px 8px;
+                            text-align: center;
+                            font-size: 13px;
+                        }
+                        th {
+                            background: #f0f0f0;
+                            font-weight: 700;
+                        }
+                        .col-no { width: 50px; }
+                        .col-item { width: 120px; }
+                        .col-spec { width: auto; }
+                        .col-unit { width: 70px; }
+                        .col-qty { width: 70px; }
+                        .col-amount { width: 120px; }
+                        .total-section {
+                            margin-top: 30px;
+                            border: 2px solid #000;
+                            padding: 20px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                        }
+                        .total-row {
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 14px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        .total-row:last-child {
+                            border-bottom: none;
+                        }
+                        .total-row .label {
+                            font-weight: 600;
+                        }
+                        .total-row.grand {
+                            font-size: 18px;
+                            font-weight: 700;
+                            border-top: 2px solid #000;
+                            padding-top: 15px;
+                            margin-top: 10px;
+                            color: #667eea;
+                        }
+                        .footer {
+                            margin-top: 50px;
+                            text-align: center;
+                            padding-top: 30px;
+                            border-top: 2px solid #000;
+                        }
+                        .company-info {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 20px;
+                            margin-bottom: 15px;
+                        }
+                        .logo-container {
+                            width: 80px;
+                            height: 80px;
+                        }
+                        .logo-container img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
+                        .company-details {
+                            text-align: left;
+                            font-size: 13px;
+                            line-height: 1.8;
+                        }
+                        .company-name {
+                            font-size: 18px;
+                            font-weight: 700;
+                            margin-bottom: 5px;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">견 적 서</div>
+                    
+                    <div class="meta-info">
+                        <div class="meta-info-item">
+                            <span class="meta-label">문서번호:</span>
+                            <span>${quote.quoteNumber}</span>
+                        </div>
+                        <div class="meta-info-item">
+                            <span class="meta-label">견적일자:</span>
+                            <span>${new Date(quote.createdAt).toLocaleDateString('ko-KR')}</span>
+                        </div>
+                        <div class="meta-info-item">
+                            <span class="meta-label">유효기간:</span>
+                            <span>${new Date(new Date(quote.createdAt).setDate(new Date(quote.createdAt).getDate() + 30)).toLocaleDateString('ko-KR')}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-box">
+                            <h3>수 신</h3>
+                            <div class="info-content">
+                                <div class="info-row">
+                                    <div class="info-label">상 호</div>
+                                    <div class="info-value">${quote.clientName} 귀하</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">담당자</div>
+                                    <div class="info-value">${quote.clientContact || '-'}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">전 화</div>
+                                    <div class="info-value">${quote.clientPhone || '-'}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">금 액</div>
+                                    <div class="info-value" style="font-weight: 700; color: #667eea;">일금${convertNumberToKorean(quote.grandTotal)}원정<br>(₩ ${quote.grandTotal.toLocaleString()})</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <h3>발 신</h3>
+                            <div class="stamp-container">
+                                <img src="../assets/stamp-transparent.png" alt="사각도장" />
+                            </div>
+                            <div class="info-content">
+                                <div class="info-row">
+                                    <div class="info-label">상 호</div>
+                                    <div class="info-value">(주)다솔물환경연구소</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">대표이사</div>
+                                    <div class="info-value">심태보</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">사업자번호</div>
+                                    <div class="info-value">214-88-95667</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">주 소</div>
+                                    <div class="info-value">경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">전 화</div>
+                                    <div class="info-value">031-772-4530</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">팩 스</div>
+                                    <div class="info-value">070-8677-0553</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">계좌번호</div>
+                                    <div class="info-value">국민은행 220401-04-219973</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">예금주</div>
+                                    <div class="info-value">(주)다솔물환경연구소</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">작성자</div>
+                                    <div class="info-value">${quote.createdBy}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="statement">상기와 같이 견적 합니다.</div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-no">번호</th>
+                                <th class="col-item">구분</th>
+                                <th class="col-spec">품명</th>
+                                <th class="col-unit">단가(원)</th>
+                                <th class="col-qty">수량</th>
+                                <th class="col-amount">금액(원)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${quote.items.map((item, index) => `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>수질검사</td>
+                                    <td style="text-align: left; padding-left: 15px;">${item.name}</td>
+                                    <td style="text-align: right; padding-right: 10px;">${item.price.toLocaleString()}</td>
+                                    <td>${item.quantity}</td>
+                                    <td style="text-align: right; font-weight: 700; padding-right: 10px;">${item.amount.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                            ${Array(Math.max(0, 8 - quote.items.length)).fill(0).map(() => `
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="total-section">
+                        <div class="total-row">
+                            <span class="label">금 액</span>
+                            <span>${quote.subtotal.toLocaleString()} 원</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="label">부가세</span>
+                            <span>${quote.vat.toLocaleString()} 원</span>
+                        </div>
+                        <div class="total-row grand">
+                            <span class="label">합 계</span>
+                            <span>${quote.grandTotal.toLocaleString()} 원</span>
+                        </div>
+                    </div>
+                    
+                    ${quote.notes ? `<div style="margin-top: 25px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd;"><strong style="font-size: 14px;">※ 비고:</strong><br/><span style="font-size: 13px; line-height: 1.8;">${quote.notes}</span></div>` : ''}
+                    
+                    <div class="footer">
+                        <div class="company-info">
+                            <div class="logo-container">
+                                <img src="../assets/logo.png" alt="다솔물환경연구소 로고" />
+                            </div>
+                            <div class="company-details">
+                                <div class="company-name">주식회사 다솔물환경연구소</div>
+                                <div>경기도 하남시 초광산단로 126, 우일빌딩 3층</div>
+                                <div>Tel. 031-772-4530 | Fax. 070-8677-0553</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px; font-weight: 600;">🖨️ 인쇄</button>
+                        <button onclick="window.close()" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">닫기</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=900,height=800');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        function convertNumberToKorean(num) {
+            const units = ['', '만', '억', '조'];
+            const nums = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+            const positions = ['', '십', '백', '천'];
+            
+            if (num === 0) return '영';
+            
+            let result = '';
+            let unitIndex = 0;
+            
+            while (num > 0) {
+                const part = num % 10000;
+                if (part > 0) {
+                    let partStr = '';
+                    let tempPart = part;
+                    let posIndex = 0;
+                    
+                    while (tempPart > 0) {
+                        const digit = tempPart % 10;
+                        if (digit > 0) {
+                            partStr = nums[digit] + positions[posIndex] + partStr;
+                        }
+                        tempPart = Math.floor(tempPart / 10);
+                        posIndex++;
+                    }
+                    
+                    result = partStr + units[unitIndex] + result;
+                }
+                num = Math.floor(num / 10000);
+                unitIndex++;
+            }
+            
+            return result;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        init();
+    </script>
+</body>
+</html>
